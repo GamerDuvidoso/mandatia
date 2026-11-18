@@ -43,6 +43,10 @@ var availability_checked := false
 var model := MODEL
 var examples: Array = []
 var last_error := ""
+## Structured output (JSON mode) do Ollama. Mantido desativado por padrão:
+## com gramática forçada alguns modelos/versões omitem o motivo do erro em
+## abortos; o parsing robusto (_extract_json) já lida com JSON sem formato.
+var use_json_format := false
 
 var _ops: Dictionary = {}
 var _seq := 0
@@ -235,8 +239,8 @@ func _attempt(op_id: String) -> void:
 	op["http"] = http
 	_ops[op_id] = op
 	http.request_completed.connect(_on_response.bind(op_id, attempt))
-	# Sem "format": "json": com gramática forçada o Ollama devolve corpo vazio
-	# quando aborta a geração, escondendo o motivo real do erro.
+	# Structured output opcional: "format":"json" melhora conformidade, mas em
+	# alguns casos pode omitir o motivo de aborto; desativado por padrão.
 	var body := {
 		"model": model,
 		"prompt": prompt,
@@ -244,6 +248,8 @@ func _attempt(op_id: String) -> void:
 		"keep_alive": KEEP_ALIVE,
 		"options": {"temperature": 0.2, "num_predict": _max_tokens(contract), "seed": 7},
 	}
+	if use_json_format:
+		body["format"] = "json"
 	var err := http.request(GENERATE_URL, ["Content-Type: application/json"], HTTPClient.METHOD_POST, JSON.stringify(body))
 	if err != OK:
 		_retry_or_fallback(op_id, "erro de transporte " + str(err))
@@ -461,7 +467,15 @@ func _load_examples() -> void:
 	if not FileAccess.file_exists(EXAMPLES_PATH):
 		return
 	var parsed: Variant = JSON.parse_string(FileAccess.get_file_as_string(EXAMPLES_PATH))
-	if parsed is Dictionary and (parsed as Dictionary).get("examples") is Array:
-		examples = (parsed as Dictionary).get("examples", [])
-	if parsed is Dictionary and str((parsed as Dictionary).get("model", "")) != "":
-		model = str((parsed as Dictionary).get("model", MODEL))
+	if not (parsed is Dictionary):
+		return
+	var data: Dictionary = parsed
+	if data.get("examples") is Array:
+		examples = data.get("examples", [])
+	if str(data.get("model", "")) != "":
+		model = str(data.get("model", MODEL))
+	if data.has("use_json_format"):
+		use_json_format = bool(data.get("use_json_format", false))
+	elif data.has("json_format"):
+		var jf: Variant = data.get("json_format")
+		use_json_format = jf == true or str(jf) == "json"
