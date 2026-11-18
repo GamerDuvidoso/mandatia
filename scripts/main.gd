@@ -9,6 +9,7 @@ const Contracts := preload("res://scripts/ai/ai_contracts.gd")
 const COUNTRY_DATA_PATH := "res://config/countries.json"
 const SAVE_PATH := "user://mandatia_save.json"
 const SAVE_TMP := "user://mandatia_save.tmp"
+const SAVE_BACKUP := "user://mandatia_save.bak"
 const LEGACY_SAVE_PATH := "user://mandato_save.json"
 const SAVE_VERSION := 5
 const TERM_MONTHS := 48
@@ -80,11 +81,19 @@ var promise_options: Array = []
 var promise_confirm: Button
 var ai: Node
 var ai_wait_panel: PanelContainer
+var ai_wait_ops: Array = []
 var _month_in_progress := false
 var _bill_in_progress := false
 var _election_in_progress := false
 var _event_due := false
 var _international_due := false
+var _month_stamp_pending := ""
+var _month_event_needed := false
+var _month_event_done := true
+var _month_intl_needed := false
+var _month_intl_done := true
+var _month_event_op := ""
+var _month_intl_op := ""
 
 var regions := [
 	{"name":"Costa Norte", "kind":"Portos e pesca", "pop":1.9, "support":33.0, "income":58, "unemployment":7.8, "problem":"infraestrutura portuária"},
@@ -1497,8 +1506,34 @@ func _month_stamp() -> String:
 
 ## O mês só é concluído uma vez: evento e cena internacional passam pela IA,
 ## com fallback determinístico, e o fechamento é idempotente pelo carimbo.
+## Quando ambos são devidos, as requisições rodam em paralelo para reduzir espera.
 func _resolve_month(stamp: String) -> void:
-	if _event_due:
+	if str(state.get("month_completed", "")) == stamp:
+		_month_in_progress = false
+		return
+	_month_stamp_pending = stamp
+	_month_event_needed = bool(_event_due)
+	_month_event_done = not _month_event_needed
+	_month_intl_needed = false
+	_month_intl_done = true
+	_month_event_op = ""
+	_month_intl_op = ""
+	_event_due = false
+
+	if _international_due:
+		_international_due = false
+		var party_ids: Array = _active_parties_for_international()
+		_month_intl_needed = not party_ids.is_empty()
+		_month_intl_done = not _month_intl_needed
+
+	if not _month_event_needed and not _month_intl_needed:
+		_complete_month(stamp)
+		return
+
+	var ops: Array = []
+	var messages: Array = []
+
+	if _month_event_needed:
 		var prompt_ctx := {
 			"pais": str(state.country_name),
 			"governo": "governo" if bool(state.government) else "oposição",
@@ -1509,19 +1544,53 @@ func _resolve_month(stamp: String) -> void:
 		}
 		var meta := {"month": int(state.date_month), "year": int(state.date_year), "country": str(state.country_id)}
 		var data := {"entities": ["evento", str(state.country_id)]}
-		var op_id: String = ai.request(Contracts.EVENTS, prompt_ctx, data, meta, _on_month_event.bind(stamp))
-		if ai.is_pending(op_id):
-			_show_ai_wait("A conjuntura do mês está sendo resolvida...", op_id)
-		return
-	_after_month_event(stamp)
+		_month_event_op = ai.request(Contracts.EVENTS, prompt_ctx, data, meta, _on_month_event.bind(stamp))
+		if ai.is_pending(_month_event_op):
+			ops.append(_month_event_op)
+			messages.append("conjuntura")
 
-func _on_month_event(result: Dictionary, stamp: String) -> void:
+	if _month_intl_needed:
+		var party_ids: Array = _active_parties_for_international()
+		var prompt_ctx_i := {
+			"pais": str(state.country_name),
+			"governo": "governo" if bool(state.government) else "oposição",
+			"bancadas": party_ids,
+			"ids_permitidos": party_ids,
+			"mes": int(state.date_month),
+			"ano": int(state.date_year),
+		}
+		var meta_i := {"month": int(state.date_month), "year": int(state.date_year), "country": str(state.country_id)}
+		var data_i := {"party_ids": party_ids, "entities": party_ids}
+		_month_intl_op = ai.request(Contracts.INTERNATIONAL, prompt_ctx_i, data_i, meta_i, _on_month_international.bind(stamp))
+		if ai.is_pending(_month_intl_op):
+			ops.append(_month_intl_op)
+			messages.append("cenário internacional")
+
+	# Em fallback síncrono os callbacks podem ter concluído o mês.
 	if str(state.get("month_completed", "")) == stamp:
 		return
-	_hide_ai_wait()
+	if not ops.is_empty():
+		var msg := "Resolvendo a conjuntura do mês..." if messages.size() == 1 and messages[0] == "conjuntura" else "Lendo o cenário internacional..." if messages.size() == 1 else "Resolvendo conjuntura e cenário internacional em paralelo..."
+		_show_ai_wait(msg, ops)
+
+func _active_parties_for_international() -> Array:
+	var party_ids: Array = []
+	var seat_map: Dictionary = state.get("seat_map", {}) if state.get("seat_map") is Dictionary else {}
+	for key in seat_map.keys():
+		if int(seat_map[key]) > 0:
+			party_ids.append(str(key))
+	return party_ids
+
+func _on_month_event(result: Dictionary, stamp: String) -> void:
+	if stamp != _month_stamp_pending or str(state.get("month_completed", "")) == stamp:
+		return
+	if _month_event_done:
+		return
+	_month_event_done = true
+	_month_event_op = ""
 	var value: Dictionary = result.get("value", {})
 	_apply_month_event(value)
-	_after_month_event(stamp)
+	_maybe_finish_month(stamp)
 
 func _apply_month_event(value: Dictionary) -> void:
 	var headline := str(value.get("headline", "")).strip_edges()
@@ -1544,36 +1613,14 @@ func _apply_ai_effects(effects: Dictionary, source: String) -> void:
 		float(effects.get("funds", 0.0)), float(effects.get("debt", 0.0)),
 	])
 
-func _after_month_event(stamp: String) -> void:
-	if _international_due:
-		_international_due = false
-		var party_ids: Array = []
-		var seat_map: Dictionary = state.get("seat_map", {}) if state.get("seat_map") is Dictionary else {}
-		for key in seat_map.keys():
-			if int(seat_map[key]) > 0:
-				party_ids.append(str(key))
-		if not party_ids.is_empty():
-			var prompt_ctx := {
-				"pais": str(state.country_name),
-				"governo": "governo" if bool(state.government) else "oposição",
-				"bancadas": party_ids,
-				"ids_permitidos": party_ids,
-				"mes": int(state.date_month),
-				"ano": int(state.date_year),
-			}
-			var meta := {"month": int(state.date_month), "year": int(state.date_year), "country": str(state.country_id)}
-			var data := {"party_ids": party_ids, "entities": party_ids}
-			var op_id: String = ai.request(Contracts.INTERNATIONAL, prompt_ctx, data, meta, _on_month_international.bind(stamp))
-			if ai.is_pending(op_id):
-				_show_ai_wait("A cena internacional está sendo lida...", op_id)
-			return
-	_complete_month(stamp)
-
 ## A cena internacional é gerada na simulação e apenas exibida na tela.
 func _on_month_international(result: Dictionary, stamp: String) -> void:
-	if str(state.get("month_completed", "")) == stamp:
+	if stamp != _month_stamp_pending or str(state.get("month_completed", "")) == stamp:
 		return
-	_hide_ai_wait()
+	if _month_intl_done:
+		return
+	_month_intl_done = true
+	_month_intl_op = ""
 	var value: Dictionary = result.get("value", {})
 	var international: Dictionary = value.get("international", {}) if value.get("international") is Dictionary else {}
 	var reactions: Dictionary = value.get("reactions", {}) if value.get("reactions") is Dictionary else {}
@@ -1588,7 +1635,16 @@ func _on_month_international(result: Dictionary, stamp: String) -> void:
 	if str(international.get("event", "")) != "":
 		state.news.push_front("Internacional: " + str(international.get("event", "")))
 	_apply_international_reactions(reactions)
-	_complete_month(stamp)
+	_maybe_finish_month(stamp)
+
+func _maybe_finish_month(stamp: String) -> void:
+	if str(state.get("month_completed", "")) == stamp:
+		return
+	if _month_event_done and _month_intl_done:
+		_hide_ai_wait()
+		_complete_month(stamp)
+	else:
+		_update_ai_wait_message()
 
 func _apply_international_reactions(reactions: Dictionary) -> void:
 	if reactions.is_empty():
@@ -1605,23 +1661,42 @@ func _apply_international_reactions(reactions: Dictionary) -> void:
 func _complete_month(stamp: String) -> void:
 	if str(state.get("month_completed", "")) == stamp:
 		_month_in_progress = false
+		_month_stamp_pending = ""
 		return
 	state["month_completed"] = stamp
 	_month_in_progress = false
+	_month_stamp_pending = ""
+	_month_event_needed = false
+	_month_event_done = true
+	_month_intl_needed = false
+	_month_intl_done = true
+	_month_event_op = ""
+	_month_intl_op = ""
+	_hide_ai_wait()
 	_clamp_state(); _save_game(); _show_game()
 
-func _show_ai_wait(message: String, op_id: String) -> void:
+func _show_ai_wait(message: String, op_ids: Variant) -> void:
 	_hide_ai_wait()
 	if not is_instance_valid(root_stack):
 		return
+	var ids: Array = []
+	if op_ids is Array:
+		ids = op_ids
+	elif op_ids is String and str(op_ids) != "":
+		ids = [str(op_ids)]
+	ai_wait_ops = ids
 	var panel := PanelContainer.new()
 	panel.add_theme_stylebox_override("panel", _style(PANEL_2, AMBER, 8, 2))
 	panel.position = Vector2(28, 84)
-	panel.custom_minimum_size.x = 420
+	panel.custom_minimum_size.x = 460
 	var col := VBoxContainer.new()
+	col.name = "Col"
 	col.add_theme_constant_override("separation", 6)
 	col.add_child(_label("IA LOCAL  ·  huihui_ai/qwen2.5-abliterate:3b", 11, AMBER))
-	col.add_child(_label(message, 15, TEXT))
+	var msg := _label(message, 15, TEXT)
+	msg.name = "Msg"
+	msg.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	col.add_child(msg)
 	var row := HBoxContainer.new()
 	var note := _label("2 tentativas · 20 s cada · fallback pronto", 11, MUTED)
 	note.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -1629,7 +1704,8 @@ func _show_ai_wait(message: String, op_id: String) -> void:
 	var skip := _button("RESOLVER SEM IA", MUTED, false)
 	skip.pressed.connect(func() -> void:
 		if ai != null:
-			ai.cancel(op_id)
+			for op_id in ai_wait_ops:
+				ai.cancel(str(op_id))
 		_hide_ai_wait())
 	row.add_child(skip)
 	col.add_child(row)
@@ -1637,10 +1713,25 @@ func _show_ai_wait(message: String, op_id: String) -> void:
 	root_stack.add_child(panel)
 	ai_wait_panel = panel
 
+func _update_ai_wait_message() -> void:
+	if not is_instance_valid(ai_wait_panel):
+		return
+	var parts: Array = []
+	if _month_event_needed and not _month_event_done:
+		parts.append("conjuntura")
+	if _month_intl_needed and not _month_intl_done:
+		parts.append("cenário internacional")
+	if parts.is_empty():
+		return
+	var msg_node := ai_wait_panel.get_node_or_null("Col/Msg")
+	if msg_node is Label:
+		msg_node.text = "Aguardando IA: " + " e ".join(PackedStringArray(parts)) + "..."
+
 func _hide_ai_wait() -> void:
 	if is_instance_valid(ai_wait_panel):
 		ai_wait_panel.queue_free()
 	ai_wait_panel = null
+	ai_wait_ops = []
 
 func _update_header() -> void:
 	if not is_instance_valid(header_date): return
@@ -2013,7 +2104,7 @@ func _manual_save() -> void:
 	_save_game(); _show_toast("Campanha salva em user://mandatia_save.json", "success")
 
 func _has_save() -> bool:
-	return FileAccess.file_exists(SAVE_PATH) or FileAccess.file_exists(LEGACY_SAVE_PATH) or FileAccess.file_exists(_legacy_save_absolute_path())
+	return FileAccess.file_exists(SAVE_PATH) or FileAccess.file_exists(SAVE_BACKUP) or FileAccess.file_exists(LEGACY_SAVE_PATH) or FileAccess.file_exists(_legacy_save_absolute_path())
 
 func _legacy_save_absolute_path() -> String:
 	return OS.get_user_data_dir().get_base_dir().path_join("Mandato — Poder e Política").path_join("mandato_save.json")
@@ -2031,7 +2122,17 @@ func _save_game() -> void:
 	var dir := DirAccess.open("user://")
 	if dir == null:
 		return
+	# Rotação: o save atual vira backup antes de ser substituído, para que um
+	# arquivo corrompido possa ser recuperado no próximo carregamento.
+	# Cópia via FileAccess: DirAccess.copy com caminho relativo ao root não abre
+	# o arquivo no Windows.
 	if dir.file_exists("mandatia_save.json"):
+		var current := FileAccess.get_file_as_string(SAVE_PATH)
+		if current != "":
+			var bak := FileAccess.open(SAVE_BACKUP, FileAccess.WRITE)
+			if bak != null:
+				bak.store_string(current)
+				bak.close()
 		dir.remove("mandatia_save.json")
 	if dir.rename("mandatia_save.tmp", "mandatia_save.json") == OK:
 		return
@@ -2041,29 +2142,43 @@ func _save_game() -> void:
 	direct.store_string(JSON.stringify(payload))
 	direct.close()
 
-func _load_game() -> void:
-	if not _has_save():
-		return
-	var path := SAVE_PATH
-	if not FileAccess.file_exists(path) and FileAccess.file_exists(LEGACY_SAVE_PATH):
-		path = LEGACY_SAVE_PATH
-	elif not FileAccess.file_exists(path) and FileAccess.file_exists(_legacy_save_absolute_path()):
-		path = _legacy_save_absolute_path()
+## Lê um arquivo de save e devolve o estado migrado, ou {} se estiver ilegível.
+func _read_save_file(path: String) -> Dictionary:
+	if not FileAccess.file_exists(path):
+		return {}
 	var file := FileAccess.open(path, FileAccess.READ)
 	if file == null:
-		return
-	var parsed: Variant = JSON.parse_string(file.get_as_text())
+		return {}
+	var text := file.get_as_text()
 	file.close()
+	var parsed: Variant = JSON.parse_string(text)
 	if not (parsed is Dictionary):
-		return
+		return {}
 	var data: Dictionary = parsed
 	if data.get("state") is Dictionary:
 		data = data.get("state")
-	var migrated := _migrate_state(data)
-	if migrated.is_empty():
+	return _migrate_state(data)
+
+func _save_candidates() -> Array:
+	var paths: Array = [SAVE_PATH]
+	if FileAccess.file_exists(SAVE_BACKUP):
+		paths.append(SAVE_BACKUP)
+	if FileAccess.file_exists(LEGACY_SAVE_PATH):
+		paths.append(LEGACY_SAVE_PATH)
+	if FileAccess.file_exists(_legacy_save_absolute_path()):
+		paths.append(_legacy_save_absolute_path())
+	return paths
+
+func _load_game() -> void:
+	for path in _save_candidates():
+		var migrated := _read_save_file(str(path))
+		if migrated.is_empty():
+			continue
+		state = migrated
+		if str(path) == SAVE_BACKUP:
+			state.news.push_front("O arquivo de save principal estava corrompido: a campanha foi recuperada do backup.")
+		_ensure_chamber_state()
 		return
-	state = migrated
-	_ensure_chamber_state()
 
 func _migrate_state(raw: Dictionary) -> Dictionary:
 	for key in SAVE_REQUIRED_KEYS:

@@ -68,7 +68,7 @@ func _installed_models(tags: Dictionary) -> PackedStringArray:
 				out.append(name)
 	return out
 
-func _request_once(ai: Node, contract: String, ctx: Dictionary, data: Dictionary, meta: Dictionary, timeout_ms: int = 45000) -> Dictionary:
+func _request_once(ai: Node, contract: String, ctx: Dictionary, data: Dictionary, meta: Dictionary, timeout_ms: int = 70000) -> Dictionary:
 	var box: Array = []
 	var start := Time.get_ticks_msec()
 	ai.request(contract, ctx, data, meta, func(payload: Dictionary) -> void: box.append(payload))
@@ -135,7 +135,7 @@ func _eval_model(model: String) -> Dictionary:
 	var available := bool(ai.get("ai_available"))
 	var out := {"model": model, "available": available, "rounds": [], "summary": {}}
 	if not available:
-		print("[eval]   indisponível: " + str(ai.get("last_error", "")))
+		print("[eval]   indisponível: " + str(ai.get("last_error")))
 		ai.queue_free()
 		return out
 	for r in range(rounds):
@@ -159,7 +159,10 @@ func _eval_model(model: String) -> Dictionary:
 		it["contract"] = "international"
 		round_out.contracts.append(it)
 		for c in round_out.contracts:
-			print("[eval]   r%d %-13s source=%s ms=%s ok=%s" % [r + 1, str(c.get("contract", "")), str(c.get("source", "")), str(c.get("ms", "")), str(c.get("ok", false))])
+			var extra := ""
+			if c.has("covered_banks"):
+				extra = " bancadas=%d/%d lotes=%d/%d" % [int(c.get("covered_banks", 0)), int(c.get("total_banks", 0)), int(c.get("ok_batches", 0)), int(c.get("batches", 0))]
+			print("[eval]   r%d %-13s source=%s ms=%s ok=%s%s" % [r + 1, str(c.get("contract", "")), str(c.get("source", "")), str(c.get("ms", "")), str(c.get("ok", false)), extra])
 		out.rounds.append(round_out)
 	var by_contract := {}
 	for round_out in out.rounds:

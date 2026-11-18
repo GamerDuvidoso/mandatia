@@ -116,6 +116,9 @@ func _run() -> void:
 	var dir := DirAccess.open("user://")
 	if dir != null and dir.file_exists("mandatia_save.json"):
 		dir.remove("mandatia_save.json")
+	# Sem remover o backup, o carregamento legado encontraria o .bak antes do save antigo.
+	if dir != null and dir.file_exists("mandatia_save.bak"):
+		dir.remove("mandatia_save.bak")
 	var legacy_file := FileAccess.open("user://mandato_save.json", FileAccess.WRITE)
 	legacy_file.store_string(JSON.stringify({"party": "Partido Legado", "date_year": 2028, "date_month": 3, "country_id": "BR", "region_support": [1, 2, 3, 4, 5, 6, 7, 8]}))
 	legacy_file.close()
@@ -247,6 +250,18 @@ func _run() -> void:
 	game.call("_load_game")
 	var cache_after_load: Dictionary = game.get("state").get("ai_decisions", {})
 	_check(cache_after_load.has("cache_teste|v1"), "cache de IA deve persistir no save/load")
+
+	# Backup do save: dois salvamentos geram .bak e um arquivo corrompido cai nele.
+	game.call("_save_game")
+	game.call("_save_game")
+	_check(FileAccess.file_exists("user://mandatia_save.bak"), "salvamentos devem manter um backup do save anterior")
+	var corrupt := FileAccess.open("user://mandatia_save.json", FileAccess.WRITE)
+	corrupt.store_string("{ isto nao e json")
+	corrupt.close()
+	var expected_party := str(game.get("state").get("party", ""))
+	game.get("state")["party"] = "Partido Perdido"
+	game.call("_load_game")
+	_check(str(game.get("state").get("party", "")) == expected_party, "save corrompido deve recuperar do backup")
 
 	# Segurança assíncrona no motor: mês idempotente, evento aplicado uma vez,
 	# internacional só exibe o estado salvo.
