@@ -699,6 +699,12 @@ func _show_party() -> void:
 	_build_right_rail()
 
 func _party_action(action: String) -> void:
+	var cost := 900
+	if action == "volunteers": cost = 650
+	elif action == "program": cost = 1100
+	if float(state.funds) < float(cost):
+		_show_toast("Caixa insuficiente para esta ação", "error")
+		return
 	if action == "regional":
 		state.funds -= 900; state.recognition += 3; state.popularity += 2
 		for i in state.region_support.size(): state.region_support[i] += 1.2
@@ -720,7 +726,7 @@ func _show_elections() -> void:
 	var majority := Election.majority_of(seats)
 	var player_key := str(state.abbr)
 	var top := HBoxContainer.new()
-	top.add_child(_metric_card("PRÓXIMA ELEIÇÃO", "%d meses" % max(0, 12 - int(state.date_month)), AMBER))
+	top.add_child(_metric_card("PRÓXIMA ELEIÇÃO", "%d meses" % max(0, int(state.months_to_election)), AMBER))
 	top.add_child(_metric_card("INTENÇÃO DE VOTO", "%.1f%%" % float(shares.get(player_key, 0.0)), CYAN))
 	top.add_child(_metric_card("CADEIRAS PROJETADAS", ("%d de %d" % [int(projection.get(player_key, 0)), seats]) if seats > 0 else "câmara não informada", AMBER))
 	main_column.add_child(top)
@@ -1430,8 +1436,9 @@ func _diplomacy(country: String) -> void:
 
 func _show_news() -> void:
 	_show_section("Notícias", "O mundo reage às suas políticas. Leia antes de avançar o mês.")
-	for item in state.news:
-		var card := _panel_box(); var col := VBoxContainer.new(); col.add_child(_label("%02d  ·  %d/%02d/%d" % [state.news.find(item) + 1, 1, state.date_month, state.date_year], 12, AMBER)); col.add_child(_label(str(item), 16, TEXT)); card.add_child(col); main_column.add_child(card)
+	for index in state.news.size():
+		var item: Variant = state.news[index]
+		var card := _panel_box(); var col := VBoxContainer.new(); col.add_child(_label("%02d  ·  %d/%02d/%d" % [index + 1, 1, state.date_month, state.date_year], 12, AMBER)); col.add_child(_label(str(item), 16, TEXT)); card.add_child(col); main_column.add_child(card)
 	_build_right_rail()
 
 func _show_history() -> void:
@@ -1604,13 +1611,19 @@ func _apply_month_event(value: Dictionary) -> void:
 		state["event_effects_applied"] = true
 
 func _apply_ai_effects(effects: Dictionary, source: String) -> void:
-	state.approval += float(effects.get("approval", 0.0))
-	state.popularity += float(effects.get("popularity", 0.0))
-	state.funds += float(effects.get("funds", 0.0))
-	state.debt += float(effects.get("debt", 0.0))
+	var approval := float(effects.get("approval", 0.0))
+	var popularity := float(effects.get("popularity", 0.0))
+	var funds := float(effects.get("funds", 0.0))
+	var debt := float(effects.get("debt", 0.0))
+	state.approval += approval
+	state.popularity += popularity
+	state.funds += funds
+	state.debt += debt
+	# Fallback do evento pode vir sem efeitos: uma linha "tudo zero" só polui o radar.
+	if is_zero_approx(approval) and is_zero_approx(popularity) and is_zero_approx(funds) and is_zero_approx(debt):
+		return
 	state.news.push_front("Efeitos do %s aplicados uma única vez: aprovação %+.1f, popularidade %+.1f, caixa %+.0f, dívida %+.2f p.p." % [
-		source, float(effects.get("approval", 0.0)), float(effects.get("popularity", 0.0)),
-		float(effects.get("funds", 0.0)), float(effects.get("debt", 0.0)),
+		source, approval, popularity, funds, debt,
 	])
 
 ## A cena internacional é gerada na simulação e apenas exibida na tela.
@@ -1687,7 +1700,11 @@ func _show_ai_wait(message: String, op_ids: Variant) -> void:
 	ai_wait_ops = ids
 	var panel := PanelContainer.new()
 	panel.add_theme_stylebox_override("panel", _style(PANEL_2, AMBER, 8, 2))
-	panel.position = Vector2(28, 84)
+	# Ao lado da barra lateral, para o painel não cobrir a navegação enquanto espera.
+	var left := 22.0
+	if is_instance_valid(sidebar):
+		left += float(sidebar.custom_minimum_size.x)
+	panel.position = Vector2(left, 84)
 	panel.custom_minimum_size.x = 460
 	var col := VBoxContainer.new()
 	col.name = "Col"
@@ -1905,7 +1922,7 @@ func _show_promises() -> void:
 	promise_confirm.pressed.connect(_confirm_promises)
 	box.add_child(promise_confirm)
 
-func _on_promise_toggled(check: CheckBox, pressed: bool, counter: Label) -> void:
+func _on_promise_toggled(check: BaseButton, pressed: bool, counter: Label) -> void:
 	var selected := 0
 	for item in promise_checks:
 		if item.button_pressed:
@@ -2066,7 +2083,7 @@ func _show_toast(message: String, kind := "info") -> void:
 		color = AMBER
 	toast = _label(message, 15, TEXT)
 	toast.custom_minimum_size.x = 240
-	toast.position = Vector2(28, size.y - 58)
+	toast.position = Vector2(28, size.y - 96)
 	toast.add_theme_stylebox_override("normal", _style(PANEL_2, color, 6, 2))
 	root_stack.add_child(toast)
 	get_tree().create_timer(3.0).timeout.connect(func(): if is_instance_valid(toast): toast.queue_free())
@@ -2263,6 +2280,9 @@ func _government_role() -> String:
 
 func _export_data() -> void:
 	var file := FileAccess.open("user://mandato_export.json", FileAccess.WRITE)
+	if file == null:
+		_show_toast("Não foi possível gravar o export", "error")
+		return
 	file.store_string(JSON.stringify(state, "  ")); file.close(); _show_toast("Exportado em user://mandato_export.json", "success")
 
 func _import_data() -> void:

@@ -69,6 +69,12 @@ func attach(game_node: Node) -> void:
 func stop() -> void:
 	for op_id in _ops.keys():
 		cancel(str(op_id))
+	# Sondagem pendente também precisa ser cortada: a resposta atrasada chamava
+	# _probe.request num nó já liberado e escrevia erro no console ao sair.
+	if _probe != null and is_instance_valid(_probe):
+		_probe.cancel_request()
+		_probe.queue_free()
+	_probe = null
 	if _warm != null and is_instance_valid(_warm):
 		_warm.cancel_request()
 		_warm.queue_free()
@@ -96,6 +102,8 @@ func _on_probe_timeout() -> void:
 		_set_available(false, "servidor local não respondeu")
 
 func _on_probe_completed(result: int, response_code: int, _headers: PackedStringArray, body: PackedByteArray) -> void:
+	if _probe == null or not is_instance_valid(_probe):
+		return
 	if result != HTTPRequest.RESULT_SUCCESS or response_code != 200:
 		_set_available(false, "tags: HTTP %d" % response_code)
 		return

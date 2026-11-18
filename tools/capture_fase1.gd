@@ -15,6 +15,13 @@ func _run() -> void:
 	var game: Node = packed.instantiate()
 	root.add_child(game)
 	await _settle()
+	# Fallback determinístico: sem isso o avanço de mês fica bloqueado esperando
+	# o modelo e as capturas saem com o painel de espera em cima da tela.
+	var ai: Node = game.get("ai")
+	if ai != null:
+		ai.stop()
+		ai.set("ai_available", false)
+		ai.set("availability_checked", true)
 	_shot("menu")
 
 	game.call("_show_new_game")
@@ -28,7 +35,7 @@ func _run() -> void:
 	game.call("_auto_pick_promises")
 	await _settle()
 	for _month in 8:
-		game.call("_advance_month")
+		await _advance(game)
 	await _settle()
 	_shot("cabecalho-e-painel")
 
@@ -41,8 +48,11 @@ func _run() -> void:
 	_shot("economia")
 
 	game.get("state")["months_to_election"] = 0
+	game.call("_select_nav", "Eleições")
+	await _settle()
 	game.call("_run_election")
 	await _settle()
+	print("[shot] tela após eleição: ", game.get("screen"))
 	_shot("resultado-do-mandato")
 	game.call("_auto_pick_promises")
 	await _settle()
@@ -59,6 +69,16 @@ func _run() -> void:
 	game.queue_free()
 	await process_frame
 	quit(0)
+
+## Avança um mês e espera o mês fechar (fallback síncrono ou IA respondida).
+func _advance(game: Node) -> void:
+	game.call("_advance_month")
+	for _i in 200:
+		await process_frame
+		var current: Dictionary = game.get("state")
+		var expected := "%d-%02d" % [int(current.get("date_year", 0)), int(current.get("date_month", 0))]
+		if not bool(game.get("_month_in_progress")) or str(current.get("month_completed", "")) == expected:
+			return
 
 func _settle() -> void:
 	for _i in 18:
