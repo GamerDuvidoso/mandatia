@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 2,
+  "publicationOrigin": "https://mandato-ydfd8mmh.manus.game",
+  "title": "Mandato — Poder e Política",
+  "description": "Simulação política por turnos na República de Aurora.",
+  "defaultCaptions": {},
+  "assets": {
+    "favicon": {
+      "digest": "sha256:92ebc02c7a45fe0db18721ecef44ede0e2a6647d954a57c8c560f4b095853257",
+      "path": "share/92ebc02c7a45fe0db18721ecef44ede0e2a6647d954a57c8c560f4b095853257.png",
+      "mime": "image/png",
+      "width": 2080,
+      "height": 1664,
+      "sizeBytes": 1763148
+    }
+  }
+}

@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="manus-game-loading-screen" content="1">
+  <title>Mandato — Poder e Política</title>
+  $GODOT_HEAD_INCLUDE
+  <style>
+    :root { color-scheme: dark; }
+    html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; background: #08111f; color: #e7edf5; font-family: Georgia, "Times New Roman", serif; }
+    #canvas { display: block; width: 100%; height: 100%; outline: none; }
+    #loading { position: fixed; inset: 0; display: grid; place-content: center; gap: 16px; padding: 24px; background: #08111f; text-align: center; }
+    #loading[hidden], [hidden] { display: none; }
+    h1 { margin: 0; letter-spacing: .18em; font-size: clamp(28px, 7vw, 58px); color: #e8b45b; }
+    p { margin: 0; font: 14px Arial, sans-serif; color: #8ea4ba; }
+    progress { width: min(360px, 75vw); accent-color: #62c7c9; }
+    button { justify-self: center; padding: 12px 22px; cursor: pointer; font: 600 14px Arial, sans-serif; color: #08111f; background: #e8b45b; border: 0; border-radius: 4px; }
+    #loading::before, #loading::after { content: ""; position: fixed; pointer-events: none; border: 1px solid rgba(98,199,201,.18); }
+    #loading::before { inset: 12%; }
+    #loading::after { inset: 14%; border-color: rgba(232,180,91,.16); }
+    #loading-notice { max-width: 360px; justify-self: center; line-height: 1.5; }
+    @media (prefers-reduced-motion: reduce) { * { animation-duration: .01ms !important; } }
+  </style>
+</head>
+<body>
+  <div id="loading" aria-live="polite">
+    <h1>MANDATO</h1>
+    <p>REPÚBLICA DE AURORA · CENTRO DE COMANDO POLÍTICO</p>
+    <progress id="status-progress" value="0" max="100"></progress>
+    <p id="status-text">Carregando instituições...</p>
+    <p id="loading-notice" hidden></p>
+    <button id="retry" hidden>RECARREGAR</button>
+  </div>
+  <canvas id="canvas">Seu navegador não suporta canvas.</canvas>
+  <script>
+    (() => {
+      const config = $GODOT_CONFIG;
+      const threads = $GODOT_THREADS_ENABLED;
+      const canvas = document.getElementById("canvas");
+      const progress = document.getElementById("status-progress");
+      const text = document.getElementById("status-text");
+      const loading = document.getElementById("loading");
+      const notice = document.getElementById("loading-notice");
+      const retry = document.getElementById("retry");
+      retry.addEventListener("click", () => window.location.reload());
+      const onProgress = (current, total) => {
+        if (Number.isFinite(total) && total > 0) { progress.max = total; progress.value = current; text.textContent = current >= total ? "Abrindo gabinete..." : `${Math.floor(current / total * 100)}%`; }
+        else { progress.removeAttribute("value"); text.textContent = "Carregando instituições..."; }
+      };
+      const fail = (error) => { console.error("[game-loading] Startup failed", error); notice.hidden = false; notice.textContent = "Não foi possível abrir a campanha."; retry.hidden = false; };
+      const start = async () => {
+        try {
+          const missing = Engine.getMissingFeatures({ threads });
+          if (missing.length) throw new Error(`Missing browser features: ${missing.join(", ")}`);
+          const engine = new Engine({ ...config, canvas });
+          await engine.startGame({ onProgress });
+          requestAnimationFrame(() => requestAnimationFrame(() => { loading.hidden = true; canvas.focus(); }));
+        } catch (error) { fail(error); }
+      };
+      const script = document.createElement("script");
+      script.src = "$GODOT_URL";
+      script.addEventListener("load", start, { once: true });
+      script.addEventListener("error", () => fail(new Error("Engine script could not be loaded")), { once: true });
+      document.head.appendChild(script);
+    })();
+  </script>
+</body>
+</html>

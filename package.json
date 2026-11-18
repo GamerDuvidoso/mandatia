@@ -1,0 +1,11 @@
+{
+  "name": "mandatia",
+  "version": "2.0.0",
+  "private": true,
+  "description": "Mandatia — simulação política por turnos em Godot 4.7",
+  "scripts": {
+    "test": "./.tools/Godot_v4.7-stable_win64_console.exe --headless --path . res://test/test_suite.tscn",
+    "audit": "python3 tools/audit_countries.py",
+    "capture": "./.tools/Godot_v4.7-stable_win64_console.exe --path . --script tools/capture_fase1.gd"
+  }
+}

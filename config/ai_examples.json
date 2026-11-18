@@ -1,0 +1,40 @@
+{
+  "version": "2.0.0",
+  "model": "huihui_ai/qwen2.5-abliterate:3b",
+  "timeout_ms": 20000,
+  "max_attempts": 2,
+  "cache_store": "state.ai_decisions",
+  "log_path": "user://ai_log/ai_*.jsonl",
+  "examples": [
+    {
+      "id": "legislative_1",
+      "contract": "legislative",
+      "prompt": "Proposição de investimento regional (eixo -0.2); bancadas: PL 99 cadeiras, PT 68, UNIAO 59.",
+      "completion": "{\"votes\": {\"PL\": [72, 18, 10], \"PT\": [5, 15, 80], \"UNIAO\": [90, 6, 4]}}"
+    },
+    {
+      "id": "legislative_2",
+      "contract": "legislative",
+      "prompt": "Reforma fiscal de ajuste (eixo 0.5); bancadas: PP 50 cadeiras, PSD 44, MDB 44.",
+      "completion": "{\"votes\": {\"PP\": [84, 10, 6], \"PSD\": [61, 25, 14], \"MDB\": [18, 32, 50]}}"
+    },
+    {
+      "id": "electoral_1",
+      "contract": "electoral",
+      "prompt": "Campanha forte em regiões metropolitanas, pesquisa estável, três partidos.",
+      "completion": "{\"parties\": {\"PL\": {\"delta_pp\": 1.4, \"reason\": \"debate venceu\"}, \"PT\": {\"delta_pp\": -1.2, \"reason\": \"desgaste na base\"}, \"UNIAO\": {\"delta_pp\": 0.8, \"reason\": \"apoio do agronegócio\"}}}"
+    },
+    {
+      "id": "events_1",
+      "contract": "events",
+      "prompt": "Greve nacional pede reajuste acima da inflação.",
+      "completion": "{\"headline\": \"Greve pressiona governo por reajuste real\", \"effects\": {\"approval\": -3, \"popularity\": 2, \"funds\": -400, \"debt\": 0.3}}"
+    },
+    {
+      "id": "international_1",
+      "contract": "international",
+      "prompt": "Tensão tarifária com país vizinho; partido de governo e oposição.",
+      "completion": "{\"reactions\": {\"PL\": {\"support_change\": 3, \"cohesion_change\": 2, \"reason\": \"defesa do setor exportador\"}, \"PT\": {\"support_change\": -4, \"cohesion_change\": 1, \"reason\": \"crítica ao ajuste\"}}, \"international\": {\"event\": \"Tarifas sobre aço e alumínio\", \"impact\": \"Exportadores pressionam o governo por compensação\"}}"
+    }
+  ]
+}
