@@ -25,6 +25,9 @@ const INTERNATIONAL := "international"
 const CONTRACTS := [LEGISLATIVE, ELECTORAL, EVENTS, INTERNATIONAL]
 
 const VOTE_TOLERANCE := 0.5
+## Bancadas por pedido de voto. Com muitas bancadas numa resposta só o modelo
+## de 3B corta a lista no meio; blocos menores voltam completos.
+const LEGISLATIVE_CHUNK := 4
 const ELECTORAL_MAX_DELTA := 3.0
 const EFFECT_LIMITS := {"approval": 6.0, "popularity": 4.0, "funds": 800.0, "debt": 1.0}
 const REACTION_LIMIT := 10.0
@@ -121,7 +124,61 @@ static func prompt(contract: String, ctx: Dictionary, examples: Array) -> String
 
 # ---------------------------------------------------------------- legislativo
 
+## O modelo às vezes erra uma letra na sigla ("CIDANHIA" para CIDADANIA).
+## Só normaliza quando a sigla não existe e há um único candidato parecido.
+static func _resolve_party(key: String, known: Array) -> String:
+	var raw := key.strip_edges()
+	if raw == "":
+		return raw
+	var upper := raw.to_upper()
+	for item in known:
+		if str(item).to_upper() == upper:
+			return str(item)
+	# Sigla cortada ("L" para LLA) só vale quando é prefixo de uma única sigla.
+	var prefix_hits: Array = []
+	for item in known:
+		if str(item).to_upper().begins_with(upper):
+			prefix_hits.append(str(item))
+	if prefix_hits.size() == 1:
+		return str(prefix_hits[0])
+	# Sigla com letra sobrando ("PJS" para PJ): a sigla real é prefixo do texto.
+	var longer_hits: Array = []
+	for item in known:
+		if upper.begins_with(str(item).to_upper()) and str(item).length() >= 2:
+			longer_hits.append(str(item))
+	if longer_hits.size() == 1:
+		return str(longer_hits[0])
+	var best := ""
+	var best_distance := 99
+	var tie := false
+	for item in known:
+		var candidate := str(item)
+		if candidate.length() < 4 or raw.length() < 4:
+			continue
+		var distance := _edit_distance(upper, candidate.to_upper())
+		if distance < best_distance:
+			best_distance = distance
+			best = candidate
+			tie = false
+		elif distance == best_distance:
+			tie = true
+	if best != "" and best_distance <= 2 and not tie:
+		return best
+	return raw
+
+static func _edit_distance(a: String, b: String) -> int:
+	var previous := range(b.length() + 1)
+	for i in range(1, a.length() + 1):
+		var current := [i]
+		for j in range(1, b.length() + 1):
+			var cost := 0 if a[i - 1] == b[j - 1] else 1
+			current.append(mini(mini(int(current[j - 1]) + 1, int(previous[j]) + 1), int(previous[j - 1]) + cost))
+		previous = current
+	return int(previous[b.length()])
+
 ## Valida percentuais por bancada: IDs existentes, valores 0-100, soma 100.
+## Bancada ausente não invalida o bloco: volta em "missing" para o motor
+## completar (ou para o cliente pedir uma correção antes de aceitar).
 static func validate_legislative(parsed: Variant, seat_map: Dictionary) -> Dictionary:
 	if not (parsed is Dictionary):
 		return _error("resposta não é um objeto JSON")
@@ -136,9 +193,9 @@ static func validate_legislative(parsed: Variant, seat_map: Dictionary) -> Dicti
 		return _error("sem bancadas para votar")
 	var clean := {}
 	for key in (votes as Dictionary).keys():
-		var party := str(key)
+		var party := _resolve_party(str(key), active)
 		if not seat_map.has(party):
-			return _error("partido inexistente: " + party)
+			return _error("partido inexistente: " + str(key))
 		var entry: Variant = (votes as Dictionary)[key]
 		var sim: Variant = null
 		var abstain: Variant = null
@@ -165,10 +222,11 @@ static func validate_legislative(parsed: Variant, seat_map: Dictionary) -> Dicti
 		if float(sim) < 0.0 or float(abstain) < 0.0 or float(nay) < 0.0 or float(sim) > 100.0 or float(abstain) > 100.0 or float(nay) > 100.0:
 			return _error("percentual fora de 0-100 em " + party)
 		clean[party] = {"sim": float(sim), "abstencao": float(abstain), "nao": float(nay)}
+	var missing: Array = []
 	for party in active:
 		if not clean.has(str(party)):
-			return _error("bancada sem voto: " + str(party))
-	return {"ok": true, "votes": clean}
+			missing.append(str(party))
+	return {"ok": true, "votes": clean, "missing": missing}
 
 ## Converte percentuais em cadeiras, preservando o total exato da bancada.
 static func votes_to_outcome(votes: Dictionary, seat_map: Dictionary) -> Dictionary:
@@ -352,9 +410,11 @@ static func validate_international(parsed: Variant, party_ids: Array) -> Diction
 		known[str(item)] = true
 	var reactions := {}
 	for key in (reactions_raw as Dictionary).keys():
-		var party := str(key)
+		# Mesma tolerância do plenário: sigla truncada ou com uma letra errada
+		# volta para o ID real quando não há ambiguidade.
+		var party := _resolve_party(str(key), party_ids)
 		if not known.has(party):
-			return _error("partido inexistente: " + party)
+			return _error("partido inexistente: " + str(key))
 		var entry: Variant = (reactions_raw as Dictionary)[key]
 		if not (entry is Dictionary):
 			return _error("reação de %s não é objeto" % party)

@@ -42,7 +42,21 @@ O Godot 4.7 fica em `.tools/` (não versionado).
 
 # capturas de tela em docs/shots/
 ./.tools/Godot_v4.7-stable_win64_console.exe --path . --script tools/capture_fase1.gd
+
+# walkthrough de UI ponta a ponta (sai com 1 em falha)
+./.tools/Godot_v4.7-stable_win64_console.exe --headless --path . --script tools/walkthrough.gd
+
+# sonda da IA local no jogo (plenário, evento e cenário internacional)
+./.tools/Godot_v4.7-stable_win64_console.exe --headless --path . --script tools/probe_ai_end_to_end.gd
+
+# conteudo do build exportado
+./.tools/Godot_v4.7-stable_win64_console.exe --headless --path . --export-release "Windows Desktop" builds/Mandatia.exe
+python3 tools/verify_pack.py
 ```
+
+O build exportado nao executa `--script res://tools/...` (tools/* fica fora do
+pack), por isso a conferencia do pack le o proprio `.pck` em
+`tools/verify_pack.py`.
 
 ## IA local (planejada)
 

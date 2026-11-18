@@ -1,7 +1,8 @@
 extends SceneTree
-## Sonda da resolução paralela do mês com IA real (evento + cenário internacional).
+## Sonda da resolução do mês com IA real (evento + cenário internacional).
 ## Mede a latência de um mês em que os dois contratos são devidos e confirma que
-## o mês fecha uma única vez, sem duplicar efeitos.
+## o mês fecha uma única vez, sem duplicar efeitos. Os dois contratos são
+## resolvidos em sequência porque o Ollama atende uma requisição por vez.
 ##
 ## Uso:
 ##   Godot_v4.7-stable_win64_console.exe --headless --path . --script tools/probe_month_parallel.gd
@@ -96,5 +97,5 @@ func _run() -> void:
 		print("[parallel] FALHA: mês reaplicou efeitos (%.2f -> %.2f)" % [approval_before, approval_after])
 		quit(1)
 		return
-	print("[parallel] PASS: fechamento idempotente e chamadas em paralelo")
+	print("[parallel] PASS: fechamento idempotente e contratos do mês resolvidos")
 	quit(0)

@@ -999,7 +999,7 @@ func _show_congress() -> void:
 	_build_right_rail()
 
 ## O modelo local trava com JSON longo: cada bloco de bancadas é uma decisão.
-const BILL_BANKS_PER_REQUEST := 5
+const BILL_BANKS_PER_REQUEST := Contracts.LEGISLATIVE_CHUNK
 
 func _propose_bill(bill_id: String) -> void:
 	var bill := Legislature.bill(bill_id)
@@ -1513,7 +1513,9 @@ func _month_stamp() -> String:
 
 ## O mês só é concluído uma vez: evento e cena internacional passam pela IA,
 ## com fallback determinístico, e o fechamento é idempotente pelo carimbo.
-## Quando ambos são devidos, as requisições rodam em paralelo para reduzir espera.
+## Quando ambos são devidos, o evento vai primeiro e o cenário internacional
+## começa quando ele termina: o Ollama atende uma requisição por vez e dois
+## pedidos simultâneos estouravam o prazo de 20 s e caíam no fallback.
 func _resolve_month(stamp: String) -> void:
 	if str(state.get("month_completed", "")) == stamp:
 		_month_in_progress = false
@@ -1540,6 +1542,7 @@ func _resolve_month(stamp: String) -> void:
 	var ops: Array = []
 	var messages: Array = []
 
+	var event_needed := _month_event_needed
 	if _month_event_needed:
 		var prompt_ctx := {
 			"pais": str(state.country_name),
@@ -1556,19 +1559,10 @@ func _resolve_month(stamp: String) -> void:
 			ops.append(_month_event_op)
 			messages.append("conjuntura")
 
-	if _month_intl_needed:
-		var party_ids: Array = _active_parties_for_international()
-		var prompt_ctx_i := {
-			"pais": str(state.country_name),
-			"governo": "governo" if bool(state.government) else "oposição",
-			"bancadas": party_ids,
-			"ids_permitidos": party_ids,
-			"mes": int(state.date_month),
-			"ano": int(state.date_year),
-		}
-		var meta_i := {"month": int(state.date_month), "year": int(state.date_year), "country": str(state.country_id)}
-		var data_i := {"party_ids": party_ids, "entities": party_ids}
-		_month_intl_op = ai.request(Contracts.INTERNATIONAL, prompt_ctx_i, data_i, meta_i, _on_month_international.bind(stamp))
+	# Sem evento devido, o cenário internacional já sai agora; com evento, ele
+	# espera a vez (ver _on_month_event) para não disputar o modelo.
+	if _month_intl_needed and not event_needed:
+		_start_month_international(stamp)
 		if ai.is_pending(_month_intl_op):
 			ops.append(_month_intl_op)
 			messages.append("cenário internacional")
@@ -1577,16 +1571,56 @@ func _resolve_month(stamp: String) -> void:
 	if str(state.get("month_completed", "")) == stamp:
 		return
 	if not ops.is_empty():
-		var msg := "Resolvendo a conjuntura do mês..." if messages.size() == 1 and messages[0] == "conjuntura" else "Lendo o cenário internacional..." if messages.size() == 1 else "Resolvendo conjuntura e cenário internacional em paralelo..."
+		var msg := "Resolvendo a conjuntura do mês..." if messages.size() == 1 and messages[0] == "conjuntura" else "Lendo o cenário internacional..." if messages.size() == 1 else "Resolvendo conjuntura e cenário internacional..."
 		_show_ai_wait(msg, ops)
 
+func _start_month_international(stamp: String) -> void:
+	if not _month_intl_needed or _month_intl_done:
+		return
+	var party_ids: Array = _active_parties_for_international()
+	if party_ids.is_empty():
+		_month_intl_done = true
+		return
+	var prompt_ctx_i := {
+		"pais": str(state.country_name),
+		"governo": "governo" if bool(state.government) else "oposição",
+		"bancadas": party_ids,
+		"ids_permitidos": party_ids,
+		"mes": int(state.date_month),
+		"ano": int(state.date_year),
+	}
+	var meta_i := {"month": int(state.date_month), "year": int(state.date_year), "country": str(state.country_id)}
+	var data_i := {"party_ids": party_ids, "entities": party_ids}
+	_month_intl_op = ai.request(Contracts.INTERNATIONAL, prompt_ctx_i, data_i, meta_i, _on_month_international.bind(stamp))
+
+## O contrato internacional pede uma reação por bancada e o modelo de 3B não
+## fecha uma câmara de 21 partidos dentro dos 20 s: o cenário é pedido para as
+## bancadas que pesam (governo, coalizão e as maiores) e as demais ficam neutras.
+const INTERNATIONAL_MAX_BANKS := 5
+
 func _active_parties_for_international() -> Array:
-	var party_ids: Array = []
 	var seat_map: Dictionary = state.get("seat_map", {}) if state.get("seat_map") is Dictionary else {}
+	var ranked: Array = []
 	for key in seat_map.keys():
 		if int(seat_map[key]) > 0:
-			party_ids.append(str(key))
-	return party_ids
+			ranked.append([str(key), int(seat_map[key])])
+	if ranked.is_empty():
+		return []
+	ranked.sort_custom(func(a: Array, b: Array) -> bool: return int(a[1]) > int(b[1]))
+	var picked: Array = []
+	var priority: Array = [str(state.get("abbr", ""))]
+	if state.get("coalition_partners") is Array:
+		priority.append_array(state.coalition_partners)
+	for key in priority:
+		var party := str(key)
+		if party != "" and picked.size() < INTERNATIONAL_MAX_BANKS and not picked.has(party) and int(seat_map.get(party, 0)) > 0:
+			picked.append(party)
+	for item in ranked:
+		if picked.size() >= INTERNATIONAL_MAX_BANKS:
+			break
+		if not picked.has(str(item[0])):
+			picked.append(str(item[0]))
+	return picked
 
 func _on_month_event(result: Dictionary, stamp: String) -> void:
 	if stamp != _month_stamp_pending or str(state.get("month_completed", "")) == stamp:
@@ -1597,6 +1631,12 @@ func _on_month_event(result: Dictionary, stamp: String) -> void:
 	_month_event_op = ""
 	var value: Dictionary = result.get("value", {})
 	_apply_month_event(value)
+	# Evento encerrado: agora o cenário internacional entra na vez do modelo.
+	if _month_intl_needed and not _month_intl_done:
+		_start_month_international(stamp)
+		if ai.is_pending(_month_intl_op):
+			_show_ai_wait("Lendo o cenário internacional...", [_month_intl_op])
+			return
 	_maybe_finish_month(stamp)
 
 func _apply_month_event(value: Dictionary) -> void:
@@ -2168,7 +2208,12 @@ func _read_save_file(path: String) -> Dictionary:
 		return {}
 	var text := file.get_as_text()
 	file.close()
-	var parsed: Variant = JSON.parse_string(text)
+	# JSON.new() em vez de JSON.parse_string(): um save corrompido é tratado
+	# como ilegível (cai no backup) sem despejar erro do parser no console.
+	var json := JSON.new()
+	if json.parse(text) != OK:
+		return {}
+	var parsed: Variant = json.data
 	if not (parsed is Dictionary):
 		return {}
 	var data: Dictionary = parsed

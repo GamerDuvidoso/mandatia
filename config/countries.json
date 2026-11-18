@@ -1250,10 +1250,11 @@
         "https://www.asambleanacional.gob.ec/es/pleno-asambleistas",
         "https://www.cne.gob.ec/cne-proclama-resultados-definitivos-y-adjudica-escanos-de-asambleistas-nacionales-y-parlamentarios-andinos/",
         "https://www.cne.gob.ec/autoridades-electas-elecciones-generales-2025/",
+        "https://www.cne.gob.ec/wp-content/uploads/2026/03/LIBRO-RESULTADOS-ELECTORALES-2025-1.pdf",
         "https://data.ipu.org/parliament/EC/EC-LC01/"
       ],
       "structure": "Unicameral",
-      "seat_gap_note": "3 cadeiras não atribuídas: a lista oficial de 151 assambleístas não fecha a soma por partido no snapshot consultado."
+      "seat_gap_note": "3 cadeiras não atribuídas: o livro oficial de resultados de 2025 do CNE fecha as 151 cadeiras por organização (RC 67, ADN 66, Pachakutik 9, PSC 4, Construye 1), e as 3 restantes estão em movimentos provinciais (Acuerdo Ciudadano, Sur Unido Regional, UP/PID/PSE e PSP/PSC/DSI) sem liderança nacional publicada; nenhum partido foi criado sem fonte."
     },
     {
       "chambers": [

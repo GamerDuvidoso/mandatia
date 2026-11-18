@@ -315,7 +315,13 @@ func _on_response(result: int, response_code: int, _headers: PackedStringArray, 
 	var parsed: Variant = JSON.parse_string(inner_text)
 	var validation := _validate(str(op.get("contract", "")), parsed, op.get("data", {}))
 	if bool(validation.get("ok", false)):
-		op["validation"] = "ok"
+		# Bloco incompleto: uma correção pedindo as bancadas que faltaram. Se o
+		# modelo repetir o corte, o que veio é aceito e o motor vota o resto.
+		var missing: Array = validation.get("missing", []) if validation.get("missing") is Array else []
+		if not missing.is_empty() and int(op.get("retries", 0)) == 0:
+			_retry_or_fallback(op_id, "faltaram bancadas: " + ", ".join(PackedStringArray(missing)))
+			return
+		op["validation"] = "ok" if missing.is_empty() else "parcial: faltaram " + ", ".join(PackedStringArray(missing))
 		_ops[op_id] = op
 		_finish(op_id, validation, "ollama", "")
 		return

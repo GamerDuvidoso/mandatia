@@ -6,6 +6,7 @@
   "scripts": {
     "test": "./.tools/Godot_v4.7-stable_win64_console.exe --headless --path . res://test/test_suite.tscn",
     "audit": "python3 tools/audit_countries.py",
+    "verify:pack": "python3 tools/verify_pack.py",
     "capture": "./.tools/Godot_v4.7-stable_win64_console.exe --path . --script tools/capture_fase1.gd"
   }
 }

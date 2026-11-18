@@ -99,8 +99,9 @@ func _eval_legislative(ai: Node, meta_base: Dictionary) -> Dictionary:
 	var ok_batches := 0
 	var total_ms := 0
 	var cursor := 0
+	var chunk := Contracts.LEGISLATIVE_CHUNK
 	while cursor < banks.size():
-		var batch: Array = banks.slice(cursor, mini(cursor + 5, banks.size()))
+		var batch: Array = banks.slice(cursor, mini(cursor + chunk, banks.size()))
 		batches += 1
 		var chunk_map := {}
 		var lines: Array = []
@@ -122,11 +123,11 @@ func _eval_legislative(ai: Node, meta_base: Dictionary) -> Dictionary:
 		meta["bill"] = "investment:%d" % cursor
 		var r: Dictionary = await _request_once(ai, Contracts.LEGISLATIVE, ctx, data, meta)
 		total_ms += int(r.get("ms", 0))
+		var votes: Dictionary = (r.get("value", {}) as Dictionary).get("votes", {})
+		covered += votes.size()
 		if str(r.get("source", "")) == "ollama":
 			ok_batches += 1
-			var votes: Dictionary = (r.get("value", {}) as Dictionary).get("votes", {})
-			covered += votes.size()
-		cursor += 5
+		cursor += chunk
 	return {"contract": "legislative", "ok": ok_batches == batches and covered == banks.size(), "covered_banks": covered, "total_banks": banks.size(), "ok_batches": ok_batches, "batches": batches, "ms": total_ms}
 
 func _eval_model(model: String) -> Dictionary:

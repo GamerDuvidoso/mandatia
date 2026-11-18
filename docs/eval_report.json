@@ -10,18 +10,18 @@
         {
           "contracts": [
             {
-              "batches": 3,
+              "batches": 4,
               "contract": "legislative",
-              "covered_banks": 5,
-              "ms": 64655,
-              "ok": false,
-              "ok_batches": 1,
+              "covered_banks": 13,
+              "ms": 28099,
+              "ok": true,
+              "ok_batches": 4,
               "total_banks": 13
             },
             {
               "contract": "electoral",
               "fallback_used": false,
-              "ms": 10695,
+              "ms": 10516,
               "ok": true,
               "reason": "",
               "source": "ollama",
@@ -50,7 +50,7 @@
             {
               "contract": "events",
               "fallback_used": false,
-              "ms": 4968,
+              "ms": 7204,
               "ok": true,
               "reason": "",
               "source": "ollama",
@@ -68,7 +68,7 @@
             {
               "contract": "international",
               "fallback_used": false,
-              "ms": 11964,
+              "ms": 12022,
               "ok": true,
               "reason": "",
               "source": "ollama",
@@ -81,18 +81,18 @@
                 "reactions": {
                   "PL": {
                     "cohesion_change": 3.0,
-                    "reason": "melhoria na relação interna",
-                    "support_change": 2.0
+                    "reason": "melhora da economia",
+                    "support_change": 5.0
                   },
                   "PT": {
                     "cohesion_change": 2.0,
-                    "reason": "crítica à inflação",
-                    "support_change": -3.0
+                    "reason": "melhora da economia",
+                    "support_change": 4.0
                   },
                   "UNIAO": {
-                    "cohesion_change": 4.0,
-                    "reason": "acordo comercial",
-                    "support_change": 1.0
+                    "cohesion_change": 1.0,
+                    "reason": "melhora da economia",
+                    "support_change": 2.0
                   }
                 }
               }
@@ -103,23 +103,23 @@
       ],
       "summary": {
         "electoral": {
-          "ms_sum": 10695,
+          "ms_sum": 10516,
           "ok": 1,
           "total": 1
         },
         "events": {
-          "ms_sum": 4968,
+          "ms_sum": 7204,
           "ok": 1,
           "total": 1
         },
         "international": {
-          "ms_sum": 11964,
+          "ms_sum": 12022,
           "ok": 1,
           "total": 1
         },
         "legislative": {
-          "ms_sum": 64655,
-          "ok": 0,
+          "ms_sum": 28099,
+          "ok": 1,
           "total": 1
         }
       }
