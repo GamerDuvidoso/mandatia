@@ -426,7 +426,8 @@ func _write_cache(key: String, value: Dictionary) -> void:
 	state["ai_decisions"] = cache
 
 func _open_log() -> void:
-	DirAccess.make_dir_recursive_absolute(LOG_DIR)
+	var abs_dir := ProjectSettings.globalize_path(LOG_DIR)
+	DirAccess.make_dir_recursive_absolute(abs_dir)
 	_log_path = "%s/ai_%d.jsonl" % [LOG_DIR, int(Time.get_unix_time_from_system())]
 	_log_file = FileAccess.open(_log_path, FileAccess.WRITE)
 	if _log_file == null:

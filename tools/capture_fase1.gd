@@ -9,7 +9,7 @@ func _initialize() -> void:
 	call_deferred("_run")
 
 func _run() -> void:
-	DirAccess.make_dir_recursive_absolute(SHOT_DIR)
+	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(SHOT_DIR))
 	DisplayServer.window_set_size(Vector2i(1280, 720))
 	var packed: PackedScene = load("res://scenes/main.tscn")
 	var game: Node = packed.instantiate()
