@@ -1,0 +1,128 @@
+{
+  "installed": [
+    "huihui_ai/qwen2.5-abliterate:3b"
+  ],
+  "results": [
+    {
+      "available": true,
+      "model": "huihui_ai/qwen2.5-abliterate:3b",
+      "rounds": [
+        {
+          "contracts": [
+            {
+              "batches": 3,
+              "contract": "legislative",
+              "covered_banks": 5,
+              "ms": 64655,
+              "ok": false,
+              "ok_batches": 1,
+              "total_banks": 13
+            },
+            {
+              "contract": "electoral",
+              "fallback_used": false,
+              "ms": 10695,
+              "ok": true,
+              "reason": "",
+              "source": "ollama",
+              "value": {
+                "deltas": {
+                  "FT": 1.2,
+                  "OUTROS": 0.5,
+                  "PL": 2.1,
+                  "PT": 1.5
+                },
+                "ok": true,
+                "reasons": {
+                  "FT": "melhor desempenho em popularidade",
+                  "OUTROS": "melhor desempenho em aprovacao",
+                  "PL": "melhor desempenho em pesquisa",
+                  "PT": "melhor desempenho em debate"
+                },
+                "shares": {
+                  "FT": 7.91329479768786,
+                  "OUTROS": 45.4277456647399,
+                  "PL": 25.5375722543353,
+                  "PT": 21.121387283237
+                }
+              }
+            },
+            {
+              "contract": "events",
+              "fallback_used": false,
+              "ms": 4968,
+              "ok": true,
+              "reason": "",
+              "source": "ollama",
+              "value": {
+                "effects": {
+                  "approval": 3.0,
+                  "debt": 0.5,
+                  "funds": 400.0,
+                  "popularity": 2.0
+                },
+                "headline": "Governo brasileiro recupera popularidade com reforma",
+                "ok": true
+              }
+            },
+            {
+              "contract": "international",
+              "fallback_used": false,
+              "ms": 11964,
+              "ok": true,
+              "reason": "",
+              "source": "ollama",
+              "value": {
+                "international": {
+                  "event": "Tarifas sobre aço e alumínio",
+                  "impact": "Exportadores pressionam o governo por compensação"
+                },
+                "ok": true,
+                "reactions": {
+                  "PL": {
+                    "cohesion_change": 3.0,
+                    "reason": "melhoria na relação interna",
+                    "support_change": 2.0
+                  },
+                  "PT": {
+                    "cohesion_change": 2.0,
+                    "reason": "crítica à inflação",
+                    "support_change": -3.0
+                  },
+                  "UNIAO": {
+                    "cohesion_change": 4.0,
+                    "reason": "acordo comercial",
+                    "support_change": 1.0
+                  }
+                }
+              }
+            }
+          ],
+          "round": 1
+        }
+      ],
+      "summary": {
+        "electoral": {
+          "ms_sum": 10695,
+          "ok": 1,
+          "total": 1
+        },
+        "events": {
+          "ms_sum": 4968,
+          "ok": 1,
+          "total": 1
+        },
+        "international": {
+          "ms_sum": 11964,
+          "ok": 1,
+          "total": 1
+        },
+        "legislative": {
+          "ms_sum": 64655,
+          "ok": 0,
+          "total": 1
+        }
+      }
+    }
+  ]
+}

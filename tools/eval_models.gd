@@ -87,6 +87,10 @@ func _request_once(ai: Node, contract: String, ctx: Dictionary, data: Dictionary
 		"value": payload.get("value", {}),
 	}
 
+# Mesmo formato de prompt que o jogo envia em _request_bill_chunk: sem as
+# linhas de bancada o 3B responde JSON inválido e cai no fallback.
+const EVAL_AXES := {"PT": -0.55, "PL": 0.6, "UNIAO": 0.3, "PP": 0.45, "PSD": 0.2, "MDB": 0.05, "REPUBLICANOS": 0.5, "PSDB": -0.1, "PDT": -0.4, "PSB": -0.5, "PODE": 0.1, "PSOL": -0.8, "CIDADANIA": -0.2}
+
 func _eval_legislative(ai: Node, meta_base: Dictionary) -> Dictionary:
 	var seat_map := {"PT": 67, "PL": 92, "UNIAO": 59, "PP": 47, "PSD": 46, "MDB": 44, "REPUBLICANOS": 41, "PSDB": 13, "PDT": 17, "PSB": 14, "PODE": 14, "PSOL": 13, "CIDADANIA": 5}
 	var banks := seat_map.keys()
@@ -98,16 +102,22 @@ func _eval_legislative(ai: Node, meta_base: Dictionary) -> Dictionary:
 	while cursor < banks.size():
 		var batch: Array = banks.slice(cursor, mini(cursor + 5, banks.size()))
 		batches += 1
+		var chunk_map := {}
+		var lines: Array = []
+		for party in batch:
+			chunk_map[str(party)] = int(seat_map[str(party)])
+			lines.append("%s: %d cadeiras, eixo %.2f, %s" % [
+				str(party), int(chunk_map[str(party)]), float(EVAL_AXES.get(str(party), 0.0)),
+				"aliado" if str(party) == "PT" else "oposição",
+			])
 		var ctx := {
 			"proposicao": "Lei de investimento regional",
-			"resumo": "Investimento em infraestrutura com custo fiscal.",
 			"eixo": -0.2,
-			"bancadas": batch,
-			"cadeiras": seat_map,
-			"parceiros": ["PT"],
+			"coesao": 60.0,
+			"bancadas": lines,
 			"ids_permitidos": batch,
 		}
-		var data := {"seat_map": seat_map, "bill": {"id": "investment", "axis": -0.2}, "axes": {}, "partners": ["PT"], "cohesion": 60.0, "entities": batch}
+		var data := {"seat_map": chunk_map, "bill": {"id": "investment", "title": "Lei de investimento regional", "axis": -0.2}, "axes": EVAL_AXES, "partners": ["PT"], "cohesion": 60.0, "entities": batch}
 		var meta := meta_base.duplicate()
 		meta["bill"] = "investment:%d" % cursor
 		var r: Dictionary = await _request_once(ai, Contracts.LEGISLATIVE, ctx, data, meta)
