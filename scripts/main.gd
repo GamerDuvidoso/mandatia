@@ -28,6 +28,19 @@ const NavIcon := preload("res://scripts/ui/nav_icon.gd")
 ## Itens administrativos: ficam ao pé da faixa contextual, fora da lista do grupo.
 const ADMIN_ITEMS := ["Configurações"]
 
+## Camada de cenário (B.8 / Etapa 5): globo desenhado atrás de todo o conteúdo.
+## Desligar remove o cenário por completo, sem tocar no resto da interface.
+const SHOW_GLOBE := true
+
+## Macro-regiões de `config/countries.json` na ordem usada pelo marcador do globo.
+const COUNTRY_REGIONS := ["América do Norte", "América Central", "Caribe", "América do Sul"]
+
+## Largura da coluna de conteúdo da Visão geral (B.9, classe WIDE). Com 727 px o
+## globo ficava 85,8% coberto pelos painéis; em 560 px a esfera expõe ~41% do disco
+## na faixa entre os painéis e o rail, sem descer abaixo do mínimo real dos blocos
+## (436 px em 1280). É a menor largura que devolve o globo à composição.
+const DASHBOARD_WIDTH := 560
+
 const BG := UI.BG
 const SURFACE := UI.SURFACE
 const SURFACE_RAISED := UI.SURFACE_RAISED
@@ -85,6 +98,8 @@ var countries: Array = []
 var selected_country_id := "BR"
 var file_dialog: FileDialog
 var root_stack: Control
+var globe_layer: Control
+var globe_view
 var sidebar: HBoxContainer
 var sidebar_context: PanelContainer
 var main_column: VBoxContainer
@@ -169,6 +184,18 @@ func _build_shell() -> void:
 	bg.color = BG
 	bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	add_child(bg)
+	# Cenário: globo atrás de tudo, entre o fundo e o conteúdo. Vive no shell (não em
+	# root_stack), então persiste entre telas e nunca entra na ordem de foco.
+	globe_layer = Control.new()
+	globe_layer.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	globe_layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	globe_layer.visible = false
+	add_child(globe_layer)
+	globe_view = GlobeView.new()
+	globe_view.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	globe_view.background = true
+	globe_view.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	globe_layer.add_child(globe_view)
 	root_stack = Control.new()
 	root_stack.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	add_child(root_stack)
@@ -179,6 +206,40 @@ func _clear_root() -> void:
 	_release_focus_trap()
 	for child in root_stack.get_children():
 		child.queue_free()
+	_refresh_globe()
+
+## Opacidade do globo por tela (B.8.2): protagonista onde é cenário, atenuado onde
+## há painel analítico, ausente onde o gráfico é o elemento principal da tela.
+func _globe_opacity() -> float:
+	if not SHOW_GLOBE:
+		return 0.0
+	if screen == "menu":
+		return 0.35
+	if screen != "game":
+		return 0.0
+	match selected_nav:
+		"Visão geral", "Regiões", "Internacional":
+			return 1.0
+		"Economia", "População":
+			return 0.35
+	return 0.0
+
+## Macro-região do país (0..3) apenas para posicionar o marcador do globo: o único
+## dado geográfico do catálogo é `region`, e a posição no disco é constante visual.
+func _country_region_index() -> int:
+	var country := _country_by_id(str(state.get("country_id", "BR")))
+	var index := COUNTRY_REGIONS.find(str(country.get("region", "")))
+	return index if index >= 0 else 3
+
+func _refresh_globe() -> void:
+	if not is_instance_valid(globe_layer) or not is_instance_valid(globe_view):
+		return
+	var value := _globe_opacity()
+	globe_layer.visible = value > 0.001
+	if not globe_layer.visible:
+		return
+	globe_view.country_region = _country_region_index()
+	globe_view.opacity = value
 
 func _show_menu() -> void:
 	screen = "menu"
@@ -854,18 +915,26 @@ func _show_dashboard() -> void:
 	_update_header()
 	_clear_column(main_column)
 	_clear_column(right_column)
-	main_column.add_child(_section_title("Visão geral", "Decisões deste mês e sinais que movem o próximo ciclo eleitoral."))
+	# A coluna não ocupa a área de conteúdo inteira: o vão à direita é onde o globo
+	# (SHOW_GLOBE) aparece. SHRINK_BEGIN mantém os blocos à esquerda com a largura
+	# declarada em vez de esticar até o rail.
+	var dash := VBoxContainer.new()
+	dash.custom_minimum_size.x = DASHBOARD_WIDTH
+	dash.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	dash.add_theme_constant_override("separation", 12)
+	main_column.add_child(dash)
+	dash.add_child(_section_title("Visão geral", "Decisões deste mês e sinais que movem o próximo ciclo eleitoral."))
 	var metrics := HBoxContainer.new()
 	metrics.add_theme_constant_override("separation", 8)
 	for metric in [["POPULARIDADE", state.popularity, TEXT], ["APROVAÇÃO", state.approval, GREEN], ["RECONHECIMENTO", state.recognition, AMBER], ["COESÃO", state.cohesion, TEXT]]:
 		metrics.add_child(_metric_card(metric[0], "%.0f%%" % metric[1], metric[2]))
-	main_column.add_child(metrics)
-	main_column.add_child(_month_action_panel())
+	dash.add_child(metrics)
+	dash.add_child(_month_action_panel())
 	board = BOARD_SCRIPT.new()
 	board.custom_minimum_size = Vector2(0, 340)
 	board.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	board.set_data(state, regions)
-	main_column.add_child(board)
+	dash.add_child(board)
 	var brief := _panel_box()
 	var bcol := VBoxContainer.new()
 	bcol.add_child(_label("BRIEFING", 12, AMBER))
@@ -884,7 +953,7 @@ func _show_dashboard() -> void:
 	bcol.add_child(_label("Próximo marco", 12, AMBER))
 	bcol.add_child(_label(_next_election_label(), 18, TEXT))
 	brief.add_child(bcol)
-	main_column.add_child(brief)
+	dash.add_child(brief)
 	_build_right_rail()
 
 func _build_right_rail() -> void:
@@ -1765,12 +1834,7 @@ func _show_regions() -> void:
 	var split := HBoxContainer.new()
 	split.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	split.add_theme_constant_override("separation", UI.GAP)
-	# Globo cenário (Nível A, sem asset) acompanha a região selecionada.
-	var globe := GlobeView.new()
-	globe.custom_minimum_size = Vector2(280, 280)
-	globe.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
-	globe.country_region = selected_region % 4
-	split.add_child(globe)
+	# O globo desta tela é o cenário de fundo (SHOW_GLOBE); a malha é o dado.
 	var map := BOARD_SCRIPT.new()
 	map.custom_minimum_size = Vector2(0, 400)
 	map.size_flags_horizontal = Control.SIZE_EXPAND_FILL

@@ -24,6 +24,10 @@ const AXIS_RIGHT := Color("5FA9AC")   # Exclusivo: eixo ideológico à direita (
 const GLOBE_LAND := Color("2A3038")   # Massa continental do globo (tom, não cor)
 const GLOBE_OCEAN := Color("0C1216")  # Oceano/base do globo
 
+## Opacidade de painel sobre o globo de fundo (B.8.1): translúcido o bastante para
+## deixar a esfera aparecer, opaco o bastante para o texto manter contraste.
+const PANEL_ALPHA := 0.94
+
 ## Cores de transição mantidas para compatibilidade com telas ainda não migradas.
 ## Deprecated: usar SURFACE/SURFACE_RAISED/LINE/TEXT/AMBER/RED/GREEN/AXIS_* acima.
 const PANEL := Color("101d2e")
@@ -133,8 +137,13 @@ static func axis_color(axis: float) -> Color:
 	return AXIS_CENTER
 
 static func panel(bg := SURFACE, border := LINE) -> PanelContainer:
+	# Painéis padrão ficam translúcidos para o globo de fundo aparecer nos vazios
+	# e através do vidro. Superfícies próprias (header, faixas) seguem opacas.
+	var fill := bg
+	if bg == SURFACE:
+		fill = Color(SURFACE.r, SURFACE.g, SURFACE.b, PANEL_ALPHA)
 	var p := PanelContainer.new()
-	p.add_theme_stylebox_override("panel", panel_style(bg, border))
+	p.add_theme_stylebox_override("panel", panel_style(fill, border))
 	return p
 
 static func metric_card(caption: String, value: String, color: Color) -> PanelContainer:
