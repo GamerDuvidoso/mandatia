@@ -323,7 +323,7 @@ func _advance_months_and_international() -> void:
 	await _nav("Visão geral")
 	var year_before := int(_state().get("date_year", 0))
 	var month_before := int(_state().get("date_month", 0))
-	await _press("AVANÇAR MÊS")
+	await _press("AVANÇAR")
 	var month_after := int(_state().get("date_month", 1))
 	var year_after := int(_state().get("date_year", 0))
 	_check(year_after > year_before or month_after == month_before + 1, "avançar mês deve mover a data")
@@ -335,7 +335,7 @@ func _advance_months_and_international() -> void:
 	_state()["months_to_election"] = 3
 	game.call("_show_game")
 	await _frames()
-	await _press("AVANÇAR MÊS")
+	await _press("AVANÇAR")
 	var intl: Dictionary = _state().get("international", {}) if _state().get("international") is Dictionary else {}
 	_check(not intl.is_empty(), "dezembro deve gerar cena internacional")
 	_check(str(intl.get("event", "")) != "", "cena internacional deve ter evento")

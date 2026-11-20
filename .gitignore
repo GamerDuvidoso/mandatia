@@ -32,3 +32,8 @@ builds/
 user*/
 *.tmp
 __pycache__/
+
+# Tooling local de agentes (não faz parte do jogo)
+.agents/
+.claude/
+skills-lock.json

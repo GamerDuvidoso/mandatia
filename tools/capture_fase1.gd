@@ -1,16 +1,39 @@
 extends SceneTree
 ## Ferramenta de captura visual da Fase 1.
-## Abre o jogo numa janela normal e salva PNGs em res://docs/shots/.
-## Uso: Godot_v4.7-stable_win64.exe --path . --script tools/capture_fase1.gd
+## Abre o jogo numa janela normal e salva PNGs em res://docs/shots/baseline/.
+## Uso: Godot_v4.7-stable_win64_console.exe --path . --script tools/capture_fase1.gd --res 1280x720
+## Resoluções: 1280x720 (base, padrão), 1600x900, 1920x1080
+var SHOT_DIR := "res://docs/shots/baseline"
 
-const SHOT_DIR := "res://docs/shots"
+func _parse_out() -> void:
+	var args := OS.get_cmdline_args()
+	for i in args.size():
+		if args[i] == "--out" and i + 1 < args.size():
+			SHOT_DIR = "res://docs/shots/" + args[i + 1].strip_edges().trim_prefix("/")
+			return
+
+func _parse_resolution() -> Vector2i:
+	var args := OS.get_cmdline_args()
+	for i in args.size():
+		if args[i] == "--res" and i + 1 < args.size():
+			var parts := args[i + 1].split("x")
+			if parts.size() == 2:
+				var w := int(parts[0])
+				var h := int(parts[1])
+				if w > 0 and h > 0:
+					return Vector2i(w, h)
+	print("[capture] resolução inválida ou ausente; usando 1280x720 padrão")
+	return Vector2i(1280, 720)
 
 func _initialize() -> void:
+	_parse_out()
 	call_deferred("_run")
 
 func _run() -> void:
 	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(SHOT_DIR))
-	DisplayServer.window_set_size(Vector2i(1280, 720))
+	var res := _parse_resolution()
+	DisplayServer.window_set_size(res)
+	print("[capture] resolução: %dx%d  saida: %s" % [res.x, res.y, SHOT_DIR])
 	var packed: PackedScene = load("res://scenes/main.tscn")
 	var game: Node = packed.instantiate()
 	root.add_child(game)
@@ -37,6 +60,7 @@ func _run() -> void:
 	for _month in 8:
 		await _advance(game)
 	await _settle()
+	print("[report] ", game.get("state").get("month_report", []))
 	_shot("cabecalho-e-painel")
 
 	game.call("_select_nav", "Congresso")
@@ -46,6 +70,18 @@ func _run() -> void:
 	game.call("_select_nav", "Economia")
 	await _settle()
 	_shot("economia")
+
+	game.call("_select_nav", "Regiões")
+	await _settle()
+	_shot("regioes")
+
+	game.call("_select_nav", "População")
+	await _settle()
+	_shot("populacao")
+
+	game.call("_select_nav", "Eleições")
+	await _settle()
+	_shot("eleicoes")
 
 	game.get("state")["months_to_election"] = 0
 	game.call("_select_nav", "Eleições")
@@ -73,6 +109,9 @@ func _run() -> void:
 ## Avança um mês e espera o mês fechar (fallback síncrono ou IA respondida).
 func _advance(game: Node) -> void:
 	game.call("_advance_month")
+	# O relatório do mês é modal: fecha para fotografar o painel por baixo.
+	if is_instance_valid(game.get("month_report_panel")):
+		game.call("_dismiss_month_report")
 	for _i in 200:
 		await process_frame
 		var current: Dictionary = game.get("state")

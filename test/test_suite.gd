@@ -151,6 +151,9 @@ func _run() -> void:
 		await get_tree().process_frame
 		var column: VBoxContainer = game.get("main_column")
 		_check(is_instance_valid(column) and column.get_child_count() > 0, "tela deve montar conteúdo: " + section)
+	# O rail é opcional por tela: a verificação de largura usa uma tela que o exibe.
+	game.call("_select_nav", "Visão geral")
+	await get_tree().process_frame
 	game.call("_apply_responsive")
 	_check(is_instance_valid(game.get("main_margin")), "layout responsivo deve manter a margem do conteúdo")
 	game.call("_show_toast", "teste", "error")

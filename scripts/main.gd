@@ -22,17 +22,25 @@ const SAVE_REQUIRED_KEYS := ["party", "date_year", "date_month", "country_id", "
 
 const UI := preload("res://scripts/ui/mandato_theme.gd")
 const FlagPainter := preload("res://scripts/ui/flag_painter.gd")
+const GlobeView := preload("res://scripts/ui/globe_view.gd")
+const NavIcon := preload("res://scripts/ui/nav_icon.gd")
+
+## Itens administrativos: ficam ao pé da faixa contextual, fora da lista do grupo.
+const ADMIN_ITEMS := ["Configurações"]
 
 const BG := UI.BG
+const SURFACE := UI.SURFACE
+const SURFACE_RAISED := UI.SURFACE_RAISED
+const SURFACE_HOVER := UI.SURFACE_HOVER
 const PANEL := UI.PANEL
 const PANEL_2 := UI.PANEL_2
 const LINE := UI.LINE
 const TEXT := UI.TEXT
 const MUTED := UI.MUTED
+const SUBTLE := UI.SUBTLE
 const AMBER := UI.AMBER
-const CYAN := UI.CYAN
-const RED := UI.RED
 const GREEN := UI.GREEN
+const RED := UI.RED
 
 var state: Dictionary = {}
 var screen := "menu"
@@ -44,7 +52,14 @@ var toast: Label
 var decision_box: PanelContainer
 var decision_text: Label
 var decision_buttons: HBoxContainer
+var header_panel: Control
+var header_leader: Control
+var header_pills: Control
+var header_capsules: Array = []
 var month_button: Button
+var month_report_panel: Control
+var month_report_continue: Button
+var report_blocked: Array = []
 var header_date: Label
 var header_party: Label
 var header_funds: Label
@@ -70,7 +85,8 @@ var countries: Array = []
 var selected_country_id := "BR"
 var file_dialog: FileDialog
 var root_stack: Control
-var sidebar: VBoxContainer
+var sidebar: HBoxContainer
+var sidebar_context: PanelContainer
 var main_column: VBoxContainer
 var right_column: VBoxContainer
 var main_margin: MarginContainer
@@ -94,6 +110,8 @@ var _month_intl_needed := false
 var _month_intl_done := true
 var _month_event_op := ""
 var _month_intl_op := ""
+## Indicadores no início do mês, para o relatório honesto de variação.
+var _month_snapshot: Dictionary = {}
 
 var regions := [
 	{"name":"Costa Norte", "kind":"Portos e pesca", "pop":1.9, "support":33.0, "income":58, "unemployment":7.8, "problem":"infraestrutura portuária"},
@@ -156,6 +174,9 @@ func _build_shell() -> void:
 	add_child(root_stack)
 
 func _clear_root() -> void:
+	month_report_panel = null
+	month_report_continue = null
+	_release_focus_trap()
 	for child in root_stack.get_children():
 		child.queue_free()
 
@@ -183,13 +204,14 @@ func _show_menu() -> void:
 	var new_button := _button("FUNDAR NOVA CAMPANHA", AMBER)
 	new_button.pressed.connect(_show_new_game)
 	box.add_child(new_button)
-	var continue_button := _button("CONTINUAR CAMPANHA", CYAN)
+	var continue_button := _button("CONTINUAR CAMPANHA", SUBTLE)
 	continue_button.disabled = not _has_save()
 	continue_button.pressed.connect(_continue_game)
 	box.add_child(continue_button)
 	var hint := _label("Jogo desktop  ·  salvamento local  ·  português brasileiro", 13, MUTED)
 	box.add_child(_spacer(22))
 	box.add_child(hint)
+	new_button.grab_focus()
 
 func _show_new_game() -> void:
 	screen = "new_game"
@@ -198,12 +220,20 @@ func _show_new_game() -> void:
 	margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	margin.add_theme_constant_override("margin_left", 120)
 	margin.add_theme_constant_override("margin_right", 120)
-	margin.add_theme_constant_override("margin_top", 70)
-	margin.add_theme_constant_override("margin_bottom", 70)
+	margin.add_theme_constant_override("margin_top", 24)
+	margin.add_theme_constant_override("margin_bottom", 20)
 	root_stack.add_child(margin)
+	# Em 1280×720 o formulário passa da altura: rolar acompanhando o foco evita
+	# que INICIAR CAMPANHA fique abaixo da tela (beco sem saída para o teclado).
+	var scroll := ScrollContainer.new()
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
+	scroll.follow_focus = true
+	margin.add_child(scroll)
 	var box := VBoxContainer.new()
+	box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	box.add_theme_constant_override("separation", 12)
-	margin.add_child(box)
+	scroll.add_child(box)
 	box.add_child(_label("NOVA CAMPANHA", 13, AMBER))
 	box.add_child(_label("Fundar uma força política", 36, TEXT))
 	box.add_child(_label("Escolha uma identidade. O país responde às suas escolhas, não ao seu rótulo.", 16, MUTED))
@@ -265,6 +295,7 @@ func _show_new_game() -> void:
 	var start := _button("INICIAR CAMPANHA", AMBER)
 	start.pressed.connect(_start_campaign)
 	actions.add_child(start)
+	start.grab_focus()
 
 func _on_country_selected(index: int) -> void:
 	if index >= 0 and index < countries.size():
@@ -419,6 +450,7 @@ func _show_game() -> void:
 	body.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	body.add_theme_constant_override("separation", 0)
 	shell.add_child(body)
+	selected_group = _group_of(selected_nav)
 	sidebar = _build_sidebar()
 	body.add_child(sidebar)
 	main_column = VBoxContainer.new()
@@ -434,8 +466,13 @@ func _show_game() -> void:
 	var scroll := ScrollContainer.new()
 	scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	# AUTO e não DISABLED: com DISABLED o ScrollContainer propaga a largura mínima
+	# do conteúdo e empurra o rail para fora da janela de 1280.
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
 	scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
+	# Foco precisa rolar para dentro da vista: com follow_focus desligado, setas
+	# levavam o foco a botões abaixo da dobra que ficavam invisíveis.
+	scroll.follow_focus = true
 	scroll.add_child(main_margin)
 	body.add_child(scroll)
 	right_column = VBoxContainer.new()
@@ -458,88 +495,356 @@ func _show_game() -> void:
 		"Notícias": _show_news()
 		"História": _show_history()
 		"Configurações": _show_settings()
+	# Foco inicial: teclado e gamepad navegam a tela sem depender do mouse.
+	# Botão de mês desabilitado (eleição obrigatória) não aceita foco: cai para
+	# o primeiro controle focável da faixa de navegação.
+	if is_instance_valid(month_button) and not month_button.disabled:
+		month_button.grab_focus()
+	elif is_instance_valid(sidebar):
+		var fallback := _first_focusable(sidebar)
+		if fallback != null:
+			fallback.grab_focus()
+
+## Primeiro controle visível e focável abaixo de um nó (para foco de emergência).
+func _first_focusable(node: Node) -> Control:
+	for child in node.get_children():
+		if child is Control:
+			var control := child as Control
+			if not control.is_visible_in_tree():
+				continue
+			if control is BaseButton:
+				var button := control as BaseButton
+				if not button.disabled and control.focus_mode == Control.FOCUS_ALL:
+					return control
+		var nested := _first_focusable(child)
+		if nested != null:
+			return nested
+	return null
 
 func _build_header() -> Control:
 	var panel := PanelContainer.new()
-	panel.custom_minimum_size.y = 72
-	panel.add_theme_stylebox_override("panel", _style(PANEL, LINE, 0, 0))
+	panel.custom_minimum_size.y = UI.HEADER_HEIGHT
+	var header_style := _style(SURFACE, LINE, 0, 1)
+	header_style.content_margin_left = 10
+	header_style.content_margin_right = 10
+	header_style.content_margin_top = 3
+	header_style.content_margin_bottom = 3
+	panel.add_theme_stylebox_override("panel", header_style)
+	header_panel = panel
 	var row := HBoxContainer.new()
-	row.add_theme_constant_override("separation", 20)
+	row.add_theme_constant_override("separation", 10)
 	panel.add_child(row)
+	# Zona esquerda: bandeira + país + forma de governo (texto real de `structure`).
 	var flag := FlagPainter.new()
 	flag.country_id = str(state.get("country_id", "BR"))
-	flag.custom_minimum_size = Vector2(56, 36)
+	flag.custom_minimum_size = Vector2(26, 17)
 	flag.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	flag.tooltip_text = str(state.get("country_name", ""))
 	row.add_child(flag)
-	var brand := VBoxContainer.new()
-	brand.custom_minimum_size.x = 200
-	brand.add_child(_label("MANDATIA", 18, AMBER))
-	header_party = _label("", 12, MUTED)
-	brand.add_child(header_party)
-	row.add_child(brand)
-	header_date = _label("", 18, TEXT)
-	header_date.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var country_col := VBoxContainer.new()
+	country_col.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	country_col.add_theme_constant_override("separation", 0)
+	country_col.add_child(_label(_shorten(str(state.get("country_name", "País")).to_upper(), 20), 13, TEXT))
+	var form := _country_form()
+	if form != "":
+		country_col.add_child(_label(_shorten(form, 30), 9, SUBTLE))
+	row.add_child(country_col)
+	# Bloco do jogador: sem retrato no projeto, iniciais no selo.
+	header_leader = _header_leader_block()
+	row.add_child(header_leader)
+	# Pílulas de ação do topo (ícone + tooltip), como os controles compactos da referência.
+	header_pills = HBoxContainer.new()
+	header_pills.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	header_pills.add_theme_constant_override("separation", 4)
+	header_pills.add_child(_header_pill("news", "Notícias", _on_header_news))
+	header_pills.add_child(_header_pill("save", "Salvar campanha", _manual_save))
+	row.add_child(header_pills)
+	# Faixa de KPIs em linha única: economia | política, sem caixa.
+	var center := HBoxContainer.new()
+	center.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	center.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	center.alignment = BoxContainer.ALIGNMENT_CENTER
+	center.add_theme_constant_override("separation", 8)
+	header_capsules.clear()
+	for cap in [
+		["CAIXA", "M$ %s" % _fmt_int(state.funds), AMBER, 1],
+		["DÍVIDA/PIB", "%.0f%%" % state.debt, AMBER, 1],
+		["CRESC.", "%+.1f%%" % state.economy, GREEN, 2],
+		["INFLAÇÃO", "%.1f%%" % state.inflation, RED, 1],
+		["DESEMPREGO", "%.1f%%" % state.unemployment, RED if float(state.unemployment) >= 10.0 else AMBER, 2],
+	]:
+		center.add_child(_header_capsule(str(cap[0]), str(cap[1]), cap[2], int(cap[3])))
+	center.add_child(_vrule(20))
+	for cap in [
+		["APROVAÇÃO", "%.0f%%" % state.approval, TEXT, 1],
+		["POPULARIDADE", "%.0f%%" % state.popularity, AMBER, 1],
+		["ESTABILIDADE", "%d/100" % int(_stability()), AMBER, 2],
+	]:
+		center.add_child(_header_capsule(str(cap[0]), str(cap[1]), cap[2], int(cap[3])))
+	row.add_child(center)
+	# Zona direita em linha: data + avançar (o mesmo Button que foco/testes usam).
+	var right := HBoxContainer.new()
+	right.size_flags_horizontal = Control.SIZE_SHRINK_END
+	right.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	right.add_theme_constant_override("separation", 8)
+	header_date = _label("", 11, MUTED)
+	header_date.custom_minimum_size.x = 104
+	header_date.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	header_date.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	row.add_child(header_date)
-	header_position = _label("", 13, CYAN)
-	row.add_child(header_position)
-	header_funds = _label("", 16, AMBER)
-	row.add_child(header_funds)
-	header_stats = [
-		_header_stat("DÍVIDA/PIB", "%.0f%%" % state.debt, AMBER),
-		_header_stat("INFLAÇÃO", "%.1f%%" % state.inflation, RED),
-	]
-	for stat in header_stats:
-		row.add_child(stat)
-	month_button = _button("AVANÇAR MÊS  ›", AMBER)
+	right.add_child(header_date)
+	month_button = _button("AVANÇAR ›", AMBER)
 	month_button.pressed.connect(_advance_month)
-	row.add_child(month_button)
+	month_button.custom_minimum_size = Vector2(0, 32)
+	month_button.add_theme_font_size_override("font_size", 12)
+	right.add_child(month_button)
+	row.add_child(right)
+	_update_header()
 	return panel
 
-func _build_sidebar() -> VBoxContainer:
-	var nav := VBoxContainer.new()
-	nav.custom_minimum_size.x = UI.SIDEBAR_WIDE
-	nav.add_theme_constant_override("separation", 4)
-	var scroll := ScrollContainer.new()
-	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
-	var plate := PanelContainer.new()
-	plate.custom_minimum_size.x = UI.SIDEBAR_WIDE
-	plate.add_theme_stylebox_override("panel", _style(Color("0b1727"), LINE, 0, 0))
-	sidebar_plate = plate
-	var inner := VBoxContainer.new()
-	inner.add_theme_constant_override("separation", 4)
-	plate.add_child(inner)
-	scroll.add_child(plate)
-	for group in [
-		["PAÍS", ["Visão geral", "Meu partido"]],
-		["PODER", ["Eleições", "Congresso", "Governo"]],
-		["ECONOMIA", ["Economia", "População", "Regiões"]],
-		["MUNDO", ["Internacional"]],
-		["REGISTRO", ["Notícias", "História", "Configurações"]],
-	]:
-		var caption := _label(str(group[0]), 9, MUTED)
-		caption.custom_minimum_size.y = 18
-		inner.add_child(caption)
-		for item in group[1]:
-			var b := _button(str(item), TEXT if item == selected_nav else MUTED, false)
-			b.alignment = HORIZONTAL_ALIGNMENT_LEFT
-			b.custom_minimum_size.y = 32
-			b.pressed.connect(_select_nav.bind(str(item)))
-			inner.add_child(b)
-	var footer := VBoxContainer.new()
-	footer.add_spacer(false)
-	var save := _button("SALVAR CAMPANHA", CYAN, false)
-	save.pressed.connect(_manual_save)
-	footer.add_child(save)
-	var menu := _button("MENU PRINCIPAL", MUTED, false)
-	menu.pressed.connect(_show_menu)
-	footer.add_child(menu)
-	nav.add_child(scroll)
-	nav.add_child(footer)
+## Forma de governo classificada a partir do texto de `structure` do país.
+## Nada é inventado: só traduzimos o que o dado já diz em um rótulo curto.
+func _country_form() -> String:
+	var country := _country_by_id(str(state.get("country_id", "")))
+	if country.is_empty():
+		return ""
+	var structure := str(country.get("structure", "")).to_lower()
+	var parts: Array[String] = []
+	if structure.contains("bicameral"):
+		parts.append("BICAMERAL")
+	elif structure.contains("unicameral"):
+		parts.append("UNICAMERAL")
+	# Sistema: a mesma classificação que o motor eleitoral já usa.
+	parts.append("PARLAMENTAR" if Election.is_parliamentary(country) else "PRESIDENCIAL")
+	return " · ".join(parts)
+
+## Corta um rótulo longo com reticências, para o topo nunca esticar a faixa.
+func _shorten(text: String, max_chars: int) -> String:
+	if max_chars <= 1 or text.length() <= max_chars:
+		return text
+	return text.substr(0, max_chars - 1).strip_edges() + "…"
+
+## Selo circular com iniciais: substitui o retrato, que não existe no projeto.
+func _initial_badge(text: String, diameter := 26, color := AMBER) -> PanelContainer:
+	var badge := PanelContainer.new()
+	badge.custom_minimum_size = Vector2(diameter, diameter)
+	badge.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	var style := _style(SURFACE_RAISED, color, int(diameter * 0.5), 1)
+	style.content_margin_left = 0
+	style.content_margin_right = 0
+	style.content_margin_top = 0
+	style.content_margin_bottom = 0
+	badge.add_theme_stylebox_override("panel", style)
+	var letter := _label(text, 10, color)
+	letter.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	letter.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	badge.add_child(letter)
+	return badge
+
+func _header_leader_block() -> HBoxContainer:
+	var box := HBoxContainer.new()
+	box.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	box.add_theme_constant_override("separation", 7)
+	box.add_child(_vrule(24))
+	box.add_child(_initial_badge(_initials(str(state.get("leader", "")))))
+	var col := VBoxContainer.new()
+	col.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	col.add_theme_constant_override("separation", 0)
+	col.add_child(_label(_shorten(str(state.get("leader", "Líder")), 16), 12, TEXT))
+	col.add_child(_label(_government_role() if bool(state.get("government", false)) else "LÍDER DA OPOSIÇÃO", 9, SUBTLE))
+	box.add_child(col)
+	return box
+
+func _vrule(height: int) -> ColorRect:
+	var rule := ColorRect.new()
+	rule.color = LINE
+	rule.custom_minimum_size = Vector2(1, height)
+	rule.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	return rule
+
+## Pílula 26x24 do topo: ícone desenhado, nome acessível no tooltip, foco real.
+func _header_pill(icon_kind: String, tip: String, action: Callable) -> Button:
+	var pill := _button("", MUTED, false)
+	pill.custom_minimum_size = Vector2(26, 24)
+	pill.tooltip_text = tip
+	pill.add_theme_stylebox_override("normal", _style(Color.TRANSPARENT, Color.TRANSPARENT, 4, 0))
+	var hover := _style(SURFACE_HOVER, LINE, 4, 1)
+	pill.add_theme_stylebox_override("hover", hover)
+	pill.add_theme_stylebox_override("pressed", hover)
+	var focus := _style(Color.TRANSPARENT, AMBER, 6, 1)
+	focus.set_expand_margin_all(2.0)
+	pill.add_theme_stylebox_override("focus", focus)
+	pill.pressed.connect(action)
+	var icon := NavIcon.new(icon_kind, MUTED, 14)
+	icon.anchor_left = 0.5
+	icon.anchor_right = 0.5
+	icon.anchor_top = 0.5
+	icon.anchor_bottom = 0.5
+	icon.offset_left = -7
+	icon.offset_right = 7
+	icon.offset_top = -7
+	icon.offset_bottom = 7
+	pill.add_child(icon)
+	return pill
+
+func _on_header_news() -> void:
+	_select_nav("Notícias")
+
+## Grupo selecionado atualmente (para a faixa contextual).
+var selected_group: String = ""
+
+## Estrutura de navegação única (B.5/B.6): [rótulo curto, nome do grupo, itens].
+const NAV_GROUPS := [
+	["PAÍS", "PAÍS", ["Visão geral", "Meu partido"]],
+	["PODER", "PODER", ["Eleições", "Congresso", "Governo"]],
+	["ECON", "ECONOMIA", ["Economia", "População", "Regiões"]],
+	["MUNDO", "MUNDO", ["Internacional"]],
+	["REGIS", "REGISTRO", ["Notícias", "História", "Configurações"]],
+]
+
+func _group_of(nav_item: String) -> String:
+	for group in NAV_GROUPS:
+		if nav_item in group[2]:
+			return str(group[1])
+	return str(NAV_GROUPS[0][1])
+
+func _items_of(group_name: String) -> Array:
+	for group in NAV_GROUPS:
+		if str(group[1]) == group_name:
+			return group[2]
+	return []
+
+## O rail de 290 px é opcional por tela (matriz D.4): telas de leitura ampla
+## dispensam decisão pendente, radar e resumo do partido para ganhar largura.
+func _rail_enabled() -> bool:
+	return selected_nav in ["Visão geral", "Meu partido", "Eleições", "Internacional", "Notícias", "História"]
+
+## Navegação em duas faixas (B.5/B.6): faixa principal de 64 px com os cinco
+## grupos e faixa contextual de 120 px com os itens do grupo ativo.
+func _build_sidebar() -> HBoxContainer:
+	var nav := HBoxContainer.new()
+	nav.add_theme_constant_override("separation", 0)
+	# --- Trilho de ícones: 64 px ---
+	var main_band := PanelContainer.new()
+	main_band.custom_minimum_size.x = UI.NAV_MAIN_HEIGHT
+	main_band.add_theme_stylebox_override("panel", _style(SURFACE, LINE, 0, 0))
+	sidebar_plate = main_band
+	var main_col := VBoxContainer.new()
+	main_col.add_theme_constant_override("separation", 2)
+	main_band.add_child(main_col)
+	nav.add_child(main_band)
+	for group in NAV_GROUPS:
+		var group_name := str(group[1])
+		main_col.add_child(_rail_button(str(group[0]), group_name, _nav_icon_kind(group_name), group_name == selected_group, _select_group.bind(group_name)))
+	main_col.add_spacer(false)
+	main_col.add_child(_rule())
+	main_col.add_child(_rail_button("SALVAR", "Salvar campanha", "save", false, _manual_save))
+	main_col.add_child(_rail_button("MENU", "Voltar ao menu", "menu", false, _show_menu))
+	# --- Faixa contextual: 132 px com o grupo ativo ---
+	var context := PanelContainer.new()
+	context.custom_minimum_size.x = UI.NAV_CONTEXT_WIDTH
+	context.add_theme_stylebox_override("panel", _style(SURFACE_RAISED, LINE, 0, 0))
+	sidebar_context = context
+	var ctx_col := VBoxContainer.new()
+	ctx_col.add_theme_constant_override("separation", 1)
+	context.add_child(ctx_col)
+	nav.add_child(context)
+	var caption := _label(selected_group, 9, SUBTLE)
+	caption.custom_minimum_size.y = 28
+	caption.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	ctx_col.add_child(caption)
+	for item in _items_of(selected_group):
+		if str(item) in ADMIN_ITEMS:
+			continue
+		ctx_col.add_child(_context_item(str(item), str(item) == selected_nav))
+	ctx_col.add_spacer(false)
+	ctx_col.add_child(_rule())
+	var admin := _label("ADMINISTRAÇÃO", 8, SUBTLE)
+	admin.custom_minimum_size.y = 22
+	admin.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	ctx_col.add_child(admin)
+	for item in ADMIN_ITEMS:
+		ctx_col.add_child(_context_item(str(item), str(item) == selected_nav))
 	return nav
+
+func _nav_icon_kind(group_name: String) -> String:
+	match group_name:
+		"PAÍS":
+			return "country"
+		"PODER":
+			return "power"
+		"ECONOMIA":
+			return "economy"
+		"MUNDO":
+			return "world"
+		_:
+			return "registry"
+
+## Botão do trilho: ícone 18 px no topo, rótulo 8 px embaixo. O texto continua
+## sendo o nome acessível; o ícone é filho inerte (não recebe foco nem clique).
+func _rail_button(short_label: String, accessible_name: String, icon_kind: String, active: bool, action: Callable) -> Button:
+	var rail := _button(short_label, AMBER if active else SUBTLE, false)
+	rail.alignment = HORIZONTAL_ALIGNMENT_CENTER
+	rail.custom_minimum_size = Vector2(0, 52)
+	rail.add_theme_font_size_override("font_size", 8)
+	rail.tooltip_text = accessible_name
+	var flat := _style(Color.TRANSPARENT, Color.TRANSPARENT, 0, 0)
+	flat.content_margin_top = 24
+	flat.content_margin_bottom = 4
+	var active_style := _style(SURFACE_HOVER, Color.TRANSPARENT, 0, 0)
+	active_style.content_margin_top = 24
+	active_style.content_margin_bottom = 4
+	rail.add_theme_stylebox_override("normal", active_style if active else flat)
+	rail.add_theme_stylebox_override("hover", active_style)
+	rail.add_theme_stylebox_override("pressed", active_style)
+	rail.pressed.connect(action)
+	var icon := NavIcon.new(icon_kind, AMBER if active else SUBTLE, 18)
+	icon.anchor_left = 0.5
+	icon.anchor_right = 0.5
+	icon.offset_left = -9
+	icon.offset_right = 9
+	icon.offset_top = 7
+	icon.offset_bottom = 25
+	rail.add_child(icon)
+	return rail
+
+## Item da faixa contextual: ativo em âmbar com fundo e chevron à direita.
+func _context_item(item: String, active: bool) -> Button:
+	var entry := _button(item, AMBER if active else MUTED, false)
+	entry.alignment = HORIZONTAL_ALIGNMENT_LEFT
+	entry.custom_minimum_size = Vector2(0, 30)
+	entry.add_theme_font_size_override("font_size", 12)
+	entry.pressed.connect(_select_nav.bind(item))
+	var flat := _style(Color.TRANSPARENT, Color.TRANSPARENT, 0, 0)
+	flat.content_margin_left = 10
+	flat.content_margin_right = 18
+	var active_style := _style(SURFACE_HOVER, Color.TRANSPARENT, 0, 0)
+	active_style.content_margin_left = 10
+	active_style.content_margin_right = 18
+	entry.add_theme_stylebox_override("normal", active_style if active else flat)
+	entry.add_theme_stylebox_override("hover", active_style)
+	entry.add_theme_stylebox_override("pressed", active_style)
+	if active:
+		var chevron := _label("›", 13, AMBER)
+		chevron.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		chevron.anchor_left = 1.0
+		chevron.anchor_right = 1.0
+		chevron.anchor_top = 0.5
+		chevron.anchor_bottom = 0.5
+		chevron.offset_left = -16
+		chevron.offset_right = -5
+		chevron.offset_top = -9
+		chevron.offset_bottom = 9
+		chevron.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		entry.add_child(chevron)
+	return entry
+
+## Troca de grupo: mantém a tela atual se ela pertencer ao grupo; senão abre o primeiro item.
+func _select_group(group_name: String) -> void:
+	selected_group = group_name
+	var items := _items_of(group_name)
+	if not selected_nav in items and not items.is_empty():
+		selected_nav = str(items[0])
+	_show_game()
 
 func _select_nav(item: String) -> void:
 	selected_nav = item
@@ -552,7 +857,7 @@ func _show_dashboard() -> void:
 	main_column.add_child(_section_title("Visão geral", "Decisões deste mês e sinais que movem o próximo ciclo eleitoral."))
 	var metrics := HBoxContainer.new()
 	metrics.add_theme_constant_override("separation", 8)
-	for metric in [["POPULARIDADE", state.popularity, CYAN], ["APROVAÇÃO", state.approval, GREEN], ["RECONHECIMENTO", state.recognition, AMBER], ["COESÃO", state.cohesion, Color("b39ddb")]]:
+	for metric in [["POPULARIDADE", state.popularity, TEXT], ["APROVAÇÃO", state.approval, GREEN], ["RECONHECIMENTO", state.recognition, AMBER], ["COESÃO", state.cohesion, TEXT]]:
 		metrics.add_child(_metric_card(metric[0], "%.0f%%" % metric[1], metric[2]))
 	main_column.add_child(metrics)
 	main_column.add_child(_month_action_panel())
@@ -566,15 +871,15 @@ func _show_dashboard() -> void:
 	bcol.add_child(_label("BRIEFING", 12, AMBER))
 	bcol.add_child(_label("Fatores que mudaram", 17, TEXT))
 	bcol.add_child(_rule())
-	bcol.add_child(_label("+ reconhecimento", 14, GREEN))
-	var growth_note := _label("A presença regional cresceu após o último giro de base.", 13, MUTED)
-	growth_note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	bcol.add_child(growth_note)
-	bcol.add_child(_spacer(8))
-	bcol.add_child(_label("− inflação", 14, RED))
-	var cost_note := _label("Custo de vida reduz confiança entre trabalhadores urbanos.", 13, MUTED)
-	cost_note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	bcol.add_child(cost_note)
+	var report: Array = state.get("month_report", []) if state.get("month_report") is Array else []
+	if report.is_empty():
+		bcol.add_child(_label("Avance o mês para ver o que realmente mudou.", 13, MUTED))
+	else:
+		for entry in report:
+			var row: Dictionary = entry if entry is Dictionary else {}
+			var delta := float(row.get("delta", 0.0))
+			var good := bool(row.get("good", true))
+			bcol.add_child(_label("%s  %+.1f" % [str(row.get("label", "")), delta], 14, GREEN if good else RED))
 	bcol.add_child(_spacer(8))
 	bcol.add_child(_label("Próximo marco", 12, AMBER))
 	bcol.add_child(_label(_next_election_label(), 18, TEXT))
@@ -583,6 +888,8 @@ func _show_dashboard() -> void:
 	_build_right_rail()
 
 func _build_right_rail() -> void:
+	if not _rail_enabled():
+		return
 	var decision := _panel_box()
 	var dcol := VBoxContainer.new()
 	dcol.add_child(_label("DECISÃO PENDENTE", 12, AMBER))
@@ -598,7 +905,7 @@ func _build_right_rail() -> void:
 	_set_event_if_needed()
 	var news := _panel_box()
 	var ncol := VBoxContainer.new()
-	ncol.add_child(_label("RADAR NACIONAL", 12, CYAN))
+	ncol.add_child(_label("RADAR NACIONAL", 12, SUBTLE))
 	ncol.add_child(_label("Últimas manchetes", 18, TEXT))
 	for item in state.news.slice(0, 4):
 		var l := _label("• " + str(item), 13, MUTED)
@@ -616,6 +923,8 @@ func _build_right_rail() -> void:
 	right_column.add_child(mandate)
 
 func _set_event_if_needed() -> void:
+	if not is_instance_valid(decision_buttons):
+		return
 	for child in decision_buttons.get_children(): child.queue_free()
 	var event: String = state.event
 	if event == "":
@@ -626,7 +935,7 @@ func _set_event_if_needed() -> void:
 		return
 	decision_text.text = event
 	for option in ["Investir agora", "Negociar", "Não intervir"]:
-		var b := _button(option, CYAN if option != "Não intervir" else MUTED, false)
+		var b := _button(option, SUBTLE if option != "Não intervir" else MUTED, false)
 		b.pressed.connect(_resolve_event.bind(option))
 		decision_buttons.add_child(b)
 
@@ -666,7 +975,7 @@ func _show_section(title: String, subtitle: String) -> void:
 func _show_party() -> void:
 	_show_section("Meu partido", "Uma organização forte transforma identidade em votos.")
 	var grid := HBoxContainer.new()
-	for metric in [["Membros", _fmt_int(state.members), AMBER], ["Credibilidade", "%.0f%%" % state.credibility, CYAN], ["Coesão interna", "%.0f%%" % state.cohesion, GREEN], ["Caixa", "M$ %s" % _fmt_int(state.funds), AMBER]]:
+	for metric in [["Membros", _fmt_int(state.members), AMBER], ["Credibilidade", "%.0f%%" % state.credibility, TEXT], ["Coesão interna", "%.0f%%" % state.cohesion, GREEN], ["Caixa", "M$ %s" % _fmt_int(state.funds), AMBER]]:
 		grid.add_child(_metric_card(metric[0], metric[1], metric[2]))
 	main_column.add_child(grid)
 	var panel := _panel_box()
@@ -683,7 +992,7 @@ func _show_party() -> void:
 	col.add_child(_label("Ações organizacionais", 17, TEXT))
 	var actions := HBoxContainer.new()
 	for pair in [["Giro regional", "Aumenta apoio em regiões frágeis", "regional"], ["Formar voluntários", "Mais membros e coesão", "volunteers"], ["Publicar programa", "Credibilidade e reconhecimento", "program"]]:
-		var b := _button(pair[0], CYAN, false)
+		var b := _button(pair[0], SUBTLE, false)
 		b.tooltip_text = pair[1]
 		b.pressed.connect(_party_action.bind(pair[2]))
 		actions.add_child(b)
@@ -691,7 +1000,7 @@ func _show_party() -> void:
 	var medals := HBoxContainer.new()
 	medals.add_theme_constant_override("separation", 10)
 	medals.add_child(_badge(str(state.abbr), "SIGLA", 104, AMBER))
-	medals.add_child(_badge(_initials(str(state.leader)), "LIDERANÇA", 104, CYAN))
+	medals.add_child(_badge(_initials(str(state.leader)), "LIDERANÇA", 104, TEXT))
 	identity_row.add_child(col)
 	identity_row.add_child(medals)
 	panel.add_child(identity_row)
@@ -727,12 +1036,12 @@ func _show_elections() -> void:
 	var player_key := str(state.abbr)
 	var top := HBoxContainer.new()
 	top.add_child(_metric_card("PRÓXIMA ELEIÇÃO", "%d meses" % max(0, int(state.months_to_election)), AMBER))
-	top.add_child(_metric_card("INTENÇÃO DE VOTO", "%.1f%%" % float(shares.get(player_key, 0.0)), CYAN))
+	top.add_child(_metric_card("INTENÇÃO DE VOTO", "%.1f%%" % float(shares.get(player_key, 0.0)), AMBER))
 	top.add_child(_metric_card("CADEIRAS PROJETADAS", ("%d de %d" % [int(projection.get(player_key, 0)), seats]) if seats > 0 else "câmara não informada", AMBER))
 	main_column.add_child(top)
 	var poll := _panel_box()
 	var col := VBoxContainer.new()
-	col.add_child(_label("PESQUISA NACIONAL  ·  %s  ·  margem ±3,2 p.p." % str(country.get("name", "País")), 12, CYAN))
+	col.add_child(_label("PESQUISA NACIONAL  ·  %s  ·  margem ±3,2 p.p." % str(country.get("name", "País")), 12, SUBTLE))
 	col.add_child(_label("Intenção de voto para %s" % (Election.chamber_name(country) if seats > 0 else "o parlamento"), 20, TEXT))
 	var shown := 0
 	for pair in Election.sorted_pairs(shares):
@@ -745,12 +1054,7 @@ func _show_elections() -> void:
 		var name_label := _label(key, 14, AMBER if key == player_key else (MUTED if key == Election.UNDECIDED else TEXT))
 		name_label.custom_minimum_size.x = 150
 		row.add_child(name_label)
-		var fill := ProgressBar.new()
-		fill.value = float(pair[1])
-		fill.show_percentage = false
-		fill.custom_minimum_size = Vector2(230, 15)
-		fill.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		row.add_child(fill)
+		row.add_child(_bar(float(pair[1]), 100.0, AMBER if key == player_key else SUBTLE, 12.0))
 		row.add_child(_label("%.1f%%" % float(pair[1]), 14, AMBER if key == player_key else MUTED))
 		if key != Election.UNDECIDED and seats > 0:
 			var seat_label := _label("%d cadeiras" % int(projection.get(key, 0)), 13, MUTED)
@@ -919,7 +1223,7 @@ func _show_congress() -> void:
 	var player_key := str(state.abbr)
 	var has_majority := majority > 1 and player_seats >= majority
 	var top := HBoxContainer.new()
-	top.add_child(_metric_card("CADEIRAS DO PARTIDO", "%d de %d" % [player_seats, seats], CYAN))
+	top.add_child(_metric_card("CADEIRAS DO PARTIDO", "%d de %d" % [player_seats, seats], AMBER))
 	top.add_child(_metric_card("MAIORIA", str(majority), AMBER))
 	top.add_child(_metric_card("SITUAÇÃO", "maioria" if has_majority else "minoria", GREEN if has_majority else RED))
 	main_column.add_child(top)
@@ -933,7 +1237,7 @@ func _show_congress() -> void:
 	main_column.add_child(chart)
 	var panel := _panel_box()
 	var col := VBoxContainer.new()
-	col.add_child(_label("BANCADAS  ·  %s" % str(state.chamber_name), 12, CYAN))
+	col.add_child(_label("BANCADAS  ·  %s" % str(state.chamber_name), 12, SUBTLE))
 	if seat_map.is_empty():
 		col.add_child(_label("Sem fotografia legislativa para este país. Realize uma eleição para gerar a distribuição.", 15, MUTED))
 	else:
@@ -975,7 +1279,7 @@ func _show_congress() -> void:
 	for bill in Legislature.BILLS:
 		if bool(bill.get("requires_government", false)) and not bool(state.government):
 			continue
-		var b := _button(str(bill.get("title", "Proposição")), CYAN, false)
+		var b := _button(str(bill.get("title", "Proposição")), SUBTLE, false)
 		b.tooltip_text = "%s  ·  custo M$ %s  ·  eixo %.2f" % [str(bill.get("summary", "")), _fmt_int(float(bill.get("cost", 0))), float(bill.get("axis", 0.0))]
 		b.pressed.connect(_propose_bill.bind(str(bill.get("id", ""))))
 		actions.add_child(b)
@@ -990,7 +1294,7 @@ func _show_congress() -> void:
 	if not agenda.is_empty():
 		var history := _panel_box()
 		var hcol := VBoxContainer.new()
-		hcol.add_child(_label("AGENDA RECENTE", 12, CYAN))
+		hcol.add_child(_label("AGENDA RECENTE", 12, SUBTLE))
 		for item in agenda.slice(0, 6):
 			var approved := bool(item.get("approved", false))
 			hcol.add_child(_label("%02d/%d  ·  %s  ·  %s  ·  %d a %d" % [int(item.get("month", 1)), int(item.get("year", 0)), str(item.get("title", "")), "aprovada" if approved else "rejeitada", int(item.get("ayes", 0)), int(item.get("nayes", 0))], 14, GREEN if approved else RED))
@@ -1179,7 +1483,7 @@ func _formation_panel() -> PanelContainer:
 func _coalition_panel() -> PanelContainer:
 	var panel := _panel_box()
 	var col := VBoxContainer.new()
-	col.add_child(_label("BASE DE GOVERNO", 12, CYAN))
+	col.add_child(_label("BASE DE GOVERNO", 12, SUBTLE))
 	var partners: Array = []
 	if state.get("coalition_partners") is Array:
 		partners = state.coalition_partners
@@ -1216,7 +1520,7 @@ func _show_government() -> void:
 	if not state.government:
 		var empty := _panel_box()
 		var col := VBoxContainer.new()
-		col.add_child(_label("OPOSIÇÃO", 13, CYAN))
+		col.add_child(_label("OPOSIÇÃO", 13, SUBTLE))
 		col.add_child(_label("O governo ainda não é seu. A organização pode crescer na oposição e disputar o próximo ciclo.", 18, TEXT))
 		col.add_child(_label("No presidencialismo é preciso vencer a eleição; no parlamentarismo, a bancada pode formar coalizão.", 14, MUTED))
 		empty.add_child(col)
@@ -1228,7 +1532,7 @@ func _show_government() -> void:
 	var top := HBoxContainer.new()
 	top.add_child(_metric_card("APROVAÇÃO", "%.0f%%" % state.approval, GREEN))
 	top.add_child(_metric_card("DÍVIDA / PIB", "%.0f%%" % state.debt, AMBER))
-	top.add_child(_metric_card("CAPACIDADE", "%.0f%%" % ((state.credibility + state.cohesion) / 2.0), CYAN))
+	top.add_child(_metric_card("CAPACIDADE", "%.0f%%" % ((state.credibility + state.cohesion) / 2.0), SUBTLE))
 	main_column.add_child(top)
 	var cabinet := _panel_box()
 	var col := VBoxContainer.new()
@@ -1237,7 +1541,7 @@ func _show_government() -> void:
 		var row := HBoxContainer.new()
 		row.add_child(_label(ministry, 15, TEXT))
 		var spacer := Control.new(); spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL; row.add_child(spacer)
-		var b := _button("NOMEAR", CYAN, false)
+		var b := _button("NOMEAR", SUBTLE, false)
 		b.pressed.connect(_appoint_minister.bind(ministry))
 		row.add_child(b)
 		col.add_child(row)
@@ -1246,7 +1550,7 @@ func _show_government() -> void:
 	main_column.add_child(_coalition_panel())
 	var policy := _panel_box()
 	var pcol := VBoxContainer.new()
-	pcol.add_child(_label("PROGRAMAS EXECUTIVOS", 12, CYAN))
+	pcol.add_child(_label("PROGRAMAS EXECUTIVOS", 12, SUBTLE))
 	for pair in [["Pacto de empregos", "M$ 2.000  ·  desemprego -0,5 p.p.", "jobs"], ["Rede de escolas técnicas", "M$ 3.200  ·  produtividade +0,4", "schools"], ["Fundo de infraestrutura", "M$ 4.500  ·  apoio regional +3", "infra"]]:
 		var b := _button(pair[0], TEXT, false)
 		b.tooltip_text = pair[1]
@@ -1281,6 +1585,16 @@ func _policy_action(policy: String) -> void:
 func _show_economy() -> void:
 	_show_section("Economia", "O que o país produz, quanto custa viver e como o emprego reage às suas decisões.")
 	var growth := float(state.economy)
+	var kpis := HBoxContainer.new()
+	kpis.add_theme_constant_override("separation", 8)
+	for item in [
+		["CRESCIMENTO", "%+.1f%%" % growth, GREEN if growth >= 2.0 else (AMBER if growth >= 0.0 else RED), "economy"],
+		["INFLAÇÃO", "%.1f%%" % state.inflation, RED if float(state.inflation) >= 6.0 else AMBER, "inflation"],
+		["DESEMPREGO", "%.1f%%" % state.unemployment, RED if float(state.unemployment) >= 10.0 else AMBER, "unemployment"],
+		["DÍVIDA/PIB", "%.0f%%" % state.debt, RED if float(state.debt) >= 80.0 else AMBER, "debt"],
+	]:
+		kpis.add_child(_kpi_card(str(item[0]), str(item[1]), item[2], _econ_delta(str(item[3]))))
+	main_column.add_child(kpis)
 	var card := _panel_box()
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 26)
@@ -1315,7 +1629,7 @@ func _show_economy() -> void:
 	if bool(state.government):
 		var policy := _panel_box()
 		var pcol := VBoxContainer.new()
-		pcol.add_child(_label("PROGRAMAS EXECUTIVOS", 12, CYAN))
+		pcol.add_child(_label("PROGRAMAS EXECUTIVOS", 12, SUBTLE))
 		for pair in [["Pacto de empregos", "M$ 2.000  ·  desemprego -0,5 p.p.", "jobs"], ["Rede de escolas técnicas", "M$ 3.200  ·  produtividade +0,4", "schools"], ["Fundo de infraestrutura", "M$ 4.500  ·  apoio regional +3", "infra"]]:
 			var b := _button(pair[0], TEXT, false)
 			b.tooltip_text = pair[1]
@@ -1360,21 +1674,161 @@ func _cycle_reading() -> String:
 	return "%s com %s, %s e %s." % [_growth_label(float(state.economy)), inflation_note, jobs_note, debt_note]
 
 func _show_population() -> void:
-	_show_section("População", "A população não vota como um bloco único.")
-	var panel := _panel_box(); var col := VBoxContainer.new()
-	col.add_child(_label("GRUPOS DEMOGRÁFICOS  ·  apoio ao partido", 12, CYAN))
-	for key in state.demographics.keys():
-		var row := HBoxContainer.new(); row.add_child(_label(str(key), 15, TEXT)); var fill := ProgressBar.new(); fill.value = state.demographics[key]; fill.show_percentage = false; fill.custom_minimum_size = Vector2(280, 15); fill.size_flags_horizontal = Control.SIZE_EXPAND_FILL; row.add_child(fill); row.add_child(_label("%.0f%%" % state.demographics[key], 14, AMBER)); col.add_child(row)
-	panel.add_child(col); main_column.add_child(panel)
-	var social := _panel_box(); var scol := VBoxContainer.new(); scol.add_child(_label("INDICADORES SOCIAIS", 12, AMBER)); scol.add_child(_label("Pobreza  18,4%     Acesso à saúde  76%     Escolaridade  8,2 anos", 16, TEXT)); scol.add_child(_label("Mudanças são lentas: políticas precisam de financiamento e execução.", 14, MUTED)); social.add_child(scol); main_column.add_child(social)
+	_show_section("População", "A população não vota como um bloco único: cada grupo pesa e reage de forma própria.")
+	var demographics: Dictionary = state.demographics
+	var strongest := ""
+	var weakest := ""
+	var best_value := -1.0
+	var worst_value := 999.0
+	var total := 0.0
+	for key in demographics.keys():
+		var value := float(demographics[key])
+		total += value
+		if value > best_value:
+			best_value = value
+			strongest = str(key)
+		if value < worst_value:
+			worst_value = value
+			weakest = str(key)
+	var average := total / maxf(1.0, float(demographics.size()))
+	var tied := absf(best_value - worst_value) < 0.05
+	var kpis := HBoxContainer.new()
+	kpis.add_theme_constant_override("separation", 8)
+	kpis.add_child(_kpi_card("APOIO MÉDIO", "%.0f%%" % average, AMBER))
+	kpis.add_child(_kpi_card("MAIOR APOIO", "—" if tied else "%s  %.0f%%" % [strongest, best_value], GREEN))
+	kpis.add_child(_kpi_card("MENOR APOIO", "—" if tied else "%s  %.0f%%" % [weakest, worst_value], RED))
+	kpis.add_child(_kpi_card("GRUPOS MONITORADOS", str(demographics.size()), TEXT))
+	main_column.add_child(kpis)
+	var panel := _panel_box()
+	var col := VBoxContainer.new()
+	col.add_child(_label("APOIO POR GRUPO DEMOGRÁFICO", 10, SUBTLE))
+	for key in demographics.keys():
+		var value := float(demographics[key])
+		var row := HBoxContainer.new()
+		row.add_theme_constant_override("separation", 10)
+		var name_label := _label(str(key), 14, TEXT)
+		name_label.custom_minimum_size.x = 150
+		row.add_child(name_label)
+		row.add_child(_bar(value, 100.0, GREEN if value >= average else AMBER, 12.0))
+		var pct := _label("%.0f%%" % value, 13, GREEN if value >= average else AMBER)
+		pct.custom_minimum_size.x = 46
+		pct.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+		row.add_child(pct)
+		var delta := value - average
+		var trend := _label("%+.1f p.p. vs média" % delta, 12, SUBTLE)
+		trend.custom_minimum_size.x = 120
+		trend.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+		row.add_child(trend)
+		col.add_child(row)
+	col.add_child(_rule())
+	col.add_child(_label("O apoio abaixo da média indica onde a próxima ação de base rende mais.", 12, SUBTLE))
+	panel.add_child(col)
+	main_column.add_child(panel)
+	# Peso eleitoral: participação de cada região na população total cadastrada.
+	var total_pop := 0.0
+	for region in regions:
+		total_pop += float(region.pop)
+	var weight_panel := _panel_box()
+	var wcol := VBoxContainer.new()
+	wcol.add_child(_label("PESO ELEITORAL POR REGIÃO", 10, SUBTLE))
+	wcol.add_child(_label("Participação de cada território na população total de %.1f mi" % total_pop, 12, MUTED))
+	for region in regions:
+		var share := float(region.pop) / maxf(0.01, total_pop) * 100.0
+		var row := HBoxContainer.new()
+		row.add_theme_constant_override("separation", 10)
+		var name_label := _label(str(region.name), 13, TEXT)
+		name_label.custom_minimum_size.x = 150
+		row.add_child(name_label)
+		row.add_child(_bar(share, 25.0, AMBER, 9.0))
+		var share_label := _label("%.1f%%  ·  %.1f mi" % [share, float(region.pop)], 12, MUTED)
+		share_label.custom_minimum_size.x = 110
+		share_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+		row.add_child(share_label)
+		wcol.add_child(row)
+	weight_panel.add_child(wcol)
+	main_column.add_child(weight_panel)
+	var social := _panel_box()
+	var scol := VBoxContainer.new()
+	scol.add_child(_label("INDICADORES SOCIAIS", 10, SUBTLE))
+	var social_grid := HBoxContainer.new()
+	social_grid.add_theme_constant_override("separation", 8)
+	for item in [["POBREZA", "18,4%", RED], ["ACESSO À SAÚDE", "76%", GREEN], ["ESCOLARIDADE", "8,2 anos", AMBER]]:
+		social_grid.add_child(_kpi_card(str(item[0]), str(item[1]), item[2]))
+	scol.add_child(social_grid)
+	scol.add_child(_label("Mudanças são lentas: políticas precisam de financiamento e execução para mover estes números.", 12, MUTED))
+	social.add_child(scol)
+	main_column.add_child(social)
 	_build_right_rail()
 
 func _show_regions() -> void:
-	_show_section("Regiões", "Clique numa região para ver economia, problemas e apoio.")
-	var split := HBoxContainer.new(); split.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	var map := BOARD_SCRIPT.new(); map.custom_minimum_size = Vector2(0, 430); map.size_flags_horizontal = Control.SIZE_EXPAND_FILL; map.set_map(state, regions); map.region_clicked.connect(_select_region); split.add_child(map)
-	var detail := _panel_box(); detail.custom_minimum_size.x = 260; var col := VBoxContainer.new(); var r: Dictionary = regions[selected_region]
-	col.add_child(_label("REGIÃO %02d" % (selected_region + 1), 12, AMBER)); col.add_child(_label(r.name, 24, TEXT)); col.add_child(_label(r.kind, 14, CYAN)); col.add_child(_rule()); col.add_child(_label("População  %.1f mi" % r.pop, 14, MUTED)); col.add_child(_label("Renda média  %d" % r.income, 14, MUTED)); col.add_child(_label("Desemprego  %.1f%%" % r.unemployment, 14, MUTED)); col.add_child(_label("Apoio  %.0f%%" % state.region_support[selected_region], 18, AMBER)); col.add_child(_label("Problema central", 12, AMBER)); col.add_child(_label(r.problem, 15, TEXT)); detail.add_child(col); split.add_child(detail); main_column.add_child(split)
+	_show_section("Regiões", "Clique numa região no mapa para ver economia, problemas e apoio.")
+	var split := HBoxContainer.new()
+	split.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	split.add_theme_constant_override("separation", UI.GAP)
+	# Globo cenário (Nível A, sem asset) acompanha a região selecionada.
+	var globe := GlobeView.new()
+	globe.custom_minimum_size = Vector2(280, 280)
+	globe.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+	globe.country_region = selected_region % 4
+	split.add_child(globe)
+	var map := BOARD_SCRIPT.new()
+	map.custom_minimum_size = Vector2(0, 400)
+	map.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	map.set_map(state, regions)
+	map.region_clicked.connect(_select_region)
+	split.add_child(map)
+	var detail := _panel_box()
+	detail.custom_minimum_size.x = 262
+	var col := VBoxContainer.new()
+	var r: Dictionary = regions[selected_region]
+	col.add_child(_label("REGIÃO %02d  ·  %s" % [selected_region + 1, str(r.kind)], 10, SUBTLE))
+	col.add_child(_label(str(r.name), 24, TEXT))
+	col.add_child(_rule())
+	var grid := GridContainer.new()
+	grid.columns = 2
+	grid.add_theme_constant_override("h_separation", 16)
+	grid.add_theme_constant_override("v_separation", 6)
+	for pair in [
+		["População", "%.1f mi" % float(r.pop)],
+		["Renda média", "%d" % int(r.income)],
+		["Desemprego", "%.1f%%" % float(r.unemployment)],
+		["Apoio ao partido", "%.0f%%" % float(state.region_support[selected_region])],
+	]:
+		grid.add_child(_label(str(pair[0]), 12, SUBTLE))
+		var value := _label(str(pair[1]), 16, AMBER if str(pair[0]) == "Apoio ao partido" else TEXT)
+		value.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+		grid.add_child(value)
+	col.add_child(grid)
+	col.add_child(_spacer(6))
+	col.add_child(_bar(float(state.region_support[selected_region]), 100.0, AMBER, 10.0))
+	col.add_child(_spacer(10))
+	col.add_child(_label("PROBLEMA CENTRAL", 10, SUBTLE))
+	var problem := _label(str(r.problem), 15, TEXT)
+	problem.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	col.add_child(problem)
+	detail.add_child(col)
+	split.add_child(detail)
+	main_column.add_child(split)
+	# Ranking de apoio: comparação direta entre os oito territórios.
+	var ranking := _panel_box()
+	var rcol := VBoxContainer.new()
+	rcol.add_child(_label("APOIO POR REGIÃO", 10, SUBTLE))
+	for i in regions.size():
+		var region: Dictionary = regions[i]
+		var row := HBoxContainer.new()
+		row.add_theme_constant_override("separation", 10)
+		var name_label := _label(str(region.name), 13, TEXT if i == selected_region else MUTED)
+		name_label.custom_minimum_size.x = 130
+		row.add_child(name_label)
+		var support := float(state.region_support[i])
+		row.add_child(_bar(support, 100.0, AMBER if i == selected_region else SUBTLE, 9.0))
+		var pct := _label("%.0f%%" % support, 12, AMBER if i == selected_region else MUTED)
+		pct.custom_minimum_size.x = 42
+		pct.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+		row.add_child(pct)
+		rcol.add_child(row)
+	ranking.add_child(rcol)
+	main_column.add_child(ranking)
 	_build_right_rail()
 
 func _select_region(index: int) -> void:
@@ -1397,7 +1851,7 @@ func _show_international() -> void:
 		return
 	var event_card := _panel_box()
 	var event_col := VBoxContainer.new()
-	event_col.add_child(_label("CENA EXTERNA  ·  %02d/%d" % [int(data.get("month", 0)), int(data.get("year", 0))], 12, CYAN))
+	event_col.add_child(_label("CENA EXTERNA  ·  %02d/%d" % [int(data.get("month", 0)), int(data.get("year", 0))], 12, SUBTLE))
 	event_col.add_child(_label(str(data.get("event", "Sem evento")), 22, TEXT))
 	var impact := _label(str(data.get("impact", "Sem impacto registrado.")), 14, MUTED)
 	impact.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -1443,7 +1897,7 @@ func _show_news() -> void:
 
 func _show_history() -> void:
 	_show_section("História política", "O placar é o rastro de decisões, não só o resultado final.")
-	var panel := _panel_box(); var col := VBoxContainer.new(); col.add_child(_label("LINHA DO TEMPO", 12, CYAN))
+	var panel := _panel_box(); var col := VBoxContainer.new(); col.add_child(_label("LINHA DO TEMPO", 12, SUBTLE))
 	if state.history.is_empty(): col.add_child(_label("Ainda não há eleições registradas. %s." % _next_election_label(), 16, MUTED))
 	for item in state.history: col.add_child(_label("• " + str(item), 15, TEXT))
 	panel.add_child(col); main_column.add_child(panel)
@@ -1452,7 +1906,7 @@ func _show_history() -> void:
 func _show_settings() -> void:
 	_show_section("Configurações", "Salvamento local e recuperação da campanha.")
 	var panel := _panel_box(); var col := VBoxContainer.new(); col.add_child(_label("DADOS DA CAMPANHA", 12, AMBER)); col.add_child(_label("Salvamento automático após decisões e avanço de mês.", 15, TEXT))
-	var actions := HBoxContainer.new(); var save := _button("SALVAR AGORA", CYAN, false); save.pressed.connect(_manual_save); actions.add_child(save); var export_b := _button("EXPORTAR JSON", AMBER, false); export_b.pressed.connect(_export_data); actions.add_child(export_b); var import_b := _button("IMPORTAR JSON", TEXT, false); import_b.pressed.connect(_import_data); actions.add_child(import_b); col.add_child(actions); 	status_label = _label("Arquivo local: user://mandatia_save.json", 13, MUTED); col.add_child(status_label); panel.add_child(col); main_column.add_child(panel)
+	var actions := HBoxContainer.new(); var save := _button("SALVAR AGORA", SUBTLE, false); save.pressed.connect(_manual_save); actions.add_child(save); var export_b := _button("EXPORTAR JSON", AMBER, false); export_b.pressed.connect(_export_data); actions.add_child(export_b); var import_b := _button("IMPORTAR JSON", TEXT, false); import_b.pressed.connect(_import_data); actions.add_child(import_b); col.add_child(actions); 	status_label = _label("Arquivo local: user://mandatia_save.json", 13, MUTED); col.add_child(status_label); panel.add_child(col); main_column.add_child(panel)
 	var ai_panel := _panel_box()
 	var ai_col := VBoxContainer.new()
 	ai_col.add_child(_label("IA LOCAL", 12, AMBER))
@@ -1478,6 +1932,7 @@ func _advance_month() -> void:
 		_show_toast("Aguarde a decisão da IA em andamento", "warning")
 		return
 	_month_in_progress = true
+	_month_snapshot = _metric_snapshot()
 	state.date_month += 1
 	if state.date_month > 12: state.date_month = 1; state.date_year += 1
 	state.months_to_election = maxi(0, int(state.months_to_election) - 1)
@@ -1510,6 +1965,46 @@ func _advance_month() -> void:
 
 func _month_stamp() -> String:
 	return "%d-%02d" % [int(state.date_year), int(state.date_month)]
+
+## Fotografia dos indicadores usada para medir a variação do mês.
+func _metric_snapshot() -> Dictionary:
+	return {
+		"popularity": float(state.popularity), "approval": float(state.approval),
+		"recognition": float(state.recognition), "credibility": float(state.credibility),
+		"economy": float(state.economy), "inflation": float(state.inflation),
+		"unemployment": float(state.unemployment), "debt": float(state.debt),
+		"funds": float(state.funds),
+	}
+
+## Relatório do mês: até quatro indicadores que mais se moveram, com o sinal
+## já traduzido para "melhorou/piorou" conforme a direção desejável de cada um.
+func _build_month_report() -> Array:
+	if _month_snapshot.is_empty():
+		return []
+	var current := _metric_snapshot()
+	var definitions := [
+		{"key": "approval", "label": "Aprovação", "up_good": true},
+		{"key": "popularity", "label": "Popularidade", "up_good": true},
+		{"key": "economy", "label": "Crescimento", "up_good": true},
+		{"key": "inflation", "label": "Inflação", "up_good": false},
+		{"key": "unemployment", "label": "Desemprego", "up_good": false},
+		{"key": "debt", "label": "Dívida/PIB", "up_good": false},
+		{"key": "recognition", "label": "Reconhecimento", "up_good": true},
+		{"key": "credibility", "label": "Credibilidade", "up_good": true},
+	]
+	var entries: Array = []
+	for definition in definitions:
+		var key := str(definition.get("key", ""))
+		var delta := float(current.get(key, 0.0)) - float(_month_snapshot.get(key, 0.0))
+		if absf(delta) < 0.05:
+			continue
+		entries.append({
+			"label": str(definition.get("label", key)),
+			"delta": delta,
+			"good": (delta > 0.0) == bool(definition.get("up_good", true)),
+		})
+	entries.sort_custom(func(a, b): return absf(float(a.delta)) > absf(float(b.delta)))
+	return entries.slice(0, 4)
 
 ## O mês só é concluído uma vez: evento e cena internacional passam pela IA,
 ## com fallback determinístico, e o fechamento é idempotente pelo carimbo.
@@ -1717,6 +2212,7 @@ func _complete_month(stamp: String) -> void:
 		_month_stamp_pending = ""
 		return
 	state["month_completed"] = stamp
+	state["month_report"] = _build_month_report()
 	_month_in_progress = false
 	_month_stamp_pending = ""
 	_month_event_needed = false
@@ -1727,6 +2223,7 @@ func _complete_month(stamp: String) -> void:
 	_month_intl_op = ""
 	_hide_ai_wait()
 	_clamp_state(); _save_game(); _show_game()
+	_show_month_report()
 
 func _show_ai_wait(message: String, op_ids: Variant) -> void:
 	_hide_ai_wait()
@@ -1792,14 +2289,12 @@ func _hide_ai_wait() -> void:
 
 func _update_header() -> void:
 	if not is_instance_valid(header_date): return
-	header_date.text = "%s  ·  %02d/%d" % ["GOVERNO" if state.government else "OPOSIÇÃO", state.date_month, state.date_year]
+	header_date.text = "%s · %02d/%d" % ["GOVERNO" if state.government else "OPOSIÇÃO", state.date_month, state.date_year]
 	if is_instance_valid(month_button):
 		var pending := int(state.months_to_election) <= 0
 		month_button.disabled = pending
-		month_button.text = "ELEIÇÃO OBRIGATÓRIA" if pending else "AVANÇAR MÊS  ›"
-	header_party.text = "%s  ·  %s" % [state.country_name, state.abbr]
-	header_position.text = _government_role() if state.government else "LÍDER DA OPOSIÇÃO"
-	header_funds.text = "M$ %s" % _fmt_int(state.funds)
+		month_button.text = "ELEIÇÃO" if pending else "AVANÇAR ›"
+		month_button.tooltip_text = "Eleição obrigatória: abra Eleições para disputar o pleito" if pending else "Avançar um mês"
 
 func _clamp_state() -> void:
 	state.popularity = clampf(state.popularity, 5.0, 85.0); state.approval = clampf(state.approval, 5.0, 90.0); state.recognition = clampf(state.recognition, 5.0, 95.0); state.credibility = clampf(state.credibility, 5.0, 90.0); state.cohesion = clampf(state.cohesion, 10.0, 100.0); state.funds = maxf(0.0, state.funds)
@@ -1827,7 +2322,7 @@ func _sync_action_month() -> void:
 func _month_action_panel() -> PanelContainer:
 	var panel := _panel_box()
 	var col := VBoxContainer.new()
-	col.add_child(_label("AÇÃO DO MÊS", 12, CYAN))
+	col.add_child(_label("AÇÃO DO MÊS", 12, SUBTLE))
 	if bool(state.government):
 		col.add_child(_label("Governo: programas executivos ficam em Governo; a conjuntura, em Economia.", 13, MUTED))
 	else:
@@ -1961,6 +2456,9 @@ func _show_promises() -> void:
 	promise_confirm.disabled = true
 	promise_confirm.pressed.connect(_confirm_promises)
 	box.add_child(promise_confirm)
+	# Foco na primeira opção: teclado/gamepad selecionam sem depender do mouse.
+	if not promise_checks.is_empty():
+		promise_checks[0].grab_focus()
 
 func _on_promise_toggled(check: BaseButton, pressed: bool, counter: Label) -> void:
 	var selected := 0
@@ -2033,11 +2531,11 @@ func _show_result() -> void:
 	metrics.add_theme_constant_override("separation", 8)
 	metrics.add_child(_metric_card("APROVAÇÃO FINAL", "%.0f%%" % float(result.get("approval", 0.0)), GREEN))
 	metrics.add_child(_metric_card("DÍVIDA / PIB", "%.0f%%" % float(result.get("debt", 0.0)), AMBER))
-	metrics.add_child(_metric_card("LEIS APROVADAS", str(int(result.get("laws", 0))), CYAN))
+	metrics.add_child(_metric_card("LEIS APROVADAS", str(int(result.get("laws", 0))), SUBTLE))
 	metrics.add_child(_metric_card("PROMESSAS", "%d de %d" % [int(result.get("fulfilled", 0)), int(result.get("promise_total", 0))], GREEN if int(result.get("fulfilled", 0)) > 0 else RED))
 	box.add_child(metrics)
 	box.add_child(_rule())
-	box.add_child(_label("PROGRAMA DE GOVERNO", 12, CYAN))
+	box.add_child(_label("PROGRAMA DE GOVERNO", 12, SUBTLE))
 	for detail in result.get("promises", []):
 		var ok := bool(detail.get("fulfilled", false))
 		var row := _label("%s  %s" % ["cumprida" if ok else "não cumprida", str(detail.get("text", ""))], 15, GREEN if ok else RED)
@@ -2055,6 +2553,7 @@ func _show_result() -> void:
 	menu.pressed.connect(_show_menu)
 	actions.add_child(menu)
 	box.add_child(actions)
+	next.grab_focus()
 
 func _censure_panel() -> PanelContainer:
 	var panel := _panel_box()
@@ -2112,9 +2611,108 @@ func _motion_of_censure() -> void:
 		_show_toast("Moção rejeitada", "error")
 	_clamp_state(); _save_game(); _show_game()
 
+## Relatório do mês: tela própria, aberta ao fechar o mês, com foco no CONTINUAR.
+## Só aparece quando há variação relevante — mês estável não interrompe o jogo.
+func _show_month_report() -> void:
+	var report: Array = state.get("month_report", []) if state.get("month_report") is Array else []
+	if report.is_empty() or not is_instance_valid(root_stack):
+		return
+	var overlay := Control.new()
+	overlay.name = "MonthReport"
+	overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	overlay.mouse_filter = Control.MOUSE_FILTER_STOP
+	root_stack.add_child(overlay)
+	var dim := ColorRect.new()
+	dim.color = Color(0.03, 0.04, 0.05, 0.72)
+	dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	dim.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	overlay.add_child(dim)
+	var center := CenterContainer.new()
+	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	overlay.add_child(center)
+	var card := _panel_box()
+	card.custom_minimum_size.x = 520
+	var col := VBoxContainer.new()
+	col.name = "Col"
+	col.add_theme_constant_override("separation", 10)
+	col.add_child(_label("RELATÓRIO DO MÊS  ·  %02d/%d" % [int(state.date_month), int(state.date_year)], 12, AMBER))
+	col.add_child(_label("O que mudou desde o mês anterior", 24, TEXT))
+	for entry in report:
+		var delta := float(entry.get("delta", 0.0))
+		var row := HBoxContainer.new()
+		var name_label := _label(str(entry.get("label", "Indicador")), 15, TEXT)
+		name_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		row.add_child(name_label)
+		row.add_child(_label("%s%.2f" % ["+" if delta >= 0.0 else "", delta], 15, GREEN if bool(entry.get("good", true)) else RED))
+		col.add_child(row)
+	col.add_child(_rule())
+	col.add_child(_label("ENTER, ESPAÇO ou ESC continuam o jogo.", 12, MUTED))
+	month_report_continue = _button("CONTINUAR", AMBER)
+	month_report_continue.pressed.connect(_dismiss_month_report)
+	col.add_child(month_report_continue)
+	card.add_child(col)
+	center.add_child(card)
+	month_report_panel = overlay
+	_trap_focus(overlay)
+	month_report_continue.grab_focus()
+
+## Modal de verdade: enquanto o relatório está aberto, só ele recebe foco.
+## Sem isso, setas/D-pad escapavam para botões atrás da cortina.
+func _trap_focus(keep: Control) -> void:
+	report_blocked.clear()
+	for node in root_stack.find_children("*", "Control", true, false):
+		var control := node as Control
+		if control == keep or keep.is_ancestor_of(control):
+			continue
+		if control.focus_mode == Control.FOCUS_NONE:
+			continue
+		report_blocked.append([control, control.focus_mode])
+		control.focus_mode = Control.FOCUS_NONE
+
+func _release_focus_trap() -> void:
+	for entry in report_blocked:
+		var control = entry[0]
+		if is_instance_valid(control):
+			control.focus_mode = entry[1]
+	report_blocked.clear()
+
+func _dismiss_month_report() -> void:
+	if is_instance_valid(month_report_panel):
+		month_report_panel.queue_free()
+	month_report_panel = null
+	month_report_continue = null
+	_release_focus_trap()
+	if is_instance_valid(month_button) and not month_button.disabled:
+		month_button.grab_focus()
+	elif is_instance_valid(sidebar):
+		var fallback := _first_focusable(sidebar)
+		if fallback != null:
+			fallback.grab_focus()
+
+## Escape / botão B: fecha o relatório ou sai de qualquer tela para o menu,
+## sem prender o jogador. O salvamento é automático a cada decisão.
+func _unhandled_input(event: InputEvent) -> void:
+	if is_instance_valid(month_report_panel):
+		var closes := event.is_action_pressed("ui_cancel") or event.is_action_pressed("ui_accept")
+		if event is InputEventKey and event.pressed and event.keycode in [KEY_ESCAPE, KEY_ENTER, KEY_KP_ENTER, KEY_SPACE]:
+			closes = true
+		if closes:
+			_dismiss_month_report()
+			get_viewport().set_input_as_handled()
+			return
+	if event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE:
+		if screen != "menu":
+			_show_menu()
+			get_viewport().set_input_as_handled()
+		return
+	if event.is_action_pressed("ui_cancel"):
+		if screen != "menu":
+			_show_menu()
+			get_viewport().set_input_as_handled()
+
 func _show_toast(message: String, kind := "info") -> void:
 	if is_instance_valid(toast): toast.queue_free()
-	var color := CYAN
+	var color := SUBTLE
 	if kind == "success":
 		color = GREEN
 	elif kind == "error":
@@ -2131,27 +2729,32 @@ func _show_toast(message: String, kind := "info") -> void:
 func _apply_responsive() -> void:
 	var width := size.x
 	if is_instance_valid(right_column):
-		right_column.visible = width >= UI.RAIL_BREAKPOINT
+		right_column.visible = _rail_enabled() and width >= UI.RAIL_BREAKPOINT
 	if is_instance_valid(sidebar):
-		var sidebar_width := float(UI.SIDEBAR_WIDE if width >= UI.SIDEBAR_BREAKPOINT else UI.SIDEBAR_NARROW)
-		sidebar.custom_minimum_size.x = sidebar_width
-		if is_instance_valid(sidebar_plate):
-			sidebar_plate.custom_minimum_size.x = sidebar_width
-	if is_instance_valid(header_position):
-		header_position.visible = width >= 900
+		sidebar.custom_minimum_size.x = UI.NAV_MAIN_HEIGHT + UI.NAV_CONTEXT_WIDTH
+	if is_instance_valid(sidebar_plate):
+		sidebar_plate.custom_minimum_size.x = UI.NAV_MAIN_HEIGHT
+	if is_instance_valid(sidebar_context):
+		# Em janelas estreitas a faixa contextual recolhe e só o rail principal fica.
+		sidebar_context.visible = width >= 1000
+	if is_instance_valid(header_leader):
+		header_leader.visible = width >= 1180
+	if is_instance_valid(header_pills):
+		header_pills.visible = width >= 1000
+	for capsule in header_capsules:
+		if not is_instance_valid(capsule):
+			continue
+		(capsule as Control).visible = width >= 1000 or int(capsule.get_meta("priority", 1)) == 1
 	if is_instance_valid(month_button):
 		if int(state.months_to_election) <= 0:
-			month_button.text = "ELEIÇÃO OBRIGATÓRIA"
+			month_button.text = "ELEIÇÃO"
 			month_button.disabled = true
 		else:
-			month_button.text = "AVANÇAR MÊS  ›" if width >= 900 else "AVANÇAR ›"
+			month_button.text = "AVANÇAR ›" if width >= 900 else "›"
 			month_button.disabled = false
-	for stat in header_stats:
-		if is_instance_valid(stat):
-			stat.visible = width >= UI.PAD_BREAKPOINT
 	if is_instance_valid(main_margin):
-		var pad := 22 if width >= UI.PAD_BREAKPOINT else 12
-		var pad_y := 16 if width >= UI.PAD_BREAKPOINT else 10
+		var pad := UI.MARGIN_SIDE if width >= UI.PAD_BREAKPOINT else 12
+		var pad_y := UI.MARGIN_TOP if width >= UI.PAD_BREAKPOINT else 10
 		main_margin.add_theme_constant_override("margin_left", pad)
 		main_margin.add_theme_constant_override("margin_right", pad)
 		main_margin.add_theme_constant_override("margin_top", pad_y)
@@ -2355,6 +2958,76 @@ func _clear_column(column: VBoxContainer) -> void:
 func _section_title(title: String, subtitle: String) -> VBoxContainer:
 	var box := VBoxContainer.new(); box.add_child(_label(title, 30, TEXT)); box.add_child(_label(subtitle, 14, MUTED)); return box
 
+## Cápsula do topo: rótulo 8 px sobre valor 13 px, sem caixa — o agrupamento
+## vem do espaço e do filete entre economia e política. `priority` 1 nunca sai;
+## 2 é dispensada abaixo de 1000 px.
+func _header_capsule(caption: String, value: String, color: Color, priority := 1) -> PanelContainer:
+	var box := PanelContainer.new()
+	box.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	var style := _style(Color.TRANSPARENT, Color.TRANSPARENT, 0, 0)
+	style.content_margin_left = 4
+	style.content_margin_right = 4
+	style.content_margin_top = 0
+	style.content_margin_bottom = 0
+	box.add_theme_stylebox_override("panel", style)
+	var col := VBoxContainer.new()
+	col.add_theme_constant_override("separation", 0)
+	col.add_child(_label(caption, 8, SUBTLE))
+	var value_label := _label(value, 13, color)
+	value_label.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
+	col.add_child(value_label)
+	box.add_child(col)
+	box.set_meta("priority", priority)
+	header_capsules.append(box)
+	return box
+
+## Barra horizontal do tema: trilha SURFACE_HOVER + preenchimento colorido.
+func _bar(value: float, max_value: float, color: Color, height: float = 12.0) -> ProgressBar:
+	var bar := ProgressBar.new()
+	bar.max_value = max_value
+	bar.value = clampf(value, 0.0, max_value)
+	bar.show_percentage = false
+	bar.custom_minimum_size = Vector2(0, height)
+	bar.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var track := _style(SURFACE_HOVER, LINE, 3, 1)
+	track.content_margin_left = 0
+	track.content_margin_right = 0
+	track.content_margin_top = 0
+	track.content_margin_bottom = 0
+	var fill := _style(color, Color.TRANSPARENT, 3, 0)
+	fill.content_margin_left = 0
+	fill.content_margin_right = 0
+	fill.content_margin_top = 0
+	fill.content_margin_bottom = 0
+	bar.add_theme_stylebox_override("background", track)
+	bar.add_theme_stylebox_override("fill", fill)
+	return bar
+
+## Cartão de KPI: legenda 9 px + valor 22 px + variação opcional em 10 px.
+func _kpi_card(caption: String, value: String, color: Color, delta: String = "") -> PanelContainer:
+	var box := _panel_box()
+	box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var col := VBoxContainer.new()
+	col.add_theme_constant_override("separation", 2)
+	col.add_child(_label(caption, 9, SUBTLE))
+	col.add_child(_label(value, 22, color))
+	if delta != "":
+		col.add_child(_label(delta, 10, SUBTLE))
+	box.add_child(col)
+	return box
+
+## Variação do último mês registrado para um indicador econômico.
+func _econ_delta(key: String) -> String:
+	var history: Array = state.get("economy_history", [])
+	if history.size() < 2:
+		return ""
+	var last := float((history[history.size() - 1] as Dictionary).get(key, 0.0))
+	var prev := float((history[history.size() - 2] as Dictionary).get(key, 0.0))
+	var delta := last - prev
+	if absf(delta) < 0.05:
+		return "estável no mês"
+	return "%+.1f p.p. no mês" % delta
+
 func _header_stat(caption: String, value: String, color: Color) -> VBoxContainer:
 	var box := VBoxContainer.new()
 	box.add_theme_constant_override("separation", 0)
@@ -2372,19 +3045,22 @@ func _constitutional_tension() -> float:
 
 func _build_status_bar() -> Control:
 	var panel := PanelContainer.new()
-	panel.custom_minimum_size.y = 46
-	panel.add_theme_stylebox_override("panel", _style(PANEL, LINE, 0, 0))
+	panel.custom_minimum_size.y = UI.FOOTER_HEIGHT
+	var footer_style := _style(SURFACE, LINE, 0, 1)
+	footer_style.content_margin_top = 2
+	footer_style.content_margin_bottom = 2
+	panel.add_theme_stylebox_override("panel", footer_style)
 	var row := HBoxContainer.new()
-	row.add_theme_constant_override("separation", 34)
+	row.add_theme_constant_override("separation", 22)
 	for cell_data in [
-		["APROVAÇÃO", "%.0f%%" % state.approval, GREEN],
-		["ESTABILIDADE", "%d/100" % int(_stability()), CYAN],
+		["DESEMPREGO", "%.1f%%" % state.unemployment, RED if float(state.unemployment) >= 10.0 else AMBER],
+		["ESTABILIDADE", "%d/100" % int(_stability()), AMBER],
 		["TENSÃO CONSTITUCIONAL", "%d/100" % int(_constitutional_tension()), AMBER],
 	]:
 		var cell := HBoxContainer.new()
-		cell.add_theme_constant_override("separation", 8)
-		cell.add_child(_label(str(cell_data[0]), 10, MUTED))
-		cell.add_child(_label(str(cell_data[1]), 15, cell_data[2]))
+		cell.add_theme_constant_override("separation", 6)
+		cell.add_child(_label(str(cell_data[0]), 9, SUBTLE))
+		cell.add_child(_label(str(cell_data[1]), 12, cell_data[2]))
 		row.add_child(cell)
 	panel.add_child(row)
 	return panel

@@ -26,14 +26,14 @@ func _ready() -> void:
 	add_child(dim)
 	_line = Line2D.new()
 	_line.width = 3.0
-	_line.default_color = ScreenFactory.CYAN
+	_line.default_color = ScreenFactory.AMBER
 	_line.z_index = 2
 	add_child(_line)
 	_arrow_head = Polygon2D.new()
-	_arrow_head.color = ScreenFactory.CYAN
+	_arrow_head.color = ScreenFactory.AMBER
 	_arrow_head.z_index = 2
 	add_child(_arrow_head)
-	_panel = ScreenFactory.holo_panel(ScreenFactory.CYAN, Vector2(24.0, 20.0))
+	_panel = ScreenFactory.holo_panel(ScreenFactory.AMBER, Vector2(24.0, 20.0))
 	_panel.custom_minimum_size = Vector2(460.0, 245.0)
 	_panel.size = Vector2(460.0, 245.0)
 	_panel.z_index = 3
@@ -41,7 +41,7 @@ func _ready() -> void:
 	var content := VBoxContainer.new()
 	content.add_theme_constant_override("separation", 8)
 	_panel.add_child(content)
-	_title = ScreenFactory.display_label("", 24, ScreenFactory.CYAN, "heading")
+	_title = ScreenFactory.display_label("", 24, ScreenFactory.AMBER, "heading")
 	_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	content.add_child(_title)
 	_message = ScreenFactory.label("", 18)

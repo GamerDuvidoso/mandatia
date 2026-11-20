@@ -1,20 +1,38 @@
 class_name ScreenFactory
 extends RefCounted
 
-const INK := Color("0b0e13")
-const PANEL := Color("161a21")
-const BORDER := Color("2b323d")
-const CYAN := Color("70b7ff")
-const VIOLET := Color("aab8ce")
-const CORAL := Color("ff9b8e")
-const TEXT := Color("f5f7fa")
-const MUTED := Color("a7afbd")
-const SUBTLE := Color("6f7887")
-const ACCENT := Color("2f6fe4")
-const ACCENT_HOVER := Color("4180f0")
-const ACCENT_PRESSED := Color("2459c2")
+## Fachada fina sobre mandato_theme.gd. Todas as cores e métricas vêm do tema;
+## este arquivo apenas reexporta e constrói componentes sobre eles.
+## Estética sci-fi removida (revisão 2): sem skew, sem holo_panel, sem modal_backdrop,
+## sem add_press_juice, sem cores próprias ACCENT/CORAL/INK.
 
-## Display type (titles, headings, big numbers). Body copy and buttons use the ui_* composites.
+const MandatoTheme := preload("res://scripts/ui/mandato_theme.gd")
+
+## Reexportação dos tokens do tema (compatibilidade com chamadas existentes).
+const BG := MandatoTheme.BG
+const SURFACE := MandatoTheme.SURFACE
+const SURFACE_RAISED := MandatoTheme.SURFACE_RAISED
+const SURFACE_HOVER := MandatoTheme.SURFACE_HOVER
+const LINE := MandatoTheme.LINE
+const TEXT := MandatoTheme.TEXT
+const MUTED := MandatoTheme.MUTED
+const SUBTLE := MandatoTheme.SUBTLE
+const AMBER := MandatoTheme.AMBER
+const GREEN := MandatoTheme.GREEN
+const RED := MandatoTheme.RED
+const AXIS_LEFT := MandatoTheme.AXIS_LEFT
+const AXIS_CENTER := MandatoTheme.AXIS_CENTER
+const AXIS_RIGHT := MandatoTheme.AXIS_RIGHT
+const GLOBE_LAND := MandatoTheme.GLOBE_LAND
+const GLOBE_OCEAN := MandatoTheme.GLOBE_OCEAN
+
+## Deprecated — mantido apenas para transição. Não usar em novo código.
+const CYAN := MandatoTheme.CYAN
+const PANEL := MandatoTheme.PANEL
+const PANEL_2 := MandatoTheme.PANEL_2
+const PANEL_3 := MandatoTheme.PANEL_3
+
+## Tipografia (fontes já existentes no projeto — sem novas fontes).
 const FONT_TITLE := "res://assets/template/fonts/display/generic_title.tres"
 const FONT_HEADING := "res://assets/template/fonts/display/generic_heading.tres"
 const FONT_EYEBROW := "res://assets/template/fonts/display/generic_eyebrow.tres"
@@ -23,75 +41,76 @@ const FONT_BOLD := "res://assets/template/fonts/ui_bold.tres"
 const FONT_MENU := "res://assets/template/fonts/display/generic_menu.tres"
 const HOLO_SHADER := preload("res://shaders/holo_panel.gdshader")
 const BACKDROP_SHADER := preload("res://shaders/modal_backdrop.gdshader")
-const GLASS := Color(0.055, 0.07, 0.095, 0.82)
-const GLASS_EDGE := Color(0.62, 0.78, 1.0, 0.16)
+
+const RADIUS := MandatoTheme.RADIUS
+const RADIUS_SMALL := MandatoTheme.RADIUS_SMALL
+const RADIUS_LARGE := MandatoTheme.RADIUS_LARGE
+const PAD_X := MandatoTheme.PAD_X
+const PAD_Y := MandatoTheme.PAD_Y
+const PAD_SMALL := MandatoTheme.PAD_SMALL
+const PAD_LARGE := MandatoTheme.PAD_LARGE
+const GAP := MandatoTheme.GAP
+const GAP_SMALL := MandatoTheme.GAP_SMALL
+const GAP_LARGE := MandatoTheme.GAP_LARGE
 
 
-static func style_box(background: Color, border: Color, radius: int = 12, border_width: int = 1) -> StyleBoxFlat:
+static func style_box(background: Color, border: Color, radius: int = RADIUS_SMALL, border_width: int = 1, pad_x: float = PAD_X, pad_y: float = PAD_Y) -> StyleBoxFlat:
 	var style := StyleBoxFlat.new()
 	style.bg_color = background
 	style.border_color = border
 	style.set_border_width_all(border_width)
 	style.set_corner_radius_all(radius)
-	style.content_margin_left = 20.0
-	style.content_margin_right = 20.0
-	style.content_margin_top = 12.0
-	style.content_margin_bottom = 12.0
+	style.content_margin_left = pad_x
+	style.content_margin_right = pad_x
+	style.content_margin_top = pad_y
+	style.content_margin_bottom = pad_y
 	style.anti_aliasing = true
 	return style
 
 
-static func panel(background: Color = PANEL, border: Color = BORDER, padding: Vector2 = Vector2(20.0, 12.0)) -> PanelContainer:
+static func panel(background: Color = SURFACE, border: Color = LINE, padding: Vector2 = Vector2(PAD_X, PAD_Y)) -> PanelContainer:
 	var result := PanelContainer.new()
-	var style := style_box(Color(background, 0.96), border, 20, 1)
-	style.shadow_color = Color(0.0, 0.0, 0.0, 0.38)
-	style.shadow_size = 28
-	style.shadow_offset = Vector2(0.0, 12.0)
-	style.content_margin_left = padding.x
-	style.content_margin_right = padding.x
-	style.content_margin_top = padding.y
-	style.content_margin_bottom = padding.y
+	var style := style_box(background, border, RADIUS, 1, padding.x, padding.y)
+	style.shadow_color = Color.TRANSPARENT
+	style.shadow_size = 0
+	style.shadow_offset = Vector2.ZERO
 	result.add_theme_stylebox_override("panel", style)
 	return result
 
 
-static func _focus_ring(color: Color, radius: int = 12) -> StyleBoxFlat:
+static func _focus_ring(color: Color, radius: int = RADIUS_SMALL) -> StyleBoxFlat:
 	var focus := style_box(Color.TRANSPARENT, color, radius + 3, 2)
 	focus.set_expand_margin_all(3.0)
 	return focus
 
 
-static func button(label: String, minimum_width: float = 260.0) -> Button:
+static func button(label: String, minimum_width: float = 260.0, color: Color = AMBER) -> Button:
 	var result := Button.new()
 	result.text = label
-	result.custom_minimum_size = Vector2(minimum_width, 46.0)
+	result.custom_minimum_size = Vector2(minimum_width, 34.0)
 	result.focus_mode = Control.FOCUS_ALL
-	result.add_theme_font_size_override("font_size", 16)
-	result.add_theme_color_override("font_color", TEXT)
-	result.add_theme_color_override("font_hover_color", Color.WHITE)
-	result.add_theme_color_override("font_focus_color", Color.WHITE)
-	result.add_theme_color_override("font_pressed_color", Color.WHITE)
-	result.add_theme_color_override("font_disabled_color", Color("646c78"))
-	result.add_theme_stylebox_override("normal", plate(Color(0.09, 0.115, 0.15, 0.92), Color(1.0, 1.0, 1.0, 0.1)))
-	result.add_theme_stylebox_override("hover", plate(Color(0.12, 0.16, 0.21, 0.96), Color(CYAN, 0.55), Color(CYAN, 0.18)))
-	result.add_theme_stylebox_override("pressed", plate(Color(0.06, 0.08, 0.11, 0.96), CYAN))
-	result.add_theme_stylebox_override("disabled", plate(Color(0.07, 0.08, 0.1, 0.7), Color(1.0, 1.0, 1.0, 0.05)))
-	result.add_theme_stylebox_override("focus", _plate_focus(Color("a9d4ff")))
-	add_press_juice(result)
+	result.add_theme_font_size_override("font_size", 14)
+	result.add_theme_color_override("font_color", Color("15110A"))
+	result.add_theme_color_override("font_hover_color", Color("15110A"))
+	result.add_theme_color_override("font_focus_color", Color("15110A"))
+	result.add_theme_color_override("font_pressed_color", Color("15110A"))
+	result.add_theme_color_override("font_disabled_color", SUBTLE)
+	result.add_theme_stylebox_override("normal", style_box(color, LINE, RADIUS_SMALL, 1, PAD_X, PAD_Y))
+	result.add_theme_stylebox_override("hover", style_box(color.lightened(0.15), LINE, RADIUS_SMALL, 1, PAD_X, PAD_Y))
+	result.add_theme_stylebox_override("pressed", style_box(color.darkened(0.15), LINE, RADIUS_SMALL, 1, PAD_X, PAD_Y))
+	result.add_theme_stylebox_override("disabled", style_box(SURFACE_HOVER, LINE, RADIUS_SMALL, 1, PAD_X, PAD_Y))
+	result.add_theme_stylebox_override("focus", _focus_ring(AMBER, RADIUS_SMALL))
 	return result
 
 
 static func primary(button_control: Button) -> void:
-	button_control.custom_minimum_size.y = maxf(button_control.custom_minimum_size.y, 52.0)
+	button_control.custom_minimum_size.y = maxf(button_control.custom_minimum_size.y, 34.0)
 	button_control.add_theme_font_override("font", load(FONT_BOLD) as Font)
-	button_control.add_theme_font_size_override("font_size", 17)
-	for key: String in ["font_color", "font_hover_color", "font_focus_color", "font_pressed_color"]:
-		button_control.add_theme_color_override(key, Color.WHITE)
-	button_control.add_theme_font_override("font", load(FONT_MENU) as Font)
-	button_control.add_theme_stylebox_override("normal", plate(ACCENT, Color("8fb8ff"), Color(ACCENT, 0.45)))
-	button_control.add_theme_stylebox_override("hover", plate(ACCENT_HOVER, Color("b9d3ff"), Color(ACCENT_HOVER, 0.7)))
-	button_control.add_theme_stylebox_override("pressed", plate(ACCENT_PRESSED, ACCENT_PRESSED))
-	button_control.add_theme_stylebox_override("focus", _plate_focus(Color.WHITE))
+	button_control.add_theme_font_size_override("font_size", 15)
+	button_control.add_theme_stylebox_override("normal", style_box(AMBER, LINE, RADIUS_SMALL, 1, PAD_X, PAD_Y))
+	button_control.add_theme_stylebox_override("hover", style_box(AMBER.lightened(0.15), LINE, RADIUS_SMALL, 1, PAD_X, PAD_Y))
+	button_control.add_theme_stylebox_override("pressed", style_box(AMBER.darkened(0.15), LINE, RADIUS_SMALL, 1, PAD_X, PAD_Y))
+	button_control.add_theme_stylebox_override("focus", _focus_ring(AMBER, RADIUS_SMALL))
 
 
 ## Quiet footer / utility action: text-only until hovered, focus ring stays visible.
@@ -104,8 +123,8 @@ static func quiet_button(label: String, font_size: int = 13) -> Button:
 	result.add_theme_color_override("font_color", SUBTLE)
 	result.add_theme_color_override("font_hover_color", TEXT)
 	result.add_theme_color_override("font_focus_color", TEXT)
-	result.add_theme_color_override("font_pressed_color", CYAN)
-	var normal := style_box(Color.TRANSPARENT, Color.TRANSPARENT, 8, 0)
+	result.add_theme_color_override("font_pressed_color", AMBER)
+	var normal := style_box(Color.TRANSPARENT, Color.TRANSPARENT, RADIUS_SMALL, 0)
 	normal.content_margin_left = 10.0
 	normal.content_margin_right = 10.0
 	normal.content_margin_top = 6.0
@@ -115,7 +134,7 @@ static func quiet_button(label: String, font_size: int = 13) -> Button:
 	hover.bg_color = Color(1.0, 1.0, 1.0, 0.06)
 	result.add_theme_stylebox_override("hover", hover)
 	result.add_theme_stylebox_override("pressed", hover)
-	result.add_theme_stylebox_override("focus", _focus_ring(CYAN, 8))
+	result.add_theme_stylebox_override("focus", _focus_ring(AMBER, RADIUS_SMALL))
 	return result
 
 
@@ -142,7 +161,7 @@ static func medium_label(text: String, font_size: int, color: Color = TEXT) -> L
 
 
 ## Short accent rule used under headings (replaces full-width HSeparators).
-static func accent_rule(width: float = 40.0, color: Color = CYAN) -> Control:
+static func accent_rule(width: float = 40.0, color: Color = AMBER) -> Control:
 	var holder := CenterContainer.new()
 	holder.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var bar := ColorRect.new()
@@ -209,7 +228,7 @@ static func add_press_juice(control: Button) -> void:
 
 
 ## Holo glass modal: sharp sci-fi corners, scanline sweep shader, drawn corner brackets.
-static func holo_panel(accent: Color = CYAN, padding: Vector2 = Vector2(44.0, 36.0)) -> PanelContainer:
+static func holo_panel(accent: Color = AMBER, padding: Vector2 = Vector2(44.0, 36.0)) -> PanelContainer:
 	var result := PanelContainer.new()
 	var style := style_box(Color(0.04, 0.055, 0.078, 0.94), Color(accent, 0.28), 6, 1)
 	style.shadow_color = Color(0.0, 0.0, 0.0, 0.55)
@@ -263,7 +282,7 @@ static func modal_backdrop(parent: Control) -> ColorRect:
 
 ## Small glass chip used by HUD widgets and footers.
 static func glass_chip(accent: Color = Color.TRANSPARENT, padding: Vector2 = Vector2(16.0, 8.0)) -> StyleBoxFlat:
-	var style := style_box(GLASS, GLASS_EDGE, 10, 1)
+	var style := style_box(SURFACE, LINE, 10, 1)
 	style.content_margin_left = padding.x
 	style.content_margin_right = padding.x
 	style.content_margin_top = padding.y
@@ -288,7 +307,7 @@ static func style_menu_item(control: Button, font_size: int = 22) -> void:
 	control.add_theme_color_override("font_hover_color", Color.WHITE)
 	control.add_theme_color_override("font_focus_color", Color.WHITE)
 	control.add_theme_color_override("font_hover_pressed_color", Color.WHITE)
-	control.add_theme_color_override("font_pressed_color", CYAN)
+	control.add_theme_color_override("font_pressed_color", AMBER)
 	control.add_theme_color_override("font_disabled_color", Color("4e5664"))
 	control.add_theme_color_override("font_outline_color", Color(0.0, 0.0, 0.0, 0.5))
 	control.add_theme_constant_override("outline_size", 4)

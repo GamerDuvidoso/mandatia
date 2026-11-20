@@ -4,12 +4,12 @@ signal region_clicked(index: int)
 
 const THEME := preload("res://scripts/ui/mandato_theme.gd")
 
-const BG := THEME.PANEL_3
+const BG := THEME.SURFACE
 const LINE := THEME.LINE
 const TEXT := THEME.TEXT
 const MUTED := THEME.MUTED
 const AMBER := THEME.AMBER
-const CYAN := THEME.CYAN
+const CYAN := THEME.SUBTLE
 const GREEN := THEME.GREEN
 
 var data: Dictionary = {}
@@ -84,9 +84,9 @@ func _draw_dashboard() -> void:
 		var y := top + i * row_h
 		var label: String = regions[i].name if i < regions.size() else "Região %d" % (i + 1)
 		draw_string(font, Vector2(left, y + 12), label, HORIZONTAL_ALIGNMENT_LEFT, label_w - 4, 11, MUTED)
-		draw_rect(Rect2(bar_x, y + 2, bar_w, 12), Color("17283c"))
+		draw_rect(Rect2(bar_x, y + 2, bar_w, 12), Color("292C31"))
 		var value := float(vals[i])
-		draw_rect(Rect2(bar_x, y + 2, maxf(2.0, bar_w * value / 80.0), 12), CYAN if value > 30 else AMBER)
+		draw_rect(Rect2(bar_x, y + 2, maxf(2.0, bar_w * value / 80.0), 12), GREEN if value > 30 else AMBER)
 		draw_string(font, Vector2(bar_x + bar_w + 6, y + 12), "%.0f%%" % value, HORIZONTAL_ALIGNMENT_LEFT, 40, 11, TEXT)
 	if not wide:
 		return
@@ -119,13 +119,13 @@ func _draw_map() -> void:
 		var x := i % cols; var y := i / cols
 		var r := Rect2(rect.position + Vector2(x * (cell.x + 8), y * (cell.y + 16)), cell)
 		var support := float(data.get("region_support", [33,27,41,29,36,31,25,22])[i])
-		var col := Color("28485a").lerp(Color("6a8b55"), support / 80.0)
-		if i == selected: col = AMBER
+		var col := Color("202226").lerp(Color("2E3A33"), support / 80.0)
+		if i == selected: col = Color("3A3018")
 		draw_style_box(_panel_style(col, AMBER if i == selected else LINE), r)
-		draw_string(font, r.position + Vector2(12, 28), "%02d" % (i + 1), HORIZONTAL_ALIGNMENT_LEFT, -1, 12, Color(1,1,1,0.65))
-		draw_string(font, r.position + Vector2(12, 56), regions[i].name if i < regions.size() else "Região", HORIZONTAL_ALIGNMENT_LEFT, r.size.x - 24, 15, TEXT)
-		draw_string(font, r.position + Vector2(12, 82), "%.0f%% apoio" % support, HORIZONTAL_ALIGNMENT_LEFT, -1, 13, Color.WHITE)
-		draw_string(font, r.position + Vector2(12, r.size.y - 14), regions[i].kind if i < regions.size() else "", HORIZONTAL_ALIGNMENT_LEFT, r.size.x - 24, 11, Color(1,1,1,0.65))
+		draw_string(font, r.position + Vector2(10, 24), "%02d" % (i + 1), HORIZONTAL_ALIGNMENT_LEFT, -1, 11, Color(1,1,1,0.55))
+		draw_multiline_string(font, r.position + Vector2(10, 42), regions[i].name if i < regions.size() else "Região", HORIZONTAL_ALIGNMENT_LEFT, r.size.x - 16, 12, 2, TEXT)
+		draw_string(font, r.position + Vector2(10, 84), "%.0f%% apoio" % support, HORIZONTAL_ALIGNMENT_LEFT, -1, 12, AMBER if i == selected else Color.WHITE)
+		draw_string(font, r.position + Vector2(10, r.size.y - 12), regions[i].kind if i < regions.size() else "", HORIZONTAL_ALIGNMENT_LEFT, r.size.x - 14, 9, Color(1,1,1,0.55))
 
 func _draw_economy() -> void:
 	draw_string(font, Vector2(20, 28), "INDICADORES ECONÔMICOS", HORIZONTAL_ALIGNMENT_LEFT, -1, 12, CYAN)
@@ -243,6 +243,13 @@ func _draw_hemicycle() -> void:
 			var pos := center + Vector2(cos(angle), sin(angle)) * radius
 			draw_circle(pos, dot, seat_colors[index])
 			index += 1
+	# Marca da maioria absoluta: tick no topo do hemiciclo.
+	if majority > 0 and total > 0 and majority <= total:
+		var maj_angle := PI + (float(majority) - 0.5) / float(total) * PI
+		var maj_inner := center + Vector2(cos(maj_angle), sin(maj_angle)) * (max_radius + 8.0)
+		var maj_outer := center + Vector2(cos(maj_angle), sin(maj_angle)) * (max_radius + 20.0)
+		draw_line(maj_inner, maj_outer, AMBER, 2.0, true)
+		draw_string(font, maj_outer + Vector2(-14.0, -4.0), "maioria", HORIZONTAL_ALIGNMENT_LEFT, -1, 10, AMBER)
 	var legend_items := ordered.duplicate()
 	legend_items.sort_custom(func(a, b): return int(a[2]) > int(b[2]))
 	legend_items = legend_items.slice(0, 6)
