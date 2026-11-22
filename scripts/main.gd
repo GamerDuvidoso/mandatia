@@ -2,6 +2,7 @@ extends Control
 
 const BOARD_SCRIPT := preload("res://scripts/aurora_board.gd")
 const Election := preload("res://scripts/sim/election.gd")
+const Events := preload("res://scripts/sim/events.gd")
 const Coalition := preload("res://scripts/sim/coalition.gd")
 const Legislature := preload("res://scripts/sim/legislature.gd")
 const AIClient := preload("res://scripts/ai/ollama_client.gd")
@@ -12,6 +13,20 @@ const SAVE_TMP := "user://mandatia_save.tmp"
 const SAVE_BACKUP := "user://mandatia_save.bak"
 const LEGACY_SAVE_PATH := "user://mandato_save.json"
 const SAVE_VERSION := 5
+const MINISTRIES := {
+	"Finanças": {"cost": 600, "now": {"credibility": 2.0, "debt": -0.2}, "groups": {"Empreendedores": 2.0}, "desc": "credibilidade +2, dívida -0,2"},
+	"Educação": {"cost": 600, "now": {"economy": 0.1}, "groups": {"Jovens": 3.0}, "desc": "crescimento +0,1, jovens +3"},
+	"Saúde": {"cost": 600, "now": {"approval": 1.5}, "groups": {"Aposentados": 3.0}, "desc": "aprovação +1,5, aposentados +3"},
+	"Infraestrutura": {"cost": 600, "now": {"economy": 0.15}, "groups": {}, "region": 0.6, "desc": "crescimento +0,15, apoio regional +0,6"},
+}
+const EFFECT_KEYS := ["economy", "approval", "debt", "unemployment", "inflation", "credibility", "cohesion", "popularity", "recognition"]
+const PROGRAMS := {
+	"jobs": {"label": "Pacto de empregos", "cost": 2000, "upkeep": 80, "now": {"unemployment": -0.5, "approval": 2.0}, "groups": {"Trabalhadores": 3.0}, "monthly": {"unemployment": -0.04}, "desc": "desemprego -0,5 p.p. agora e -0,04 por mês"},
+	"schools": {"label": "Rede de escolas técnicas", "cost": 3200, "upkeep": 120, "now": {"economy": 0.4, "approval": 1.0}, "groups": {"Jovens": 3.0}, "monthly": {"economy": 0.02}, "desc": "crescimento +0,4 agora e +0,02 por mês"},
+	"infra": {"label": "Fundo de infraestrutura", "cost": 4500, "upkeep": 160, "now": {"approval": 2.0, "debt": 0.8}, "groups": {}, "region": 0.4, "monthly": {"economy": 0.03}, "desc": "apoio regional +0,4 e crescimento +0,03 por mês"},
+	"health": {"label": "Saúde da família", "cost": 3000, "upkeep": 110, "now": {"approval": 2.0}, "groups": {"Aposentados": 3.0}, "monthly": {"approval": 0.08}, "desc": "aprovação +0,08 por mês"},
+	"rural": {"label": "Crédito rural", "cost": 2500, "upkeep": 90, "now": {"approval": 1.0}, "groups": {"Rurais": 4.0}, "monthly": {"inflation": -0.02}, "desc": "inflação -0,02 por mês"},
+}
 const TERM_MONTHS := 48
 const FIRST_CAMPAIGN_MONTHS := 12
 const CAMPAIGN_ACTIONS_PER_MONTH := 3
@@ -175,7 +190,7 @@ func _build_state() -> void:
 
 func _default_state() -> Dictionary:
 	return {
-		"started": false, "date_year": 2027, "date_month": 1, "party": "Partido do Jogador", "abbr": "PJ", "leader": "Líder do Partido", "ideology": "social-democrata", "scenario": "Novo movimento", "start_mode": "Partido criado do zero", "country_id": "BR", "country_name": "Brasil", "legislature": {}, "funds": 12400.0, "members": 0, "recognition": 2.0, "popularity": 4.0, "credibility": 31.0, "cohesion": 78.0, "approval": 42.0, "economy": 2.4, "inflation": 4.8, "unemployment": 8.2, "debt": 61.0, "gdp": 100.0, "congress": 0, "senate_seats": 0, "lower_house_seats": 0, "government": false, "coalition": 0, "campaign": 0, "minister_index": 0, "history": [], "news": ["A campanha começa sem país pré-definido: escolha uma democracia e construa sua força política."], "chamber_name": "", "chamber_seats": 0, "majority": 1, "seat_map": {}, "last_election": {}, 		"coalition_partners": [], "coalition_seats": 0, "coalition_cohesion": 60.0, "bills": [], "economy_history": [], "months_to_election": 0, "term_index": 0, "term_months_served": 0, "campaign_actions": 0, "opposition_actions": 0, "action_month": "", 		"promises": [], "last_result": {}, "event_effects_applied": false, "region_support": [4.0, 4.0, 4.0, 4.0, 4.0, 4.0, 4.0, 4.0], "demographics": {"Jovens": 4.0, "Trabalhadores": 4.0, "Empreendedores": 4.0, "Aposentados": 4.0, "Rurais": 4.0}, "policies": [], "event": ""}
+		"started": false, "date_year": 2027, "date_month": 1, "party": "Partido do Jogador", "abbr": "PJ", "leader": "Líder do Partido", "ideology": "social-democrata", "scenario": "Novo movimento", "start_mode": "Partido criado do zero", "country_id": "BR", "country_name": "Brasil", "legislature": {}, "funds": 12400.0, "members": 0, "recognition": 2.0, "popularity": 4.0, "credibility": 31.0, "cohesion": 78.0, "approval": 42.0, "economy": 2.4, "inflation": 4.8, "unemployment": 8.2, "debt": 61.0, "gdp": 100.0, "congress": 0, "senate_seats": 0, "lower_house_seats": 0, "government": false, "coalition": 0, "campaign": 0, "minister_index": 0, "history": [], "news": ["A campanha começa sem país pré-definido: escolha uma democracia e construa sua força política."], "chamber_name": "", "chamber_seats": 0, "majority": 1, "seat_map": {}, "last_election": {}, 		"coalition_partners": [], "coalition_seats": 0, "coalition_cohesion": 60.0, "bills": [], "economy_history": [], "months_to_election": 0, "term_index": 0, "term_months_served": 0, "campaign_actions": 0, "opposition_actions": 0, "action_month": "", 		"promises": [], "last_result": {}, "event_effects_applied": false, "region_support": [4.0, 4.0, 4.0, 4.0, 4.0, 4.0, 4.0, 4.0], "demographics": {"Jovens": 4.0, "Trabalhadores": 4.0, "Empreendedores": 4.0, "Aposentados": 4.0, "Rurais": 4.0}, "policies": [], "event": "", "event_id": "", "event_options": [], "event_recent": [], "ministers": []}
 
 func _build_shell() -> void:
 	for child in get_children():
@@ -929,6 +944,7 @@ func _show_dashboard() -> void:
 	for metric in [["POPULARIDADE", state.popularity, TEXT], ["APROVAÇÃO", state.approval, GREEN], ["RECONHECIMENTO", state.recognition, AMBER], ["COESÃO", state.cohesion, TEXT]]:
 		metrics.add_child(_metric_card(metric[0], "%.0f%%" % metric[1], metric[2]))
 	dash.add_child(metrics)
+	dash.add_child(_agenda_panel())
 	dash.add_child(_month_action_panel())
 	board = BOARD_SCRIPT.new()
 	board.custom_minimum_size = Vector2(0, 340)
@@ -955,6 +971,47 @@ func _show_dashboard() -> void:
 	brief.add_child(bcol)
 	dash.add_child(brief)
 	_build_right_rail()
+
+## Agenda (prazos, problemas e o que merece atenção): o resumo que o jogador
+## precisa ler antes de avançar o mês. Cada item tem tom: "bad", "warn" ou "info".
+func _agenda_items() -> Array:
+	var items: Array = []
+	if str(state.event) != "":
+		items.append({"text": "Decisão pendente: %s" % str(state.event), "tone": "warn"})
+	var months := int(state.months_to_election)
+	if months <= 0:
+		items.append({"text": "Eleição aberta: o pleito é obrigatório.", "tone": "bad"})
+	elif months <= 6:
+		items.append({"text": "Eleição em %d meses: hora de campanha e alianças." % months, "tone": "warn"})
+	else:
+		items.append({"text": "Eleição em %d meses." % months, "tone": "info"})
+	if float(state.inflation) >= 8.0:
+		items.append({"text": "Inflação em %.1f%%: salários e aprovação sob pressão." % float(state.inflation), "tone": "bad"})
+	if float(state.unemployment) >= 11.0:
+		items.append({"text": "Desemprego em %.1f%%: greves e protestos prováveis." % float(state.unemployment), "tone": "bad"})
+	if float(state.debt) >= 85.0:
+		items.append({"text": "Dívida em %.0f%% do PIB: risco de rebaixamento." % float(state.debt), "tone": "bad"})
+	if float(state.cohesion) < 45.0:
+		items.append({"text": "Coesão em %.0f%%: a bancada pode rachar." % float(state.cohesion), "tone": "warn"})
+	if float(state.funds) < 1000.0:
+		items.append({"text": "Caixa quase vazio: receita do mês M$ %s." % _fmt_int(_monthly_income()), "tone": "warn"})
+	if not bool(state.government) and int(state.opposition_actions) < 1 and float(state.funds) >= OPPOSITION_ACTION_COST:
+		items.append({"text": "Ação de oposição disponível neste mês.", "tone": "info"})
+	return items
+
+func _agenda_panel() -> PanelContainer:
+	var panel := _panel_box()
+	var col := VBoxContainer.new()
+	col.add_child(_label("AGENDA", 12, AMBER))
+	col.add_child(_label("Prazos e problemas", 17, TEXT))
+	col.add_child(_rule())
+	for item in _agenda_items():
+		var tone := str(item.tone)
+		var l := _label("•  " + str(item.text), 13, RED if tone == "bad" else AMBER if tone == "warn" else MUTED)
+		l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		col.add_child(l)
+	panel.add_child(col)
+	return panel
 
 func _build_right_rail() -> void:
 	if not _rail_enabled():
@@ -1003,10 +1060,53 @@ func _set_event_if_needed() -> void:
 		decision_buttons.add_child(b)
 		return
 	decision_text.text = event
+	var options: Array = state.get("event_options", []) if state.get("event_options") is Array else []
+	if not options.is_empty():
+		var stack := VBoxContainer.new()
+		stack.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		stack.add_theme_constant_override("separation", 6)
+		decision_buttons.add_child(stack)
+		for i in options.size():
+			var option: Dictionary = options[i]
+			var b := _button(str(option.get("label", "")), TEXT, i == 0)
+			var cost := Events.cost_of(option)
+			b.tooltip_text = "%s%s" % [str(option.get("hint", "")), "  ·  custo M$ %s" % _fmt_int(cost) if cost > 0.0 else ""]
+			b.disabled = cost > float(state.funds)
+			b.pressed.connect(_resolve_event_option.bind(i))
+			stack.add_child(b)
+			var hint := _label("%s%s" % [str(option.get("hint", "")), "  ·  M$ %s" % _fmt_int(cost) if cost > 0.0 else ""], 12, MUTED)
+			hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+			stack.add_child(hint)
+		return
 	for option in ["Investir agora", "Negociar", "Não intervir"]:
 		var b := _button(option, SUBTLE if option != "Não intervir" else MUTED, false)
 		b.pressed.connect(_resolve_event.bind(option))
 		decision_buttons.add_child(b)
+
+## Resposta a um evento do motor determinístico: aplica o efeito da opção uma vez.
+func _resolve_event_option(index: int) -> void:
+	var options: Array = state.get("event_options", []) if state.get("event_options") is Array else []
+	if index < 0 or index >= options.size():
+		return
+	var option: Dictionary = options[index]
+	if Events.cost_of(option) > float(state.funds):
+		_show_toast("Caixa insuficiente para esta resposta", "error")
+		return
+	var summary := Events.apply(state, option, bool(state.government))
+	_push_news("%s: %s%s" % [str(state.event), str(option.get("label", "")), " (%s)" % summary if summary != "" else ""])
+	state.event = ""
+	state.event_id = ""
+	state.event_options = []
+	state["event_effects_applied"] = false
+	_clamp_state()
+	_save_game()
+	_show_game()
+
+## Manchete sem duplicata consecutiva: o radar não repete a mesma linha.
+func _push_news(text: String) -> void:
+	if state.news.size() > 0 and str(state.news[0]) == text:
+		return
+	state.news.push_front(text)
 
 func _resolve_event(option: String) -> void:
 	# Evento da IA: a conjuntura já foi contabilizada uma única vez no avanço do
@@ -1085,8 +1185,9 @@ func _party_action(action: String) -> void:
 		return
 	if action == "regional":
 		state.funds -= 900; state.recognition += 3; state.popularity += 2
-		for i in state.region_support.size(): state.region_support[i] += 1.2
-		state.news.push_front("O partido concluiu um giro regional com foco em regiões competitivas.")
+		var target := clampi(selected_region, 0, state.region_support.size() - 1)
+		for i in state.region_support.size(): state.region_support[i] += 4.0 if i == target else 0.5
+		state.news.push_front("O partido concluiu um giro regional com foco em %s." % str(regions[target].name))
 	elif action == "volunteers":
 		state.funds -= 650; state.members += 420; state.cohesion += 2; state.popularity += 1
 		state.news.push_front("A rede de voluntários ganhou novos núcleos locais.")
@@ -1169,7 +1270,9 @@ func _campaign_action(cost: int, gain: int, label: String) -> void:
 		_show_toast("Caixa insuficiente para " + label.to_lower(), "error")
 		return
 	state.campaign_actions = int(state.campaign_actions) + 1
-	state.funds -= cost; state.popularity += gain; state.recognition += 1.5; state.campaign += gain
+	# Retorno decrescente: quem já é popular ganha menos por cada ação.
+	var effective := float(gain) * clampf(1.0 - float(state.popularity) / 80.0, 0.25, 1.0)
+	state.funds -= cost; state.popularity += effective; state.recognition += 1.5; state.campaign += effective
 	state.news.push_front("A campanha investiu em %s e ganhou presença nacional." % label.to_lower())
 	_clamp_state(); _save_game(); _show_game()
 
@@ -1256,6 +1359,12 @@ func _on_election_shares(result: Dictionary, country: Dictionary) -> void:
 	state.date_year += 1
 	state.campaign = 0
 	state.event = ""
+	state.event_id = ""
+	state.event_options = []
+	state.ministers = []
+	state["bill_month"] = ""
+	if not won:
+		state.policies = []
 	state.approval = 56.0 if won else 38.0
 	var promise_result := _evaluate_promises()
 	state.term_index = int(state.term_index) + 1
@@ -1343,17 +1452,18 @@ func _show_congress() -> void:
 	var bcol := VBoxContainer.new()
 	bcol.add_child(_label("PROPOSIÇÕES", 12, AMBER))
 	bcol.add_child(_label("O plenário vota por bancada: proximidade ideológica e disciplina da coalizão.", 13, MUTED))
-	var actions := HBoxContainer.new()
-	actions.add_theme_constant_override("separation", 8)
+	var actions := HFlowContainer.new()
+	actions.add_theme_constant_override("h_separation", 8)
+	actions.add_theme_constant_override("v_separation", 8)
 	for bill in Legislature.BILLS:
 		if bool(bill.get("requires_government", false)) and not bool(state.government):
 			continue
 		var b := _button(str(bill.get("title", "Proposição")), SUBTLE, false)
-		b.tooltip_text = "%s  ·  custo M$ %s  ·  eixo %.2f" % [str(bill.get("summary", "")), _fmt_int(float(bill.get("cost", 0))), float(bill.get("axis", 0.0))]
+		b.tooltip_text = "%s  ·  custo M$ %s  ·  eixo %.2f%s" % [str(bill.get("summary", "")), _fmt_int(float(bill.get("cost", 0))), float(bill.get("axis", 0.0)), "  ·  constitucional (3/5)" if str(bill.get("kind", "")) == "constitutional" else ""]
 		b.pressed.connect(_propose_bill.bind(str(bill.get("id", ""))))
 		actions.add_child(b)
 	if not bool(state.government):
-		bcol.add_child(_label("Três proposições de governo ficam disponíveis ao assumir o poder; como bancada, restam as três de iniciativa parlamentar.", 12, MUTED))
+		bcol.add_child(_label("Proposições de governo ficam disponíveis ao assumir o poder; como bancada, restam as de iniciativa parlamentar. Uma votação por mês.", 12, MUTED))
 	bcol.add_child(actions)
 	bills.add_child(bcol)
 	main_column.add_child(bills)
@@ -1380,6 +1490,9 @@ func _propose_bill(bill_id: String) -> void:
 		return
 	if bool(bill.get("requires_government", false)) and not bool(state.government):
 		_show_toast("Essa proposição é exclusiva do governo", "warning")
+		return
+	if str(state.get("bill_month", "")) == _month_stamp():
+		_show_toast("Uma proposição por mês: o plenário já votou neste mês", "warning")
 		return
 	var cost := int(bill.get("cost", 0))
 	if state.funds < cost:
@@ -1493,7 +1606,8 @@ func _on_bill_votes(result: Dictionary, bill: Dictionary, seat_map: Dictionary) 
 		if int(seat_map[party]) > 0 and not votes.has(str(party)) and engine_votes.has(str(party)):
 			votes[str(party)] = engine_votes[str(party)]
 	var outcome := Contracts.votes_to_outcome(votes, seat_map)
-	var approved := bool(outcome.get("approved", false))
+	var approved := Legislature.passes(bill, outcome, int(state.chamber_seats))
+	state["bill_month"] = _month_stamp()
 	state.bills.push_front({
 		"id": str(bill.get("id", "")), "title": str(bill.get("title", "")),
 		"year": int(state.date_year), "month": int(state.date_month),
@@ -1504,22 +1618,22 @@ func _on_bill_votes(result: Dictionary, bill: Dictionary, seat_map: Dictionary) 
 	if approved:
 		state.funds -= cost
 		_apply_effects(bill.get("effects", {}))
+		var bill_groups: Dictionary = bill.get("groups", {})
+		for group in bill_groups.keys():
+			state.demographics[group] += float(bill_groups[group])
 		if not bool(state.government):
 			state.credibility += 2
 		state.news.push_front("%s aprovada: %s." % [str(bill.get("title", "Proposição")), Legislature.summary(outcome)])
 	else:
-		state.credibility += 1
+		state.credibility += -2.0 if bool(state.government) else 1.0
 		state.news.push_front("%s rejeitada no plenário: %s." % [str(bill.get("title", "Proposição")), Legislature.summary(outcome)])
 	_clamp_state(); _save_game(); _show_game()
 	_show_toast("Proposição aprovada" if approved else "Proposição rejeitada", "success" if approved else "error")
 
 func _apply_effects(effects: Dictionary) -> void:
 	for key in effects.keys():
-		match str(key):
-			"economy": state.economy += float(effects[key])
-			"approval": state.approval += float(effects[key])
-			"debt": state.debt += float(effects[key])
-			"unemployment": state.unemployment += float(effects[key])
+		if EFFECT_KEYS.has(str(key)):
+			state[key] = float(state.get(key, 0.0)) + float(effects[key])
 
 func _formation_deal() -> Dictionary:
 	var country := _country_by_id(str(state.country_id))
@@ -1562,6 +1676,11 @@ func _coalition_panel() -> PanelContainer:
 	var partners_text := "bancada própria" if partners.is_empty() else ", ".join(PackedStringArray(partners))
 	col.add_child(_label("%d de %d cadeiras  ·  %s" % [base_seats, int(state.chamber_seats), partners_text], 15, TEXT))
 	col.add_child(_label("Coesão da base: %.0f%%" % float(state.get("coalition_cohesion", 60.0)), 13, MUTED))
+	if not partners.is_empty():
+		var renew := _button("REFORÇAR BASE  ·  M$ 600", SUBTLE, false)
+		renew.tooltip_text = "Coesão da base +15. Abaixo de 30, um parceiro deixa a coalizão."
+		renew.pressed.connect(_renew_coalition)
+		col.add_child(renew)
 	panel.add_child(col)
 	return panel
 
@@ -1606,50 +1725,98 @@ func _show_government() -> void:
 	var cabinet := _panel_box()
 	var col := VBoxContainer.new()
 	col.add_child(_label("GABINETE", 12, AMBER))
-	for ministry in ["Finanças", "Educação", "Saúde", "Infraestrutura"]:
+	for ministry in MINISTRIES.keys():
+		var def: Dictionary = MINISTRIES[ministry]
+		var named: bool = state.ministers.has(ministry)
 		var row := HBoxContainer.new()
 		row.add_child(_label(ministry, 15, TEXT))
 		var spacer := Control.new(); spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL; row.add_child(spacer)
-		var b := _button("NOMEAR", SUBTLE, false)
+		var b := _button("NOMEADO" if named else "NOMEAR  ·  M$ %d" % int(def.cost), MUTED if named else AMBER, false)
+		b.tooltip_text = str(def.desc)
+		b.disabled = named
 		b.pressed.connect(_appoint_minister.bind(ministry))
 		row.add_child(b)
 		col.add_child(row)
 	cabinet.add_child(col)
 	main_column.add_child(cabinet)
 	main_column.add_child(_coalition_panel())
+	if Election.is_parliamentary(country):
+		main_column.add_child(_early_election_panel())
 	var policy := _panel_box()
 	var pcol := VBoxContainer.new()
 	pcol.add_child(_label("PROGRAMAS EXECUTIVOS", 12, SUBTLE))
-	for pair in [["Pacto de empregos", "M$ 2.000  ·  desemprego -0,5 p.p.", "jobs"], ["Rede de escolas técnicas", "M$ 3.200  ·  produtividade +0,4", "schools"], ["Fundo de infraestrutura", "M$ 4.500  ·  apoio regional +3", "infra"]]:
-		var b := _button(pair[0], TEXT, false)
-		b.tooltip_text = pair[1]
-		b.pressed.connect(_policy_action.bind(pair[2]))
+	pcol.add_child(_label("Receita líquida mensal: M$ %s  ·  manutenção dos programas: M$ %s" % [_fmt_int(_monthly_income()), _fmt_int(_program_upkeep())], 13, MUTED))
+	for id in PROGRAMS.keys():
+		var def: Dictionary = PROGRAMS[id]
+		var active: bool = state.policies.has(id)
+		var b := _button("%s%s" % [def.label, "  ·  ATIVO" if active else "  ·  M$ %s" % _fmt_int(def.cost)], TEXT, false)
+		b.tooltip_text = "%s  ·  manutenção M$ %d/mês" % [def.desc, int(def.upkeep)]
+		b.disabled = active
+		b.pressed.connect(_policy_action.bind(id))
 		pcol.add_child(b)
 	policy.add_child(pcol)
 	main_column.add_child(policy)
 	_build_right_rail()
 
 func _appoint_minister(ministry: String) -> void:
-	state.funds -= 350; state.credibility += 1; state.approval += 1; state.minister_index += 1
-	state.news.push_front("%s nomeou um ministro com mandato de execução para %s." % [state.leader, ministry])
+	if not MINISTRIES.has(ministry) or state.ministers.has(ministry):
+		return
+	var def: Dictionary = MINISTRIES[ministry]
+	if float(state.funds) < float(def.cost):
+		_show_toast("Caixa insuficiente para o ministério", "error")
+		return
+	state.funds -= float(def.cost)
+	_apply_effects(def.now)
+	for group in def.groups.keys():
+		state.demographics[group] += float(def.groups[group])
+	if def.has("region"):
+		for i in state.region_support.size(): state.region_support[i] += float(def.region)
+	state.ministers.append(ministry)
+	state.minister_index += 1
+	_push_news("%s nomeou o ministro de %s: %s." % [state.leader, ministry, def.desc])
 	_clamp_state(); _save_game(); _show_game()
 
 func _policy_action(policy: String) -> void:
-	var cost := 2000
-	if policy == "schools": cost = 3200
-	elif policy == "infra": cost = 4500
-	if state.funds < cost:
+	if not PROGRAMS.has(policy) or state.policies.has(policy):
+		return
+	var def: Dictionary = PROGRAMS[policy]
+	if state.funds < float(def.cost):
 		_show_toast("Orçamento insuficiente", "error")
 		return
-	state.funds -= cost
-	if policy == "jobs": state.unemployment -= 0.5; state.approval += 2; state.demographics["Trabalhadores"] += 3
-	elif policy == "schools": state.economy += 0.4; state.approval += 1; state.demographics["Jovens"] += 3
-	else:
-		for i in state.region_support.size(): state.region_support[i] += 0.4
-		state.approval += 2; state.debt += 0.8
+	state.funds -= float(def.cost)
+	for key in def.now.keys():
+		state[key] = float(state.get(key, 0.0)) + float(def.now[key])
+	for group in def.groups.keys():
+		state.demographics[group] += float(def.groups[group])
+	if def.has("region"):
+		for i in state.region_support.size(): state.region_support[i] += float(def.region)
 	state.policies.append(policy)
-	state.news.push_front("O governo iniciou um programa com efeitos graduais e custo fiscal explícito.")
+	_push_news("O governo lançou \"%s\": %s. Custa M$ %d por mês de manutenção." % [def.label, def.desc, int(def.upkeep)])
 	_clamp_state(); _save_game(); _show_game()
+
+## Programas ativos custam manutenção e rendem pequenos efeitos todo mês.
+func _program_upkeep() -> float:
+	var total := 0.0
+	for id in state.policies:
+		if PROGRAMS.has(id):
+			total += float(PROGRAMS[id].upkeep)
+	return total
+
+func _apply_program_monthly() -> void:
+	for id in state.policies:
+		if not PROGRAMS.has(id):
+			continue
+		for key in PROGRAMS[id].monthly.keys():
+			state[key] = float(state.get(key, 0.0)) + float(PROGRAMS[id].monthly[key])
+
+## Receita do mês: contribuições e doações do partido; no governo, parte da
+## arrecadação cresce com o PIB e com a aprovação. Menos a manutenção.
+func _monthly_income() -> float:
+	var income := 300.0 + float(state.members) * 0.35 + float(state.popularity) * 18.0
+	if bool(state.government):
+		income += 1200.0 + (float(state.gdp) - 100.0) * 6.0 + float(state.approval) * 12.0 - maxf(0.0, float(state.debt) - 60.0) * 8.0
+		income -= _program_upkeep()
+	return maxf(0.0, income)
 
 func _show_economy() -> void:
 	_show_section("Economia", "O que o país produz, quanto custa viver e como o emprego reage às suas decisões.")
@@ -1949,9 +2116,6 @@ func _show_international() -> void:
 		main_column.add_child(panel)
 	_build_right_rail()
 
-func _diplomacy(country: String) -> void:
-	state.funds -= 300; state.credibility += 1; state.news.push_front("Aurora abriu um canal diplomático com %s." % country); _clamp_state(); _save_game(); _show_game()
-
 func _show_news() -> void:
 	_show_section("Notícias", "O mundo reage às suas políticas. Leia antes de avançar o mês.")
 	for index in state.news.size():
@@ -2008,16 +2172,28 @@ func _advance_month() -> void:
 	if int(state.months_to_election) == 0:
 		state.news.push_front("Mandato encerrado: a eleição está aberta e o pleito é obrigatório.")
 	state.gdp += state.economy * 0.08
+	var gov := bool(state.government)
 	var potential := 2.6 - maxf(0.0, float(state.debt) - 60.0) * 0.03 - maxf(0.0, float(state.inflation) - 4.0) * 0.12
 	state.economy = clampf(float(state.economy) + (potential - float(state.economy)) * 0.12, -2.0, 6.0)
-	state.inflation = clampf(state.inflation + (state.debt - 60.0) * 0.015 - (state.economy - 2.0) * 0.08, 1.5, 15.0)
-	state.unemployment = clampf(state.unemployment - (state.economy - 2.0) * 0.05, 3.5, 18.0)
-	var debt_delta := 0.1 if state.government and state.policies.size() > 0 else -0.1
-	state.debt = clampf(state.debt + debt_delta, 20.0, 120.0)
-	state.approval += (state.economy - 2.5) * 0.15 - (state.inflation - 4.0) * 0.12
-	state.popularity += (state.approval - 45.0) * 0.025 + (state.credibility - 30.0) * 0.01
+	# Inflação: demanda aquecida e dívida empurram para cima; a âncora de expectativas puxa de volta a 4,5%.
+	state.inflation = clampf(float(state.inflation) + (float(state.economy) - 2.4) * 0.05 + (float(state.debt) - 60.0) * 0.006 + (4.5 - float(state.inflation)) * 0.04, 1.5, 15.0)
+	# Desemprego: lei de Okun com reversão à taxa natural de 7%.
+	state.unemployment = clampf(float(state.unemployment) - (float(state.economy) - 2.5) * 0.06 + (7.0 - float(state.unemployment)) * 0.02, 3.5, 18.0)
+	# Dívida: juros sobre o estoque, diluição pelo crescimento e manutenção dos programas.
+	var upkeep := _program_upkeep() if gov else 0.0
+	state.debt = clampf(float(state.debt) + float(state.debt) * 0.0015 - float(state.economy) * 0.04 - 0.02 + upkeep / 20000.0, 20.0, 120.0)
+	state.approval += (state.economy - 2.5) * 0.15 - (state.inflation - 4.0) * 0.12 - (state.unemployment - 8.0) * 0.04 + (48.0 - state.approval) * 0.015
+	# Popularidade do partido: no governo acompanha a aprovação; na oposição, o desgaste do governo ajuda.
+	var drive: float = (state.approval - 45.0) * 0.025 if gov else (45.0 - state.approval) * 0.02
+	state.popularity += drive + (state.credibility - 30.0) * 0.01 - maxf(0.0, state.popularity - 25.0) * 0.01
 	state.recognition += 0.15
+	state.funds += _monthly_income()
+	state.members = maxi(0, int(state.members) + _member_drift())
+	if gov:
+		_apply_program_monthly()
 	for i in state.region_support.size(): state.region_support[i] += (state.popularity - state.region_support[i]) * 0.012
+	for group in state.demographics.keys(): state.demographics[group] += (state.popularity - state.demographics[group]) * 0.01
+	_coalition_tick()
 	_event_due = int(state.date_month) % 3 == 0
 	_international_due = int(state.date_month) % 12 == 0
 	state.economy_history.append(_economy_point())
@@ -2026,6 +2202,71 @@ func _advance_month() -> void:
 	if state.date_month == 6: state.news.push_front("Pesquisas apontam disputa aberta: regiões metropolitanas e rurais podem decidir a próxima eleição.")
 	if state.date_month == 12: state.news.push_front("Ano eleitoral: urnas abertas em 8 regiões. Campanhas entram na reta final.")
 	_resolve_month(_month_stamp())
+
+## Filiação cresce com a popularidade e encolhe quando o partido racha.
+func _member_drift() -> int:
+	return int(maxf(0.0, float(state.popularity) - 3.0) * 0.6) - (30 if float(state.cohesion) < 50.0 else 0)
+
+## A coalizão desgasta todo mês. Abaixo de 30 de coesão o último parceiro sai;
+## no parlamentarismo, sem maioria o governo cai e a eleição é antecipada.
+func _coalition_tick() -> void:
+	var partners: Array = state.coalition_partners if state.get("coalition_partners") is Array else []
+	if not bool(state.government) or partners.is_empty():
+		return
+	state.coalition_cohesion = float(state.get("coalition_cohesion", 60.0)) - 0.6
+	if float(state.coalition_cohesion) >= 30.0:
+		return
+	var left := str(partners.pop_back())
+	var seat_map: Dictionary = state.get("seat_map", {})
+	state.coalition_seats = maxi(0, int(state.coalition_seats) - int(seat_map.get(left, 0)))
+	state.coalition_partners = partners
+	state.coalition_cohesion = 55.0
+	_push_news("%s rompe com o governo e deixa a coalizão." % left)
+	if int(state.coalition_seats) >= int(state.majority) or not Election.is_parliamentary(_country_by_id(str(state.country_id))):
+		return
+	state.government = false
+	state.months_to_election = 0
+	state.coalition_seats = 0
+	state.coalition_partners = []
+	_push_news("O governo perdeu a maioria e caiu: eleição antecipada.")
+
+## Reforça a base: custa caixa e devolve coesão à coalizão.
+func _renew_coalition() -> void:
+	var cost := 600.0
+	if float(state.funds) < cost:
+		_show_toast("Caixa insuficiente para renovar a coalizão", "error")
+		return
+	state.funds -= cost
+	state.coalition_cohesion = minf(95.0, float(state.get("coalition_cohesion", 60.0)) + 15.0)
+	_push_news("A base aliada foi reforçada com cargos e emendas.")
+	_clamp_state(); _save_game(); _show_game()
+
+## Primeiro-ministro popular pode antecipar a eleição para capitalizar.
+func _call_early_election() -> void:
+	if not _can_call_early_election():
+		_show_toast("Condições para antecipar a eleição não atendidas", "warning")
+		return
+	state.funds -= 1500.0
+	state.months_to_election = 0
+	_push_news("Eleição antecipada convocada: o governo aposta na própria popularidade.")
+	_clamp_state(); _save_game(); _show_game()
+
+func _can_call_early_election() -> bool:
+	return bool(state.government) and Election.is_parliamentary(_country_by_id(str(state.country_id))) and float(state.approval) >= 55.0 and int(state.months_to_election) > 3 and float(state.funds) >= 1500.0
+
+func _early_election_panel() -> PanelContainer:
+	var panel := _panel_box()
+	var col := VBoxContainer.new()
+	col.add_child(_label("ELEIÇÃO ANTECIPADA", 12, SUBTLE))
+	var note := _label("No parlamentarismo, um governo com aprovação ≥ 55% pode antecipar o pleito (custo M$ 1.500, mais de 3 meses para a eleição).", 13, MUTED)
+	note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	col.add_child(note)
+	var b := _button("CONVOCAR ELEIÇÕES", AMBER, false)
+	b.disabled = not _can_call_early_election()
+	b.pressed.connect(_call_early_election)
+	col.add_child(b)
+	panel.add_child(col)
+	return panel
 
 func _month_stamp() -> String:
 	return "%d-%02d" % [int(state.date_year), int(state.date_month)]
@@ -2201,10 +2442,18 @@ func _on_month_event(result: Dictionary, stamp: String) -> void:
 func _apply_month_event(value: Dictionary) -> void:
 	var headline := str(value.get("headline", "")).strip_edges()
 	var effects: Variant = value.get("effects", {})
+	state.event_id = ""
+	state.event_options = []
 	if headline == "":
-		headline = ["Uma greve nacional pede reajuste acima da inflação.", "Uma seca ameaça a produção agrícola do país.", "Uma empresa anuncia investimento bilionário e pede incentivos fiscais."][randi() % 3]
+		# Sem IA (ou resposta vazia): o motor determinístico escolhe um evento
+		# coerente com a conjuntura, com três respostas de efeito real.
+		var picked := Events.pick(state, randf())
+		headline = str(picked.headline)
+		state.event_id = str(picked.id)
+		state.event_options = picked.options
+		Events.remember(state, state.event_id)
 	state.event = headline
-	state.news.push_front(headline)
+	_push_news(headline)
 	if effects is Dictionary and not (effects as Dictionary).is_empty():
 		_apply_ai_effects(effects, "evento")
 		state["event_effects_applied"] = true

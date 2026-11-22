@@ -5,6 +5,7 @@ const Coalition := preload("res://scripts/sim/coalition.gd")
 const Legislature := preload("res://scripts/sim/legislature.gd")
 const Flags := preload("res://scripts/ui/flag_painter.gd")
 const Contracts := preload("res://scripts/ai/ai_contracts.gd")
+const Events := preload("res://scripts/sim/events.gd")
 const AIClient := preload("res://scripts/ai/ollama_client.gd")
 
 var failures := PackedStringArray()
@@ -136,12 +137,12 @@ func _run() -> void:
 	_check(int(vote.get("ayes", 0)) > 0 and int(vote.get("nayes", 0)) > 0, "votação deve somar bancadas dos dois lados")
 	_check(bool(vote.get("approved", false)) == (int(vote.get("ayes", 0)) > int(vote.get("nayes", 0))), "resultado deve seguir a maioria dos votos")
 	_check(int(vote.get("abstain", 0)) > 0 and int(vote.get("ayes", 0)) > 0, "bancadas devem se dividir entre sim, abstenção e não")
-	_check(Legislature.BILLS.size() == 6, "catálogo deve ter seis proposições")
+	_check(Legislature.BILLS.size() == 11, "catálogo deve ter onze proposições")
 	var government_bills := 0
 	for item in Legislature.BILLS:
 		if bool(item.get("requires_government", false)):
 			government_bills += 1
-	_check(government_bills == 3, "três proposições devem ser exclusivas do governo")
+	_check(government_bills == 7, "sete proposições devem ser exclusivas do governo")
 	var flag_specs: Dictionary = Flags.FLAGS
 	for country in game.get("countries"):
 		_check(flag_specs.has(str(country.get("id", ""))), "bandeira desenhada para " + str(country.get("id", "")))
@@ -316,6 +317,112 @@ func _run() -> void:
 	game.call("_on_bill_votes", {"key": "voto_parcial", "value": {"votes": {"PJ": {"sim": 100.0, "abstencao": 0.0, "nao": 0.0}}}}, Legislature.bill("investment"), {"PJ": 100, "OPO": 150})
 	var partial_row: Dictionary = game.get("state").get("bills", [{}])[0]
 	_check(int(partial_row.get("ayes", 0)) + int(partial_row.get("nayes", 0)) + int(partial_row.get("abstain", 0)) == 250, "bancadas sem voto da IA devem ser completadas pelo motor")
+	# Motor de eventos determinístico (sem IA).
+	var ev_state := {"inflation": 8.0, "unemployment": 7.0, "debt": 60.0, "economy": 2.0, "months_to_election": 20, "event_recent": []}
+	_check(Events.pick(ev_state, 0.5).options.size() == 3, "evento deve oferecer três respostas")
+	var seen := {}
+	for i in 40:
+		var picked := Events.pick(ev_state, float(i) / 40.0)
+		seen[picked.id] = true
+		_check(Events.weight_for(picked, ev_state) > 0.0, "evento sorteado deve ser elegível: " + str(picked.id))
+	_check(seen.size() >= 5, "sorteio deve variar entre eventos")
+	_check(Events.weight_for({"when": {"debt_min": 85.0}}, ev_state) == 0.0, "dívida baixa não deve habilitar evento de rebaixamento")
+	var recent_state := ev_state.duplicate(true)
+	for entry in Events.CATALOG:
+		recent_state["event_recent"] = [entry.id]
+		_check(Events.pick(recent_state, 0.3).id != entry.id, "evento recente não deve repetir: " + str(entry.id))
+	for entry in Events.CATALOG:
+		_check((entry.options as Array).size() == 3, "todo evento deve ter três opções: " + str(entry.id))
+	var apply_state := {"approval": 40.0, "funds": 5000.0, "inflation": 4.0, "economy": 2.0, "unemployment": 8.0, "debt": 60.0, "demographics": {"Trabalhadores": 10.0}}
+	var strike_option: Dictionary = Events.CATALOG[0].options[0]
+	Events.apply(apply_state, strike_option, true)
+	_check(is_equal_approx(float(apply_state.funds), 4100.0) and float(apply_state.approval) > 40.0, "opção deve aplicar custo e efeito no governo")
+	_check(float(apply_state.demographics.Trabalhadores) > 10.0, "opção deve mover grupos sociais")
+	var opp_state := {"approval": 40.0, "funds": 5000.0, "inflation": 4.0, "economy": 2.0, "unemployment": 8.0, "debt": 60.0, "demographics": {}}
+	Events.apply(opp_state, strike_option, false)
+	_check(is_equal_approx(float(opp_state.inflation), 4.0), "oposição não deve mover a macroeconomia")
+	game.get("state")["government"] = true
+	game.get("state")["funds"] = 9000.0
+	game.get("state")["event"] = ""
+	game.call("_apply_month_event", {})
+	var live_state: Dictionary = game.get("state")
+	_check((live_state.event_options as Array).size() == 3 and str(live_state.event_id) != "", "evento sem IA deve registrar opções")
+	var funds_before := float(live_state.funds)
+	game.call("_resolve_event_option", 0)
+	await get_tree().process_frame
+	_check(str(game.get("state").event) == "" and (game.get("state").event_options as Array).is_empty(), "resposta deve encerrar o evento")
+	_check(float(game.get("state").funds) <= funds_before, "resposta não deve gerar caixa a partir do nada")
+	game.call("_push_news", "teste")
+	game.call("_push_news", "teste")
+	var teste_count := 0
+	for line in game.get("state").news:
+		if str(line) == "teste": teste_count += 1
+	_check(teste_count == 1, "radar não deve repetir manchete consecutiva")
+	# Receita mensal, programas e Agenda.
+	var econ: Dictionary = game.get("state")
+	econ["government"] = false
+	econ["members"] = 1000
+	econ["popularity"] = 10.0
+	_check(float(game.call("_monthly_income")) > 300.0, "partido deve ter receita mensal")
+	var funds_start := float(econ.funds)
+	econ["government"] = true
+	econ["policies"] = []
+	econ["funds"] = 9000.0
+	var income_no_programs := float(game.call("_monthly_income"))
+	game.call("_policy_action", "jobs")
+	_check((econ.policies as Array).has("jobs") and float(econ.funds) == 7000.0, "programa deve custar o valor declarado")
+	game.call("_policy_action", "jobs")
+	_check((econ.policies as Array).size() == 1 and float(econ.funds) == 7000.0, "programa não pode ser comprado duas vezes")
+	_check(float(game.call("_monthly_income")) < income_no_programs, "programa ativo deve custar manutenção mensal")
+	var unemployment_before := float(econ.unemployment)
+	game.call("_apply_program_monthly")
+	_check(float(econ.unemployment) < unemployment_before, "programa ativo deve render efeito mensal")
+	econ["funds"] = 100.0
+	econ["inflation"] = 9.0
+	var agenda: Array = game.call("_agenda_items")
+	_check(agenda.size() >= 3, "agenda deve listar prazos e problemas")
+	var tones := ""
+	for entry in agenda: tones += str(entry.tone) + ","
+	_check(tones.contains("bad") and tones.contains("warn"), "agenda deve sinalizar inflação alta e caixa baixo")
+	econ["policies"] = []
+	econ["funds"] = funds_start
+	# Revisão de mecânicas: voto retrospectivo, leis constitucionais, gabinete, coalizão.
+	var gov_state := {"popularity": 20.0, "approval": 70.0, "inflation": 4.0, "unemployment": 8.0, "government": true}
+	var opp_state2 := gov_state.duplicate(true)
+	opp_state2["government"] = false
+	_check(Election.player_share(gov_state) > Election.player_share(opp_state2), "aprovação alta deve ajudar o governo mais que a oposição")
+	opp_state2["approval"] = 25.0
+	gov_state["approval"] = 25.0
+	_check(Election.player_share(opp_state2) > Election.player_share(gov_state), "governo impopular deve favorecer a oposição")
+	var demo_low := {"popularity": 20.0, "demographics": {"Jovens": 5.0, "Trabalhadores": 5.0, "Empreendedores": 5.0, "Aposentados": 5.0, "Rurais": 5.0}}
+	var demo_high := {"popularity": 20.0, "demographics": {"Jovens": 40.0, "Trabalhadores": 40.0, "Empreendedores": 40.0, "Aposentados": 40.0, "Rurais": 40.0}}
+	_check(Election.player_share(demo_high) > Election.player_share(demo_low), "grupos sociais devem pesar no voto")
+	var constitutional: Dictionary = Legislature.bill("pension")
+	_check(not Legislature.passes(constitutional, {"ayes": 250, "nayes": 100}, 513), "projeto constitucional exige 3/5 das cadeiras")
+	_check(Legislature.passes(constitutional, {"ayes": 320, "nayes": 100}, 513), "projeto constitucional passa com 3/5")
+	_check(Legislature.passes(Legislature.bill("investment"), {"ayes": 120, "nayes": 100}, 513), "projeto ordinário passa por maioria simples dos votos")
+	var rev: Dictionary = game.get("state")
+	rev["government"] = true
+	rev["funds"] = 9000.0
+	rev["ministers"] = []
+	game.call("_appoint_minister", "Saúde")
+	game.call("_appoint_minister", "Saúde")
+	_check((rev.ministers as Array).size() == 1 and float(rev.funds) == 8400.0, "ministério só pode ser nomeado uma vez")
+	rev["bill_month"] = ""
+	rev["coalition_partners"] = ["AAA", "BBB"]
+	rev["coalition_cohesion"] = 30.3
+	rev["coalition_seats"] = 300
+	rev["majority"] = 257
+	rev["seat_map"] = {"AAA": 30, "BBB": 40}
+	game.call("_coalition_tick")
+	_check((rev.coalition_partners as Array).size() == 1 and int(rev.coalition_seats) == 260, "coalizão desgastada deve perder um parceiro")
+	var inflation_track := 12.0
+	rev["inflation"] = inflation_track
+	rev["economy"] = 2.4
+	rev["debt"] = 60.0
+	for i in 60:
+		rev["inflation"] = clampf(float(rev.inflation) + (float(rev.economy) - 2.4) * 0.05 + (float(rev.debt) - 60.0) * 0.006 + (4.5 - float(rev.inflation)) * 0.04, 1.5, 15.0)
+	_check(float(rev.inflation) < inflation_track - 3.0, "inflação deve convergir à âncora de expectativas")
 	ai_client.queue_free()
 	game.queue_free()
 	_finish()

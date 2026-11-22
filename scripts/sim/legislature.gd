@@ -35,6 +35,7 @@ const BILLS := [
 		"requires_government": false,
 		"summary": "Transferência imediata para famílias de baixa renda.",
 		"effects": {"approval": 3.0, "debt": 0.9, "unemployment": -0.2},
+		"groups": {"Trabalhadores": 3.0, "Aposentados": 2.0},
 	},
 	{
 		"id": "minimum_wage",
@@ -44,6 +45,7 @@ const BILLS := [
 		"requires_government": true,
 		"summary": "Reajuste acima da inflação, com impacto fiscal.",
 		"effects": {"approval": 2.0, "debt": 0.6, "economy": 0.1},
+		"groups": {"Trabalhadores": 4.0, "Empreendedores": -2.0},
 	},
 	{
 		"id": "deregulation",
@@ -53,6 +55,7 @@ const BILLS := [
 		"requires_government": true,
 		"summary": "Simplifica licenças e reduz o custo de operação.",
 		"effects": {"economy": 0.4, "debt": -0.3, "approval": -1.0},
+		"groups": {"Empreendedores": 4.0, "Trabalhadores": -2.0},
 	},
 	{
 		"id": "transition",
@@ -62,6 +65,58 @@ const BILLS := [
 		"requires_government": true,
 		"summary": "Investimento em matriz limpa e requalificação.",
 		"effects": {"economy": 0.2, "debt": 0.5, "approval": 1.0, "unemployment": -0.1},
+	},
+	{
+		"id": "pension",
+		"title": "Reforma da previdência",
+		"axis": 0.4,
+		"cost": 1500,
+		"kind": "constitutional",
+		"requires_government": true,
+		"summary": "Idade mínima maior e menos déficit; aposentados pagam o preço. Exige 3/5 da câmara.",
+		"effects": {"debt": -1.0, "approval": -3.0, "economy": 0.1, "credibility": 2.0},
+		"groups": {"Aposentados": -6.0, "Empreendedores": 2.0},
+	},
+	{
+		"id": "labor",
+		"title": "Reforma trabalhista",
+		"axis": 0.55,
+		"cost": 800,
+		"requires_government": true,
+		"summary": "Flexibiliza contratos: mais vagas, menos proteção.",
+		"effects": {"economy": 0.3, "unemployment": -0.3, "approval": -2.0},
+		"groups": {"Trabalhadores": -5.0, "Empreendedores": 4.0},
+	},
+	{
+		"id": "education",
+		"title": "Pacto nacional pela educação",
+		"axis": -0.35,
+		"cost": 2800,
+		"requires_government": true,
+		"summary": "Verba vinculada e piso docente; colhe resultado no longo prazo.",
+		"effects": {"economy": 0.2, "approval": 1.0, "debt": 0.4},
+		"groups": {"Jovens": 4.0},
+	},
+	{
+		"id": "tax",
+		"title": "Reforma tributária",
+		"axis": 0.1,
+		"cost": 1800,
+		"kind": "constitutional",
+		"requires_government": true,
+		"summary": "Simplifica impostos e amplia a base. Exige 3/5 da câmara.",
+		"effects": {"economy": 0.3, "debt": -0.5, "approval": -1.0, "credibility": 2.0},
+		"groups": {"Empreendedores": 3.0, "Rurais": -2.0},
+	},
+	{
+		"id": "electoral",
+		"title": "Reforma eleitoral",
+		"axis": 0.0,
+		"cost": 600,
+		"kind": "constitutional",
+		"requires_government": false,
+		"summary": "Regras de financiamento e transparência; rende credibilidade, racha a bancada. Exige 3/5 da câmara.",
+		"effects": {"credibility": 4.0, "cohesion": -3.0},
 	},
 ]
 
@@ -112,3 +167,12 @@ static func summary(outcome: Dictionary) -> String:
 	return "%d a favor · %d contra · %d abstenções" % [
 		int(outcome.get("ayes", 0)), int(outcome.get("nayes", 0)), int(outcome.get("abstain", 0))
 	]
+
+## Projeto constitucional exige 3/5 das cadeiras da câmara; os demais, mais
+## votos a favor do que contra. Abstenção não conta como voto contra.
+static func passes(bill: Dictionary, outcome: Dictionary, total_seats: int) -> bool:
+	var ayes := int(outcome.get("ayes", 0))
+	var ok := ayes > int(outcome.get("nayes", 0))
+	if str(bill.get("kind", "ordinary")) == "constitutional":
+		ok = ok and ayes * 5 >= total_seats * 3
+	return ok

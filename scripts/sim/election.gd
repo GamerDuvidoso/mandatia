@@ -130,11 +130,44 @@ static func baseline_shares(country: Dictionary, kind := LOWER) -> Dictionary:
 		shares[key] = float(shares[key]) / total * 100.0
 	return shares
 
+const GROUP_WEIGHTS := {"Jovens": 0.22, "Trabalhadores": 0.34, "Empreendedores": 0.12, "Aposentados": 0.16, "Rurais": 0.16}
+
+## Apoio ponderado dos cinco grupos sociais; sem dados, cai na popularidade.
+static func demographic_support(state: Dictionary) -> float:
+	var popularity := float(state.get("popularity", 4.0))
+	var groups: Variant = state.get("demographics", {})
+	if not (groups is Dictionary) or (groups as Dictionary).is_empty():
+		return popularity
+	var total := 0.0
+	for key in GROUP_WEIGHTS.keys():
+		total += float(GROUP_WEIGHTS[key]) * float((groups as Dictionary).get(key, popularity))
+	return total
+
+## Média do apoio nas regiões; sem dados, cai na popularidade.
+static func regional_support(state: Dictionary) -> float:
+	var support: Variant = state.get("region_support", [])
+	if not (support is Array) or (support as Array).is_empty():
+		return float(state.get("popularity", 4.0))
+	var sum := 0.0
+	for value in support:
+		sum += float(value)
+	return sum / float((support as Array).size())
+
+## Voto do partido do jogador: popularidade, grupos sociais e regiões, mais o
+## voto retrospectivo. No governo, aprovação alta ajuda e inflação/desemprego
+## cobram a conta; na oposição o sinal inverte (governo impopular favorece).
 static func player_share(state: Dictionary) -> float:
-	var base := float(state.get("popularity", 4.0)) * 0.8
+	var base := float(state.get("popularity", 4.0)) * 0.55 + demographic_support(state) * 0.25 + regional_support(state) * 0.20
+	base *= 0.8
 	base += float(state.get("campaign", 0.0)) * 0.3
 	base += float(state.get("recognition", 0.0)) * 0.05
-	base -= maxf(0.0, float(state.get("inflation", 4.8)) - 4.0) * 0.6
+	var approval_gap := float(state.get("approval", 45.0)) - 45.0
+	var inflation_gap := maxf(0.0, float(state.get("inflation", 4.8)) - 4.0)
+	var jobless_gap := maxf(0.0, float(state.get("unemployment", 8.2)) - 8.0)
+	if bool(state.get("government", false)):
+		base += clampf(approval_gap * 0.12, -4.0, 4.0) - inflation_gap * 0.6 - jobless_gap * 0.3
+	else:
+		base += clampf(-approval_gap * 0.10, -3.0, 3.0) + minf(inflation_gap * 0.25, 2.5) + minf(jobless_gap * 0.15, 2.0)
 	return clampf(base, 0.5, 65.0)
 
 static func undecided_share(state: Dictionary) -> float:
