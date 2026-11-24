@@ -10,6 +10,7 @@ extends RefCounted
 const DATA_PATH := "res://config/public_administration.json"
 const BudgetSystem := preload("res://scripts/sim/budget_system.gd")
 const Ministries := preload("res://scripts/sim/ministry_system.gd")
+const Debt := preload("res://scripts/sim/debt_system.gd")
 const CausalLog := preload("res://scripts/sim/causal_log.gd")
 
 const FUNDING_LABELS := {
@@ -272,7 +273,7 @@ static func monthly(st: Dictionary) -> Dictionary:
 			project["cost_spent"] = float(project.get("cost_spent", 0.0)) + payment
 			capital += payment
 			if funding in ["titulos", "externo"]:
-				st["project_debt"] = float(st.get("project_debt", 0.0)) + payment
+				Debt.finance_project(st, payment, funding)
 			var roll := _roll(project, month)
 			var disruption := float(project.get("risk", 20.0)) / 100.0 * 0.08
 			if roll < disruption:

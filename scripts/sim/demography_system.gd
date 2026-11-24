@@ -113,9 +113,9 @@ static func _migration(st: Dictionary, data: Dictionary) -> Dictionary:
 	var housing_gap := maxf(0.0, 60.0 - float((st.get("services", {}) as Dictionary).get("habitacao", {}).get("coverage", 50.0))) if st.get("services") is Dictionary else 10.0
 	var annual_immigration_rate := clampf(0.0012 + maxf(0.0, 7.0 - unemployment) * 0.00008 - service_gap * 0.00001 - housing_gap * 0.00001, 0.0003, 0.0018)
 	var annual_emigration_rate := clampf(0.0007 + maxf(0.0, unemployment - 7.0) * 0.00008 + service_gap * 0.00001, 0.0003, 0.0020)
-	var immigration := data.population * annual_immigration_rate / 12.0
-	var emigration := data.population * annual_emigration_rate / 12.0
-	var internal := data.population * clampf(0.0008 + maxf(0.0, 60.0 - _service_index(st)) * 0.00002, 0.0005, 0.0020) / 12.0
+	var immigration: float = float(data.population) * annual_immigration_rate / 12.0
+	var emigration: float = float(data.population) * annual_emigration_rate / 12.0
+	var internal: float = float(data.population) * clampf(0.0008 + maxf(0.0, 60.0 - _service_index(st)) * 0.00002, 0.0005, 0.0020) / 12.0
 	return {"immigration": immigration, "emigration": emigration, "internal": internal}
 
 static func monthly(st: Dictionary, economy: Dictionary) -> Dictionary:
@@ -132,7 +132,7 @@ static func monthly(st: Dictionary, economy: Dictionary) -> Dictionary:
 	var aged := {}
 	for key in COHORT_KEYS: aged[key] = 0.0
 	for index in COHORT_KEYS.size():
-		var key := COHORT_KEYS[index]
+		var key: String = str(COHORT_KEYS[index])
 		var value := maxf(0.0, float(cohorts.get(key, 0.0)))
 		var rate := float(TRANSITION_MONTHLY.get(key, 0.0))
 		var leaving := value * rate

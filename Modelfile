@@ -1,0 +1,3 @@
+﻿FROM C:\OllamaModels\mradermacher\Qwen3.5-4B-Claude-4.6-OS-Auto-Variable-HERETIC-UNCENSORED-THINKING-i1-GGUF\Geomind-4B.gguf
+PARAMETER temperature 0.2
+PARAMETER num_predict 720

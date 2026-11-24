@@ -1,5 +1,5 @@
 extends Node
-## Ponte local com Ollama (huihui_ai/qwen2.5-abliterate:3b) para as decisões que não são do jogador.
+## Ponte local com Ollama (mandatia-qwen35-local:latest) para as decisões que não são do jogador.
 ##
 ## Contratos em scripts/ai/ai_contracts.gd:
 ##  legislativo, eleitoral, eventos, internacional.
@@ -22,7 +22,7 @@ const BASE_URL := "http://127.0.0.1:11434"
 const TAGS_URL := BASE_URL + "/api/tags"
 const SHOW_URL := BASE_URL + "/api/show"
 const GENERATE_URL := BASE_URL + "/api/generate"
-const MODEL := "huihui_ai/qwen2.5-abliterate:3b"
+const MODEL := "mandatia-qwen35-local:latest"
 const TIMEOUT_MS := 20000
 ## Carregar o modelo do disco leva dezenas de segundos; o aquecimento na
 ## inicialização paga esse custo fora do prazo de 20 s de cada decisão.
@@ -139,6 +139,7 @@ func _warm_up() -> void:
 		"model": model,
 		"prompt": "",
 		"stream": false,
+		"think": false,
 		"keep_alive": KEEP_ALIVE,
 		"options": {"num_predict": 1},
 	}
@@ -253,6 +254,7 @@ func _attempt(op_id: String) -> void:
 		"model": model,
 		"prompt": prompt,
 		"stream": false,
+		"think": false,
 		"keep_alive": KEEP_ALIVE,
 		"options": {"temperature": 0.2, "num_predict": _max_tokens(contract), "seed": 7},
 	}

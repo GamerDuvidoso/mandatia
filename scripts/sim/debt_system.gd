@@ -87,8 +87,17 @@ static func issue_bond(st: Dictionary, pct_gdp: float) -> Dictionary:
 	news.push_front("Tesouro emite M$ %s em títulos a %.1f%% ao ano; o caixa sobe e a dívida também." % [str(int(amount)), float(tranche.get("rate", 0.0))])
 	st["news"] = news
 	CausalLog.record(st, "divida", "emissão de M$ %s" % str(int(amount)), {"treasury": amount, "debt": amount},
-		"A emissão financia o caixa hoje e cria serviço de juros futuro; o custo depende da taxa e do prazo da tranche.")
+		"A emissão financia o caixa hoje e cria serviço de juros futuro; o custo depende da taxa, do prazo da tranche.")
 	return {"ok": true, "reason": "Emissão concluída", "amount": amount, "rate": float(tranche.rate)}
+
+static func finance_project(st: Dictionary, amount: float, source: String) -> Dictionary:
+	if amount <= 0.0 or source not in ["titulos", "externo"]:
+		return {"ok": false, "amount": 0.0}
+	ensure(st)
+	var tranche := _issue(st, amount, "projeto:%s" % source)
+	st["treasury"] = float(st.get("treasury", 0.0)) + amount
+	st["project_debt"] = float(st.get("project_debt", 0.0)) + amount
+	return {"ok": true, "amount": amount, "tranche": tranche}
 
 static func amortize(st: Dictionary, pct_gdp: float) -> Dictionary:
 	if not bool(st.get("government", false)):

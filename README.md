@@ -86,13 +86,16 @@ O build exportado nao executa `--script res://tools/...` (tools/* fica fora do
 pack), por isso a conferencia do pack le o proprio `.pck` em
 `tools/verify_pack.py`.
 
-## IA local (planejada)
+## IA local (opcional)
 
 Decisões que não são do jogador (voto fracionário por bancada, eventos, política
-internacional, reações de partidos e narrativa eleitoral) serão opcionalmente
-decididas por um modelo local via Ollama, com fallback determinístico quando o
-modelo falta ou falha. Indicadores exatos — dinheiro, dívida, PIB, inflação,
-desemprego, contagem de votos e conversão de cadeiras — permanecem no motor.
+internacional, reações de partidos e narrativa eleitoral) podem ser decididas por
+um modelo local via Ollama, com fallback determinístico quando o modelo falta ou
+falha. O modelo e os exemplos ficam em `config/ai_examples.json`; o cliente usa
+no máximo duas tentativas de 20 s, valida a resposta antes de entregá-la e registra
+extrapolações/rejeições em log local. Indicadores exatos — dinheiro, dívida, PIB,
+inflação, desemprego, contagem de votos e conversão de cadeiras — permanecem no
+motor e nunca são definidos diretamente pela IA.
 
 ## Estrutura
 

@@ -187,7 +187,12 @@ static func full_rect(control: Control) -> void:
 # --- Round-3 game UI kit: skewed plates, holo panels, menu items, key chips, glows. ---
 
 static func reduced_motion() -> bool:
-	return bool(TuningStore.get_value("ui.reduced_motion", false))
+	var main_loop := Engine.get_main_loop()
+	if main_loop is SceneTree:
+		var store := (main_loop as SceneTree).root.get_node_or_null("TuningStore")
+		if store != null and store.has_method("get_value"):
+			return bool(store.call("get_value", "ui.reduced_motion", false))
+	return false
 
 
 ## Skewed glass plate with a vertical bevel (lighter top border) and optional outer glow.

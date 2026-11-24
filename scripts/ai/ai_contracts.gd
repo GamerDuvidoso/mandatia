@@ -1,5 +1,5 @@
 extends RefCounted
-## Contratos JSON estritos da camada de IA local (Ollama, huihui_ai/qwen2.5-abliterate:3b).
+## Contratos JSON estritos da camada de IA local (Ollama, mandatia-qwen35-local:latest).
 ##
 ## Script puro: não abre rede, não escreve arquivo e não toca em nós.
 ## Assim a validação de cada contrato pode ser testada em headless.
@@ -75,7 +75,7 @@ static func cache_key(contract: String, meta: Dictionary, entity_ids: Array) -> 
 		int(meta.get("year", 0)),
 		str(meta.get("country", "")),
 		str(joined.hash()),
-		str(meta.get("model", "huihui_ai/qwen2.5-abliterate:3b")),
+		str(meta.get("model", "mandatia-qwen35-local:latest")),
 	]
 
 ## Prompt curto: com instruções longas o modelo de 3B entra em repetição e o

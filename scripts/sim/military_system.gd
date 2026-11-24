@@ -88,11 +88,11 @@ static func init_country(st: Dictionary, id: String, countries: Array, economy: 
 		"air": clampf(float(base.get("air", 28.0)), 5.0, 100.0),
 		"readiness": clampf(float(base.get("readiness", 55.0)), 5.0, 100.0),
 		"defense_share": clampf(share, 0.3, 8.0),
-		"base_share": clampf(share, 0.3, 8.0),
-		"budget_billions": gdp * share / 100.0 / 1000000000.0,
-		"procurement": [], "mobilization": "nenhuma", "mobilized": 0.0,
-		"stockpile_days": int(base.get("strategic_stock_days", base.get("reserves_months", 3) * 10)),
-		"casualties": 0, "nuclear": bool(base.get("nuclear", false)),
+			"base_share": clampf(share, 0.3, 8.0),
+			"budget_billions": gdp * share / 100.0 / 1000000000.0,
+			"procurement": [], "maintenance_load": 0.0, "mobilization": "nenhuma", "mobilized": 0.0,
+			"stockpile_days": int(base.get("strategic_stock_days", base.get("reserves_months", 3) * 10)),
+			"casualties": 0, "nuclear": bool(base.get("nuclear", false)),
 		"source": "SIPRI milex (faixa) + população/PIB WDI; modelo abstrato",
 		"certainty": str(base.get("certainty", "estimativa declarada")),
 		"updated": "%d-%02d" % [int(st.get("date_year", 2027)), int(st.get("date_month", 1))],
@@ -112,7 +112,7 @@ static func ensure(st: Dictionary, countries: Array, economy: Dictionary) -> voi
 			military[id] = init_country(st, str(id), countries, economy)
 		else:
 			var m: Dictionary = military[id]
-			for key in ["procurement", "mobilization", "mobilized", "casualties"]:
+			for key in ["procurement", "maintenance_load", "mobilization", "mobilized", "casualties"]:
 				if not m.has(key):
 					m[key] = [] if key == "procurement" else ("nenhuma" if key == "mobilization" else 0.0)
 			military[id] = m
@@ -140,6 +140,21 @@ static func defense_budget_billions(st: Dictionary, id: String) -> float:
 		var share := float(st.get("budget", {}).get("approved_allocations", {}).get("defesa", m.get("defense_share", 1.2)))
 		return _gdp(st, id, {}) * share / 100.0 / 1000000000.0
 	return float(m.get("budget_billions", 0.0))
+
+static func threat_for(st: Dictionary, id: String) -> float:
+	var threat := 0.0
+	var geopolitics: Dictionary = st.get("geopolitics", {}) if st.get("geopolitics") is Dictionary else {}
+	for conflict in (geopolitics.get("conflicts", []) as Array):
+		var status := str(conflict.get("status", ""))
+		if status not in ["tensao", "confronto", "hostilidades", "escalada", "impasse", "negociacao"]:
+			continue
+		if str(conflict.get("a", "")) == id or str(conflict.get("b", "")) == id:
+			threat = maxf(threat, float(conflict.get("intensity", 0.0)))
+	for crisis in (geopolitics.get("crises", []) as Array):
+		if str(crisis.get("country", "")) != id or str(crisis.get("status", "")) not in ["aberta", "escalando"]:
+			continue
+		threat = maxf(threat, float(crisis.get("severity", 0.0)) * 0.6)
+	return clampf(threat, 0.0, 100.0)
 
 static func procurement_cost_m(st: Dictionary, id: String, item: String) -> float:
 	var spec: Dictionary = ITEMS.get(item, {})
@@ -182,6 +197,7 @@ static func start_procurement(st: Dictionary, id: String, item: String, player :
 static func _deliver(m: Dictionary, program: Dictionary) -> void:
 	for key in (program.get("effects", {}) as Dictionary).keys():
 		m[key] = clampf(float(m.get(key, 0.0)) + float(program.effects[key]), 0.0, 100.0)
+	m["maintenance_load"] = clampf(float(m.get("maintenance_load", 0.0)) + float(program.get("maintenance", 0.0)), 0.0, 20.0)
 	m["stockpile_days"] = mini(180, int(m.get("stockpile_days", 20)) + 3)
 
 static func monthly(st: Dictionary, id: String, profile: Dictionary, at_war: bool, threat: float, year: int, month: int) -> Dictionary:
@@ -191,7 +207,8 @@ static func monthly(st: Dictionary, id: String, profile: Dictionary, at_war: boo
 	if m.is_empty():
 		return {}
 	var base_share := float(m.get("base_share", 1.2))
-	var target := base_share + threat * 0.02 + (0.9 if at_war else 0.0)
+	var maintenance_load := maxf(0.0, float(m.get("maintenance_load", 0.0)))
+	var target := base_share + threat * 0.02 + maintenance_load + (0.9 if at_war else 0.0)
 	if str(m.get("mobilization", "nenhuma")) == "geral":
 		target += 1.1
 	elif str(m.get("mobilization", "nenhuma")) == "parcial":
@@ -240,7 +257,7 @@ static func monthly(st: Dictionary, id: String, profile: Dictionary, at_war: boo
 	military[id] = m
 	g["military"] = military
 	st["geopolitics"] = g
-	return {"share": share, "readiness": m.readiness, "power": capability(m)}
+	return {"share": share, "readiness": m.readiness, "power": capability(m), "maintenance_load": maintenance_load, "threat": clampf(threat, 0.0, 100.0)}
 
 static func mobilize(st: Dictionary, id: String, level: String) -> Dictionary:
 	var g: Dictionary = st.get("geopolitics", {})
@@ -295,5 +312,3 @@ static func summary(st: Dictionary, id: String) -> Dictionary:
 		"casualties": int(m.get("casualties", 0)), "nuclear": bool(m.get("nuclear", false)),
 		"source": str(m.get("source", "")), "certainty": str(m.get("certainty", "")),
 	}
-
-
