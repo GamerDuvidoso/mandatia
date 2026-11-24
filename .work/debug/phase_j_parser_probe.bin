@@ -1,0 +1,6 @@
+Godot Engine v4.7.stable.official.5b4e0cb0f - https://godotengine.org
+
+`nSCRIPT ERROR: Parse Error: Expected statement, found "Indent" instead.
+   at: GDScript::reload (res://scripts/main.gd:4405)
+ERROR: Failed to load script "res://scripts/main.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)

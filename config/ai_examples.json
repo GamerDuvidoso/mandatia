@@ -1,6 +1,6 @@
 {
   "version": "2.0.0",
-  "model": "huihui_ai/qwen2.5-abliterate:3b",
+  "model": "mandatia-qwen35-local:latest",
   "timeout_ms": 20000,
   "max_attempts": 2,
   "cache_store": "state.ai_decisions",

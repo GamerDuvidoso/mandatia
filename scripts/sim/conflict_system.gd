@@ -676,12 +676,12 @@ static func _tick_conflicts(st: Dictionary) -> void:
 				var pair: Dictionary = g.bilateral.get(key, {})
 				var tension := float(pair.get("tension", 55.0))
 				if tension >= 60.0 or int(c.months) >= 4:
-						c["status"] = "hostilidades"
-						c["history"].append({"month": _stamp(st), "status": "hostilidades", "note": "tensão não contida"})
-						_record(st, str(c.a), "conflito", "Confronto entre %s e %s evolui para hostilidades." % [str(c.a_name), str(c.b_name)], "tensão bilateral e falha da mediação", ["combate ativo", "custos militares"], "Hostilidades começam entre %s e %s" % [str(c.a_name), str(c.b_name)])
-					else:
-						c["status"] = "congelado"
-						c["frozen_months"] = 0
+					c["status"] = "hostilidades"
+					c["history"].append({"month": _stamp(st), "status": "hostilidades", "note": "tensão não contida"})
+					_record(st, str(c.a), "conflito", "Confronto entre %s e %s evolui para hostilidades." % [str(c.a_name), str(c.b_name)], "tensão bilateral e falha da mediação", ["combate ativo", "custos militares"], "Hostilidades começam entre %s e %s" % [str(c.a_name), str(c.b_name)])
+				else:
+					c["status"] = "congelado"
+					c["frozen_months"] = 0
 			elif status in ["hostilidades", "escalada", "impasse"]:
 				_war_tick(st, c)
 			var refreshed: Array = st.get("geopolitics", {}).get("conflicts", []) if st.get("geopolitics") is Dictionary else []

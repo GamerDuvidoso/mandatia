@@ -12,7 +12,7 @@ func _ready() -> void:
 	var after := Demography.summary(state)
 	var cohort_sum := 0.0
 	for row in Demography.cohort_rows(state): cohort_sum += float(row.get("population", 0.0))
-	var stable := is_equal_approx(cohort_sum, float(after.get("population", 0.0)), 0.5)
+	var stable := absf(cohort_sum - float(after.get("population", 0.0))) <= 0.5
 	var positive := float(after.get("population", 0.0)) > 0.0 and float(first.get("births", 0.0)) > 0.0
 	var before_tick := str(after.get("last_tick", ""))
 	var second := Demography.monthly(state, economy)

@@ -1709,7 +1709,7 @@ func _regional_campaign_panel() -> PanelContainer:
 	var panel := _panel_box()
 	var col := VBoxContainer.new()
 	col.add_child(_label("LEITURA REGIONAL DA CAMPANHA", 12, AMBER))
-	col.add_child(_label("Regiões com menor apoio e maior peso eleitoral oferecem o melhor retorno marginal. O contexto local é o problema real cadastrado.", 13, MUTED))
+	col.add_child(_label("Regiões com menor apoio e maior alcance relativo modelado oferecem o melhor retorno marginal. O contexto local é o problema real cadastrado; isso não representa peso eleitoral oficial.", 13, MUTED))
 	for row in CampaignSystem.regional_analysis(state, regions):
 		var line := HBoxContainer.new()
 		line.add_theme_constant_override("separation", 10)
@@ -1717,7 +1717,7 @@ func _regional_campaign_panel() -> PanelContainer:
 		name_label.custom_minimum_size.x = 140
 		line.add_child(name_label)
 		line.add_child(_bar(float(row.support), 100.0, AMBER, 9.0))
-		line.add_child(_label("apoio %.0f%%  ·  peso %.1f%%  ·  oportunidade %.0f" % [float(row.support), float(row.weight), float(row.opportunity)], 12, MUTED))
+		line.add_child(_label("apoio %.0f%%  ·  alcance relativo %.1f%%  ·  oportunidade %.0f" % [float(row.support), float(row.weight), float(row.opportunity)], 12, MUTED))
 		var context := _label(str(row.context), 11, SUBTLE)
 		context.custom_minimum_size.x = 130
 		line.add_child(context)
@@ -2702,23 +2702,23 @@ func _show_population() -> void:
 	col.add_child(_label("O apoio abaixo da média indica onde a próxima ação de base rende mais.", 12, SUBTLE))
 	panel.add_child(col)
 	main_column.add_child(panel)
-	# Peso eleitoral: participação de cada região na população total cadastrada.
-	var total_pop := 0.0
+	# Envelope regional modelado: não é uma fonte demográfica nem altera a população canônica.
+	var total_envelope := 0.0
 	for region in regions:
-		total_pop += float(region.pop)
+		total_envelope += float(region.pop)
 	var weight_panel := _panel_box()
 	var wcol := VBoxContainer.new()
-	wcol.add_child(_label("PESO ELEITORAL POR REGIÃO", 10, SUBTLE))
-	wcol.add_child(_label("Participação de cada território na população total de %.1f mi" % total_pop, 12, MUTED))
+	wcol.add_child(_label("ENVELOPE REGIONAL MODELADO", 10, SUBTLE))
+	wcol.add_child(_label("Leitura analítica estática — não é população canônica nem peso eleitoral (total do envelope: %.1f u.)" % total_envelope, 12, MUTED))
 	for region in regions:
-		var share := float(region.pop) / maxf(0.01, total_pop) * 100.0
+		var share := float(region.pop) / maxf(0.01, total_envelope) * 100.0
 		var row := HBoxContainer.new()
 		row.add_theme_constant_override("separation", 10)
 		var name_label := _label(str(region.name), 13, TEXT)
 		name_label.custom_minimum_size.x = 150
 		row.add_child(name_label)
 		row.add_child(_bar(share, 25.0, AMBER, 9.0))
-		var share_label := _label("%.1f%%  ·  %.1f mi" % [share, float(region.pop)], 12, MUTED)
+		var share_label := _label("%.1f%% do envelope  ·  %.1f u." % [share, float(region.pop)], 12, MUTED)
 		share_label.custom_minimum_size.x = 110
 		share_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 		row.add_child(share_label)
@@ -3076,7 +3076,7 @@ func _show_regions() -> void:
 	grid.add_theme_constant_override("h_separation", 16)
 	grid.add_theme_constant_override("v_separation", 6)
 	for pair in [
-		["População", "%.1f mi" % float(r.pop)],
+		["Envelope regional modelado", "%.1f u." % float(r.pop)],
 		["Renda média", "%d" % int(r.income)],
 		["Desemprego", "%.1f%%" % float(r.unemployment)],
 		["Apoio ao partido", "%.0f%%" % float(state.region_support[selected_region])],
@@ -3086,6 +3086,7 @@ func _show_regions() -> void:
 		value.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 		grid.add_child(value)
 	col.add_child(grid)
+	col.add_child(_label("O envelope regional é modelado e não representa população canônica nem peso eleitoral.", 11, MUTED))
 	col.add_child(_spacer(6))
 	col.add_child(_bar(float(state.region_support[selected_region]), 100.0, AMBER, 10.0))
 	col.add_child(_spacer(10))
@@ -3974,7 +3975,7 @@ func _advance_month() -> void:
 			macro = {"debt": float(state.get("debt", 60.0)), "growth": float(state.get("economy", 2.0)), "inflation": float(state.get("inflation", 4.5))}
 		else:
 			macro = state.get("international_state", {}).get("profiles", {}).get(military_id, {})
-		var military_result := Military.monthly(state, military_id, macro, at_war, 0.0, int(state.date_year), int(state.date_month))
+		var military_result := Military.monthly(state, military_id, macro, at_war, Military.threat_for(state, military_id), int(state.date_year), int(state.date_month))
 		if military_id == str(state.get("country_id", "")) and not macro.is_empty():
 			state["debt"] = clampf(float(macro.get("debt", state.debt)), 0.0, 220.0)
 			state["economy"] = clampf(float(macro.get("growth", state.economy)), -12.0, 10.0)
@@ -4401,12 +4402,12 @@ func _complete_month(stamp: String) -> void:
 	# sem criar resultados sociais paralelos nem regiões ainda.
 	var phase_g_result := PhaseGContract.monthly(state)
 	# Fase F é uma camada derivada: indexa fatos que já foram resolvidos neste
-		# mês, sem alterar aprovação, economia, eleições ou qualquer regra da simulação.
-		var phase_f_result := PhaseFInformation.monthly(state)
-		# FUND-03: observa unidades e reconciliações depois dos produtores, sem
-		# substituir população, macroeconomia ou fiscal já calculados.
-		var macro_ledger_result := MacroLedgerContract.monthly(state)
-		# O relatório é construído somente depois das etapas que podem alterar seus
+	# mês, sem alterar aprovação, economia, eleições ou qualquer regra da simulação.
+	PhaseFInformation.monthly(state)
+	# FUND-03: observa unidades e reconciliações depois dos produtores, sem
+	# substituir população, macroeconomia ou fiscal já calculados.
+	var macro_ledger_result := MacroLedgerContract.monthly(state)
+	# O relatório é construído somente depois das etapas que podem alterar seus
 	# indicadores. Os resultados são mantidos para diagnóstico sem transformar
 	# módulos pendentes em sucesso artificial.
 	state["month_report"] = _build_month_report()
@@ -4456,7 +4457,7 @@ func _show_ai_wait(message: String, op_ids: Variant) -> void:
 	var col := VBoxContainer.new()
 	col.name = "Col"
 	col.add_theme_constant_override("separation", 6)
-	col.add_child(_label("IA LOCAL  ·  huihui_ai/qwen2.5-abliterate:3b", 11, AMBER))
+	col.add_child(_label("IA LOCAL  ·  mandatia-qwen35-local:latest", 11, AMBER))
 	var msg := _label(message, 15, TEXT)
 	msg.name = "Msg"
 	msg.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -4801,11 +4802,17 @@ func _motion_of_censure() -> void:
 	state.funds -= CENSURE_COST
 	state.credibility -= CENSURE_CREDIBILITY
 	var seat_map: Dictionary = state.get("seat_map", {})
-	var government_seats := int(seat_map.get(Election.largest_party(seat_map), 0))
-	var outside := 0
+	var government_party := Election.largest_party(seat_map)
+	var government_seats := int(seat_map.get(government_party, 0))
+	var coalition_partners: Array = state.get("coalition_partners", []) if state.get("coalition_partners") is Array else []
+	for partner in coalition_partners:
+		var partner_key := str(partner)
+		if partner_key != government_party:
+			government_seats += int(seat_map.get(partner_key, 0))
+	var total_seats := 0
 	for key in seat_map.keys():
-		outside += int(seat_map[key])
-	outside -= government_seats
+		total_seats += int(seat_map[key])
+	var outside := total_seats - government_seats
 	if outside >= int(state.majority):
 		state.government = true
 		state.coalition_partners = []
@@ -5129,22 +5136,22 @@ func _migrate_state(raw: Dictionary) -> Dictionary:
 	SocialGroups.ensure(result)
 	InterestGroups.ensure(result)
 	PoliticalRelations.ensure(result, positions)
-		CampaignSystem.ensure(result)
-		Scandals.ensure(result)
-		CausalLog.ensure(result)
-		Government.ensure(result)
-		International.ensure(result, countries, economy_catalog)
-		WorldSim.ensure(result, countries, economy_catalog)
-		Military.ensure(result, countries, economy_catalog)
-		Resources.ensure(result, str(result.get("country_id", "BR")))
-		Conflict.ensure(result, countries)
-		GlobalShock.ensure(result)
-		E2GeopoliticsContract.ensure(result)
-		E2ForcedFlowsContract.ensure(result)
-		Demography.ensure(result, economy_catalog)
-		PhaseGContract.ensure(result)
-		PhaseFInformation.ensure(result)
-		MacroLedgerContract.ensure(result)
+	CampaignSystem.ensure(result)
+	Scandals.ensure(result)
+	CausalLog.ensure(result)
+	Government.ensure(result)
+	International.ensure(result, countries, economy_catalog)
+	WorldSim.ensure(result, countries, economy_catalog)
+	Military.ensure(result, countries, economy_catalog)
+	Resources.ensure(result, str(result.get("country_id", "BR")))
+	Conflict.ensure(result, countries)
+	GlobalShock.ensure(result)
+	E2GeopoliticsContract.ensure(result)
+	E2ForcedFlowsContract.ensure(result)
+	Demography.ensure(result, economy_catalog)
+	PhaseGContract.ensure(result)
+	PhaseFInformation.ensure(result)
+	MacroLedgerContract.ensure(result)
 	result["save_version"] = SAVE_VERSION
 	return result
 
