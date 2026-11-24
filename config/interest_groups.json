@@ -1,0 +1,31 @@
+{
+  "version": 1,
+  "notes": "Organizações são entidades simuladas, não medições de filiação real. Influência, representação e alinhamento são parâmetros de jogo documentados.",
+  "groups": [
+    {"id": "labor_federation", "name": "Central dos Trabalhadores", "kind": "sindicato", "influence": 72, "represented_share": 0.18, "economic": -70, "social": -35, "objectives": ["salário real", "emprego", "direitos trabalhistas"], "negotiation": 8, "base_relation": 10, "linked_group": "industrial_workers", "strike_threshold": 55},
+    {"id": "business_association", "name": "Confederação Empresarial", "kind": "associação empresarial", "influence": 80, "represented_share": 0.12, "economic": 75, "social": 30, "objectives": ["menos impostos", "crédito", "segurança jurídica"], "negotiation": 7, "base_relation": 0, "linked_group": "entrepreneurs"},
+    {"id": "agri_association", "name": "Federação Agropecuária", "kind": "associação setorial", "influence": 62, "represented_share": 0.09, "economic": 40, "social": 55, "objectives": ["crédito rural", "preço agrícola", "infraestrutura"], "negotiation": 6, "base_relation": 5, "linked_group": "farmers"},
+    {"id": "professional_council", "name": "Conselho das Profissões", "kind": "associação profissional", "influence": 48, "represented_share": 0.07, "economic": 20, "social": 0, "objectives": ["regulação profissional", "qualificação", "serviços públicos"], "negotiation": 5, "base_relation": 10, "linked_group": "service_workers"},
+    {"id": "environment_network", "name": "Rede Socioambiental", "kind": "organização ambiental", "influence": 44, "represented_share": 0.05, "economic": -35, "social": -85, "objectives": ["transição energética", "fiscalização", "direitos territoriais"], "negotiation": 4, "base_relation": 0, "linked_group": "farmers"},
+    {"id": "student_union", "name": "União Estudantil", "kind": "organização estudantil", "influence": 38, "represented_share": 0.08, "economic": -60, "social": -75, "objectives": ["educação", "auxílio estudantil", "emprego jovem"], "negotiation": 3, "base_relation": 5, "linked_group": "students"},
+    {"id": "public_union", "name": "Sindicato do Serviço Público", "kind": "sindicato", "influence": 55, "represented_share": 0.10, "economic": -65, "social": -45, "objectives": ["carreira", "salário", "investimento público"], "negotiation": 6, "base_relation": 8, "linked_group": "public_sector", "strike_threshold": 50}
+  ],
+  "policy_stance": {
+    "minimum_wage": {"labor_federation": 8, "public_union": 3, "business_association": -6},
+    "welfare": {"labor_federation": 5, "student_union": 3, "business_association": -4},
+    "pension": {"labor_federation": -4, "public_union": -7, "business_association": 5},
+    "labor": {"labor_federation": -9, "public_union": -4, "business_association": 7},
+    "deregulation": {"business_association": 7, "agri_association": 4, "environment_network": -3, "labor_federation": -4},
+    "tax": {"business_association": 5, "agri_association": -3, "public_union": -1},
+    "education": {"student_union": 8, "professional_council": 3, "public_union": 4},
+    "transition": {"environment_network": 9, "agri_association": -4, "business_association": -2},
+    "investment": {"business_association": 3, "labor_federation": 3, "agri_association": 2},
+    "austerity": {"business_association": 5, "public_union": -8, "labor_federation": -4},
+    "public_salary": {"public_union": 10, "labor_federation": 4, "business_association": -5},
+    "transparency": {"environment_network": 4, "student_union": 3, "business_association": -1},
+    "jobs": {"labor_federation": 6, "student_union": 3, "business_association": -1},
+    "schools": {"student_union": 6, "professional_council": 3},
+    "health": {"public_union": 4, "labor_federation": 2},
+    "rural": {"agri_association": 9, "environment_network": -2}
+  }
+}

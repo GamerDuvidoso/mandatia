@@ -64,6 +64,8 @@ func _make_game() -> Array:
 	root.add_child(viewport)
 	var game: Control = load("res://scenes/main.tscn").instantiate()
 	viewport.add_child(game)
+	# O onboarding é validado na suíte; aqui ele não deve roubar foco do fluxo.
+	game.get("state")["tutorial_done"] = true
 	await _frames(12)
 	var ai: Node = game.get("ai")
 	if ai != null:
@@ -530,7 +532,8 @@ func _no_ai_month_flow() -> void:
 	_check(not bool(game.get("_month_in_progress")), "sem IA: meses fecham sem travar")
 	var event_text := str(game.get("state").get("event", ""))
 	_check(event_text != "", "sem IA: evento do mês chega pelo fallback")
-	var decision := _find_button(game, "Investir agora")
+	var first_option: Dictionary = (game.get("state").get("event_options", []) as Array)[0] if not (game.get("state").get("event_options", []) as Array).is_empty() else {}
+	var decision := _find_button(game, str(first_option.get("label", "Investir agora")))
 	_check(decision != null and decision.is_visible_in_tree(), "sem IA: decisão fica visível na tela")
 	_check(str(game.get("state").get("month_completed", "")) != "", "sem IA: mês registra conclusão")
 

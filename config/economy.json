@@ -1,0 +1,3253 @@
+{
+ "schema_version": 1,
+ "generated_at": "2026-11-22T05:31:52Z",
+ "source_policy": "Observações oficiais do World Bank WDI (2019-2024, ano mais recente disponível por indicador). Ausências são estimadas por mediana regional e marcadas como estimated, com metodologia e ano de referência.",
+ "indicators": {
+  "gdp_growth": {
+   "label": "Crescimento do PIB",
+   "unit": "% ao ano",
+   "source_code": "NY.GDP.MKTP.KD.ZG",
+   "simulated": true,
+   "sane_range": [
+    -15.0,
+    15.0
+   ],
+   "simulation_bounds": [
+    -6.0,
+    8.0
+   ]
+  },
+  "inflation": {
+   "label": "Inflação (IPC)",
+   "unit": "% ao ano",
+   "source_code": "FP.CPI.TOTL.ZG",
+   "simulated": true,
+   "sane_range": [
+    -5.0,
+    300.0
+   ],
+   "simulation_bounds": [
+    1.5,
+    15.0
+   ]
+  },
+  "unemployment": {
+   "label": "Desemprego",
+   "unit": "% da força de trabalho",
+   "source_code": "SL.UEM.TOTL.ZS",
+   "simulated": true,
+   "sane_range": [
+    0.5,
+    45.0
+   ],
+   "simulation_bounds": [
+    3.5,
+    18.0
+   ]
+  },
+  "debt": {
+   "label": "Dívida do governo central",
+   "unit": "% do PIB",
+   "source_code": "GC.DOD.TOTL.GD.ZS",
+   "simulated": true,
+   "sane_range": [
+    5.0,
+    300.0
+   ],
+   "simulation_bounds": [
+    20.0,
+    120.0
+   ]
+  },
+  "gdp": {
+   "label": "PIB nominal",
+   "unit": "US$ correntes",
+   "source_code": "NY.GDP.MKTP.CD",
+   "simulated": false,
+   "sane_range": [],
+   "simulation_bounds": []
+  },
+  "gdp_per_capita": {
+   "label": "PIB per capita",
+   "unit": "US$ correntes",
+   "source_code": "NY.GDP.PCAP.CD",
+   "simulated": false,
+   "sane_range": [],
+   "simulation_bounds": []
+  },
+  "population": {
+   "label": "População",
+   "unit": "habitantes",
+   "source_code": "SP.POP.TOTL",
+   "simulated": false,
+   "sane_range": [],
+   "simulation_bounds": []
+  },
+  "revenue": {
+   "label": "Receita do governo central",
+   "unit": "% do PIB",
+   "source_code": "GC.REV.XGRT.GD.ZS",
+   "simulated": false,
+   "sane_range": [],
+   "simulation_bounds": []
+  },
+  "expense": {
+   "label": "Despesa do governo central",
+   "unit": "% do PIB",
+   "source_code": "GC.XPN.TOTL.GD.ZS",
+   "simulated": false,
+   "sane_range": [],
+   "simulation_bounds": []
+  }
+ },
+ "countries": {
+  "AR": {
+   "name": "Argentina",
+   "region": "América do Sul",
+   "gdp_growth": {
+    "value": -1.34,
+    "unit": "% ao ano",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "NY.GDP.MKTP.KD.ZG",
+    "source_url": "https://data.worldbank.org/indicator/NY.GDP.MKTP.KD.ZG?locations=AR",
+    "simulation_value": -1.34
+   },
+   "inflation": {
+    "value": 219.88,
+    "unit": "% ao ano",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "FP.CPI.TOTL.ZG",
+    "source_url": "https://data.worldbank.org/indicator/FP.CPI.TOTL.ZG?locations=AR",
+    "simulation_value": 15.0,
+    "calibration": "Valor inicial limitado a [1.5, 15] porque a simulação não representa a magnitude observada; o dado original é mantido em value."
+   },
+   "unemployment": {
+    "value": 7.15,
+    "unit": "% da força de trabalho",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "SL.UEM.TOTL.ZS",
+    "source_url": "https://data.worldbank.org/indicator/SL.UEM.TOTL.ZS?locations=AR",
+    "simulation_value": 7.15
+   },
+   "gdp": {
+    "value": 638365455340,
+    "unit": "US$ correntes",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "NY.GDP.MKTP.CD",
+    "source_url": "https://data.worldbank.org/indicator/NY.GDP.MKTP.CD?locations=AR"
+   },
+   "gdp_per_capita": {
+    "value": 13969.8,
+    "unit": "US$ correntes",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "NY.GDP.PCAP.CD",
+    "source_url": "https://data.worldbank.org/indicator/NY.GDP.PCAP.CD?locations=AR"
+   },
+   "population": {
+    "value": 45696159,
+    "unit": "habitantes",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "SP.POP.TOTL",
+    "source_url": "https://data.worldbank.org/indicator/SP.POP.TOTL?locations=AR"
+   },
+   "revenue": {
+    "value": 16.86,
+    "unit": "% do PIB",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "GC.REV.XGRT.GD.ZS",
+    "source_url": "https://data.worldbank.org/indicator/GC.REV.XGRT.GD.ZS?locations=AR"
+   },
+   "expense": {
+    "value": 21.01,
+    "unit": "% do PIB",
+    "year": 2023,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "GC.XPN.TOTL.GD.ZS",
+    "source_url": "https://data.worldbank.org/indicator/GC.XPN.TOTL.GD.ZS?locations=AR"
+   },
+   "debt": {
+    "value": 68.25,
+    "unit": "% do PIB",
+    "year": 2024,
+    "status": "estimated",
+    "source": "Estimativa do projeto (sem observação no World Bank WDI)",
+    "source_code": "GC.DOD.TOTL.GD.ZS",
+    "methodology": "Mediana de 4 observações oficiais de dívida na região América do Sul (ano de referência 2024); o país não tem nenhuma observação publicada no WDI na janela 2000-2024.",
+    "simulation_value": 68.25
+   }
+  },
+  "BO": {
+   "name": "Bolívia",
+   "region": "América do Sul",
+   "gdp_growth": {
+    "value": -1.12,
+    "unit": "% ao ano",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "NY.GDP.MKTP.KD.ZG",
+    "source_url": "https://data.worldbank.org/indicator/NY.GDP.MKTP.KD.ZG?locations=BO",
+    "simulation_value": -1.12
+   },
+   "inflation": {
+    "value": 5.1,
+    "unit": "% ao ano",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "FP.CPI.TOTL.ZG",
+    "source_url": "https://data.worldbank.org/indicator/FP.CPI.TOTL.ZG?locations=BO",
+    "simulation_value": 5.1
+   },
+   "unemployment": {
+    "value": 3.27,
+    "unit": "% da força de trabalho",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "SL.UEM.TOTL.ZS",
+    "source_url": "https://data.worldbank.org/indicator/SL.UEM.TOTL.ZS?locations=BO",
+    "simulation_value": 3.5,
+    "calibration": "Valor inicial limitado a [3.5, 18] porque a simulação não representa a magnitude observada; o dado original é mantido em value."
+   },
+   "gdp": {
+    "value": 54881327453,
+    "unit": "US$ correntes",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "NY.GDP.MKTP.CD",
+    "source_url": "https://data.worldbank.org/indicator/NY.GDP.MKTP.CD?locations=BO"
+   },
+   "gdp_per_capita": {
+    "value": 4421.2,
+    "unit": "US$ correntes",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "NY.GDP.PCAP.CD",
+    "source_url": "https://data.worldbank.org/indicator/NY.GDP.PCAP.CD?locations=BO"
+   },
+   "population": {
+    "value": 12413315,
+    "unit": "habitantes",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "SP.POP.TOTL",
+    "source_url": "https://data.worldbank.org/indicator/SP.POP.TOTL?locations=BO"
+   },
+   "revenue": {
+    "value": 23.85,
+    "unit": "% do PIB",
+    "year": 2024,
+    "status": "estimated",
+    "source": "Estimativa do projeto (sem observação no World Bank WDI)",
+    "source_code": "GC.REV.XGRT.GD.ZS",
+    "methodology": "Mediana de 8 observações oficiais do mesmo indicador em países da região América do Sul; usada porque o país não tem observação publicada na janela 2019-2024."
+   },
+   "expense": {
+    "value": 27.5,
+    "unit": "% do PIB",
+    "year": 2023,
+    "status": "estimated",
+    "source": "Estimativa do projeto (sem observação no World Bank WDI)",
+    "source_code": "GC.XPN.TOTL.GD.ZS",
+    "methodology": "Mediana de 8 observações oficiais do mesmo indicador em países da região América do Sul; usada porque o país não tem observação publicada na janela 2019-2024."
+   },
+   "debt": {
+    "value": 68.34,
+    "unit": "% do PIB",
+    "year": 2001,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "GC.DOD.TOTL.GD.ZS",
+    "source_url": "https://data.worldbank.org/indicator/GC.DOD.TOTL.GD.ZS?locations=BO",
+    "note": "Observação oficial mais recente publicada no WDI para o país; não há valor na janela 2019-2024 e o dado não foi projetado.",
+    "simulation_value": 68.34
+   }
+  },
+  "BR": {
+   "name": "Brasil",
+   "region": "América do Sul",
+   "gdp_growth": {
+    "value": 3.42,
+    "unit": "% ao ano",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "NY.GDP.MKTP.KD.ZG",
+    "source_url": "https://data.worldbank.org/indicator/NY.GDP.MKTP.KD.ZG?locations=BR",
+    "simulation_value": 3.42
+   },
+   "inflation": {
+    "value": 4.37,
+    "unit": "% ao ano",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "FP.CPI.TOTL.ZG",
+    "source_url": "https://data.worldbank.org/indicator/FP.CPI.TOTL.ZG?locations=BR",
+    "simulation_value": 4.37
+   },
+   "unemployment": {
+    "value": 6.8,
+    "unit": "% da força de trabalho",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "SL.UEM.TOTL.ZS",
+    "source_url": "https://data.worldbank.org/indicator/SL.UEM.TOTL.ZS?locations=BR",
+    "simulation_value": 6.8
+   },
+   "gdp": {
+    "value": 2185821610689,
+    "unit": "US$ correntes",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "NY.GDP.MKTP.CD",
+    "source_url": "https://data.worldbank.org/indicator/NY.GDP.MKTP.CD?locations=BR"
+   },
+   "gdp_per_capita": {
+    "value": 10310.5,
+    "unit": "US$ correntes",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "NY.GDP.PCAP.CD",
+    "source_url": "https://data.worldbank.org/indicator/NY.GDP.PCAP.CD?locations=BR"
+   },
+   "population": {
+    "value": 211998573,
+    "unit": "habitantes",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "SP.POP.TOTL",
+    "source_url": "https://data.worldbank.org/indicator/SP.POP.TOTL?locations=BR"
+   },
+   "revenue": {
+    "value": 26.45,
+    "unit": "% do PIB",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "GC.REV.XGRT.GD.ZS",
+    "source_url": "https://data.worldbank.org/indicator/GC.REV.XGRT.GD.ZS?locations=BR"
+   },
+   "expense": {
+    "value": 32.43,
+    "unit": "% do PIB",
+    "year": 2023,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "GC.XPN.TOTL.GD.ZS",
+    "source_url": "https://data.worldbank.org/indicator/GC.XPN.TOTL.GD.ZS?locations=BR"
+   },
+   "debt": {
+    "value": 81.86,
+    "unit": "% do PIB",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "GC.DOD.TOTL.GD.ZS",
+    "source_url": "https://data.worldbank.org/indicator/GC.DOD.TOTL.GD.ZS?locations=BR",
+    "simulation_value": 81.86
+   }
+  },
+  "CL": {
+   "name": "Chile",
+   "region": "América do Sul",
+   "gdp_growth": {
+    "value": 2.81,
+    "unit": "% ao ano",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "NY.GDP.MKTP.KD.ZG",
+    "source_url": "https://data.worldbank.org/indicator/NY.GDP.MKTP.KD.ZG?locations=CL",
+    "simulation_value": 2.81
+   },
+   "inflation": {
+    "value": 4.3,
+    "unit": "% ao ano",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "FP.CPI.TOTL.ZG",
+    "source_url": "https://data.worldbank.org/indicator/FP.CPI.TOTL.ZG?locations=CL",
+    "simulation_value": 4.3
+   },
+   "unemployment": {
+    "value": 8.72,
+    "unit": "% da força de trabalho",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "SL.UEM.TOTL.ZS",
+    "source_url": "https://data.worldbank.org/indicator/SL.UEM.TOTL.ZS?locations=CL",
+    "simulation_value": 8.72
+   },
+   "gdp": {
+    "value": 329260633699,
+    "unit": "US$ correntes",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "NY.GDP.MKTP.CD",
+    "source_url": "https://data.worldbank.org/indicator/NY.GDP.MKTP.CD?locations=CL"
+   },
+   "gdp_per_capita": {
+    "value": 16659.0,
+    "unit": "US$ correntes",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "NY.GDP.PCAP.CD",
+    "source_url": "https://data.worldbank.org/indicator/NY.GDP.PCAP.CD?locations=CL"
+   },
+   "population": {
+    "value": 19764771,
+    "unit": "habitantes",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "SP.POP.TOTL",
+    "source_url": "https://data.worldbank.org/indicator/SP.POP.TOTL?locations=CL"
+   },
+   "revenue": {
+    "value": 21.86,
+    "unit": "% do PIB",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "GC.REV.XGRT.GD.ZS",
+    "source_url": "https://data.worldbank.org/indicator/GC.REV.XGRT.GD.ZS?locations=CL"
+   },
+   "expense": {
+    "value": 24.56,
+    "unit": "% do PIB",
+    "year": 2023,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "GC.XPN.TOTL.GD.ZS",
+    "source_url": "https://data.worldbank.org/indicator/GC.XPN.TOTL.GD.ZS?locations=CL"
+   },
+   "debt": {
+    "value": 13.15,
+    "unit": "% do PIB",
+    "year": 2000,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "GC.DOD.TOTL.GD.ZS",
+    "source_url": "https://data.worldbank.org/indicator/GC.DOD.TOTL.GD.ZS?locations=CL",
+    "note": "Observação oficial mais recente publicada no WDI para o país; não há valor na janela 2019-2024 e o dado não foi projetado.",
+    "simulation_value": 20.0,
+    "calibration": "Valor inicial limitado a [20, 120] porque a simulação não representa a magnitude observada; o dado original é mantido em value."
+   }
+  },
+  "CO": {
+   "name": "Colômbia",
+   "region": "América do Sul",
+   "gdp_growth": {
+    "value": 1.49,
+    "unit": "% ao ano",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "NY.GDP.MKTP.KD.ZG",
+    "source_url": "https://data.worldbank.org/indicator/NY.GDP.MKTP.KD.ZG?locations=CO",
+    "simulation_value": 1.49
+   },
+   "inflation": {
+    "value": 6.61,
+    "unit": "% ao ano",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "FP.CPI.TOTL.ZG",
+    "source_url": "https://data.worldbank.org/indicator/FP.CPI.TOTL.ZG?locations=CO",
+    "simulation_value": 6.61
+   },
+   "unemployment": {
+    "value": 9.62,
+    "unit": "% da força de trabalho",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "SL.UEM.TOTL.ZS",
+    "source_url": "https://data.worldbank.org/indicator/SL.UEM.TOTL.ZS?locations=CO",
+    "simulation_value": 9.62
+   },
+   "gdp": {
+    "value": 420504033143,
+    "unit": "US$ correntes",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "NY.GDP.MKTP.CD",
+    "source_url": "https://data.worldbank.org/indicator/NY.GDP.MKTP.CD?locations=CO"
+   },
+   "gdp_per_capita": {
+    "value": 7951.1,
+    "unit": "US$ correntes",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "NY.GDP.PCAP.CD",
+    "source_url": "https://data.worldbank.org/indicator/NY.GDP.PCAP.CD?locations=CO"
+   },
+   "population": {
+    "value": 52886363,
+    "unit": "habitantes",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "SP.POP.TOTL",
+    "source_url": "https://data.worldbank.org/indicator/SP.POP.TOTL?locations=CO"
+   },
+   "revenue": {
+    "value": 25.85,
+    "unit": "% do PIB",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "GC.REV.XGRT.GD.ZS",
+    "source_url": "https://data.worldbank.org/indicator/GC.REV.XGRT.GD.ZS?locations=CO"
+   },
+   "expense": {
+    "value": 33.28,
+    "unit": "% do PIB",
+    "year": 2023,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "GC.XPN.TOTL.GD.ZS",
+    "source_url": "https://data.worldbank.org/indicator/GC.XPN.TOTL.GD.ZS?locations=CO"
+   },
+   "debt": {
+    "value": 71.2,
+    "unit": "% do PIB",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "GC.DOD.TOTL.GD.ZS",
+    "source_url": "https://data.worldbank.org/indicator/GC.DOD.TOTL.GD.ZS?locations=CO",
+    "simulation_value": 71.2
+   }
+  },
+  "EC": {
+   "name": "Equador",
+   "region": "América do Sul",
+   "gdp_growth": {
+    "value": -1.94,
+    "unit": "% ao ano",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "NY.GDP.MKTP.KD.ZG",
+    "source_url": "https://data.worldbank.org/indicator/NY.GDP.MKTP.KD.ZG?locations=EC",
+    "simulation_value": -1.94
+   },
+   "inflation": {
+    "value": 1.55,
+    "unit": "% ao ano",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "FP.CPI.TOTL.ZG",
+    "source_url": "https://data.worldbank.org/indicator/FP.CPI.TOTL.ZG?locations=EC",
+    "simulation_value": 1.55
+   },
+   "unemployment": {
+    "value": 3.45,
+    "unit": "% da força de trabalho",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "SL.UEM.TOTL.ZS",
+    "source_url": "https://data.worldbank.org/indicator/SL.UEM.TOTL.ZS?locations=EC",
+    "simulation_value": 3.5,
+    "calibration": "Valor inicial limitado a [3.5, 18] porque a simulação não representa a magnitude observada; o dado original é mantido em value."
+   },
+   "gdp": {
+    "value": 123802374000,
+    "unit": "US$ correntes",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "NY.GDP.MKTP.CD",
+    "source_url": "https://data.worldbank.org/indicator/NY.GDP.MKTP.CD?locations=EC"
+   },
+   "gdp_per_capita": {
+    "value": 6826.5,
+    "unit": "US$ correntes",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "NY.GDP.PCAP.CD",
+    "source_url": "https://data.worldbank.org/indicator/NY.GDP.PCAP.CD?locations=EC"
+   },
+   "population": {
+    "value": 18135478,
+    "unit": "habitantes",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "SP.POP.TOTL",
+    "source_url": "https://data.worldbank.org/indicator/SP.POP.TOTL?locations=EC"
+   },
+   "revenue": {
+    "value": 30.96,
+    "unit": "% do PIB",
+    "year": 2022,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "GC.REV.XGRT.GD.ZS",
+    "source_url": "https://data.worldbank.org/indicator/GC.REV.XGRT.GD.ZS?locations=EC"
+   },
+   "expense": {
+    "value": 30.44,
+    "unit": "% do PIB",
+    "year": 2022,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "GC.XPN.TOTL.GD.ZS",
+    "source_url": "https://data.worldbank.org/indicator/GC.XPN.TOTL.GD.ZS?locations=EC"
+   },
+   "debt": {
+    "value": 68.25,
+    "unit": "% do PIB",
+    "year": 2024,
+    "status": "estimated",
+    "source": "Estimativa do projeto (sem observação no World Bank WDI)",
+    "source_code": "GC.DOD.TOTL.GD.ZS",
+    "methodology": "Mediana de 4 observações oficiais de dívida na região América do Sul (ano de referência 2024); o país não tem nenhuma observação publicada no WDI na janela 2000-2024.",
+    "simulation_value": 68.25
+   }
+  },
+  "GY": {
+   "name": "Guiana",
+   "region": "América do Sul",
+   "gdp_growth": {
+    "value": 5.35,
+    "unit": "% ao ano",
+    "year": 2019,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "NY.GDP.MKTP.KD.ZG",
+    "source_url": "https://data.worldbank.org/indicator/NY.GDP.MKTP.KD.ZG?locations=GY",
+    "simulation_value": 5.35
+   },
+   "inflation": {
+    "value": 2.9,
+    "unit": "% ao ano",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "FP.CPI.TOTL.ZG",
+    "source_url": "https://data.worldbank.org/indicator/FP.CPI.TOTL.ZG?locations=GY",
+    "simulation_value": 2.9
+   },
+   "unemployment": {
+    "value": 11.87,
+    "unit": "% da força de trabalho",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "SL.UEM.TOTL.ZS",
+    "source_url": "https://data.worldbank.org/indicator/SL.UEM.TOTL.ZS?locations=GY",
+    "simulation_value": 11.87
+   },
+   "gdp": {
+    "value": 24662714628,
+    "unit": "US$ correntes",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "NY.GDP.MKTP.CD",
+    "source_url": "https://data.worldbank.org/indicator/NY.GDP.MKTP.CD?locations=GY"
+   },
+   "gdp_per_capita": {
+    "value": 29675.3,
+    "unit": "US$ correntes",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "NY.GDP.PCAP.CD",
+    "source_url": "https://data.worldbank.org/indicator/NY.GDP.PCAP.CD?locations=GY"
+   },
+   "population": {
+    "value": 831087,
+    "unit": "habitantes",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "SP.POP.TOTL",
+    "source_url": "https://data.worldbank.org/indicator/SP.POP.TOTL?locations=GY"
+   },
+   "revenue": {
+    "value": 23.85,
+    "unit": "% do PIB",
+    "year": 2024,
+    "status": "estimated",
+    "source": "Estimativa do projeto (sem observação no World Bank WDI)",
+    "source_code": "GC.REV.XGRT.GD.ZS",
+    "methodology": "Mediana de 8 observações oficiais do mesmo indicador em países da região América do Sul; usada porque o país não tem observação publicada na janela 2019-2024."
+   },
+   "expense": {
+    "value": 27.5,
+    "unit": "% do PIB",
+    "year": 2023,
+    "status": "estimated",
+    "source": "Estimativa do projeto (sem observação no World Bank WDI)",
+    "source_code": "GC.XPN.TOTL.GD.ZS",
+    "methodology": "Mediana de 8 observações oficiais do mesmo indicador em países da região América do Sul; usada porque o país não tem observação publicada na janela 2019-2024."
+   },
+   "debt": {
+    "value": 68.25,
+    "unit": "% do PIB",
+    "year": 2024,
+    "status": "estimated",
+    "source": "Estimativa do projeto (sem observação no World Bank WDI)",
+    "source_code": "GC.DOD.TOTL.GD.ZS",
+    "methodology": "Mediana de 4 observações oficiais de dívida na região América do Sul (ano de referência 2024); o país não tem nenhuma observação publicada no WDI na janela 2000-2024.",
+    "simulation_value": 68.25
+   }
+  },
+  "PY": {
+   "name": "Paraguai",
+   "region": "América do Sul",
+   "gdp_growth": {
+    "value": 4.67,
+    "unit": "% ao ano",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "NY.GDP.MKTP.KD.ZG",
+    "source_url": "https://data.worldbank.org/indicator/NY.GDP.MKTP.KD.ZG?locations=PY",
+    "simulation_value": 4.67
+   },
+   "inflation": {
+    "value": 3.84,
+    "unit": "% ao ano",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "FP.CPI.TOTL.ZG",
+    "source_url": "https://data.worldbank.org/indicator/FP.CPI.TOTL.ZG?locations=PY",
+    "simulation_value": 3.84
+   },
+   "unemployment": {
+    "value": 5.69,
+    "unit": "% da força de trabalho",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "SL.UEM.TOTL.ZS",
+    "source_url": "https://data.worldbank.org/indicator/SL.UEM.TOTL.ZS?locations=PY",
+    "simulation_value": 5.69
+   },
+   "gdp": {
+    "value": 44738819362,
+    "unit": "US$ correntes",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "NY.GDP.MKTP.CD",
+    "source_url": "https://data.worldbank.org/indicator/NY.GDP.MKTP.CD?locations=PY"
+   },
+   "gdp_per_capita": {
+    "value": 6456.6,
+    "unit": "US$ correntes",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "NY.GDP.PCAP.CD",
+    "source_url": "https://data.worldbank.org/indicator/NY.GDP.PCAP.CD?locations=PY"
+   },
+   "population": {
+    "value": 6929153,
+    "unit": "habitantes",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "SP.POP.TOTL",
+    "source_url": "https://data.worldbank.org/indicator/SP.POP.TOTL?locations=PY"
+   },
+   "revenue": {
+    "value": 18.67,
+    "unit": "% do PIB",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "GC.REV.XGRT.GD.ZS",
+    "source_url": "https://data.worldbank.org/indicator/GC.REV.XGRT.GD.ZS?locations=PY"
+   },
+   "expense": {
+    "value": 18.95,
+    "unit": "% do PIB",
+    "year": 2023,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "GC.XPN.TOTL.GD.ZS",
+    "source_url": "https://data.worldbank.org/indicator/GC.XPN.TOTL.GD.ZS?locations=PY"
+   },
+   "debt": {
+    "value": 68.25,
+    "unit": "% do PIB",
+    "year": 2024,
+    "status": "estimated",
+    "source": "Estimativa do projeto (sem observação no World Bank WDI)",
+    "source_code": "GC.DOD.TOTL.GD.ZS",
+    "methodology": "Mediana de 4 observações oficiais de dívida na região América do Sul (ano de referência 2024); o país não tem nenhuma observação publicada no WDI na janela 2000-2024.",
+    "simulation_value": 68.25
+   }
+  },
+  "PE": {
+   "name": "Peru",
+   "region": "América do Sul",
+   "gdp_growth": {
+    "value": 3.52,
+    "unit": "% ao ano",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "NY.GDP.MKTP.KD.ZG",
+    "source_url": "https://data.worldbank.org/indicator/NY.GDP.MKTP.KD.ZG?locations=PE",
+    "simulation_value": 3.52
+   },
+   "inflation": {
+    "value": 2.01,
+    "unit": "% ao ano",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "FP.CPI.TOTL.ZG",
+    "source_url": "https://data.worldbank.org/indicator/FP.CPI.TOTL.ZG?locations=PE",
+    "simulation_value": 2.01
+   },
+   "unemployment": {
+    "value": 5.2,
+    "unit": "% da força de trabalho",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "SL.UEM.TOTL.ZS",
+    "source_url": "https://data.worldbank.org/indicator/SL.UEM.TOTL.ZS?locations=PE",
+    "simulation_value": 5.2
+   },
+   "gdp": {
+    "value": 291751523019,
+    "unit": "US$ correntes",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "NY.GDP.MKTP.CD",
+    "source_url": "https://data.worldbank.org/indicator/NY.GDP.MKTP.CD?locations=PE"
+   },
+   "gdp_per_capita": {
+    "value": 8526.3,
+    "unit": "US$ correntes",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "NY.GDP.PCAP.CD",
+    "source_url": "https://data.worldbank.org/indicator/NY.GDP.PCAP.CD?locations=PE"
+   },
+   "population": {
+    "value": 34217848,
+    "unit": "habitantes",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "SP.POP.TOTL",
+    "source_url": "https://data.worldbank.org/indicator/SP.POP.TOTL?locations=PE"
+   },
+   "revenue": {
+    "value": 20.67,
+    "unit": "% do PIB",
+    "year": 2021,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "GC.REV.XGRT.GD.ZS",
+    "source_url": "https://data.worldbank.org/indicator/GC.REV.XGRT.GD.ZS?locations=PE"
+   },
+   "expense": {
+    "value": 22.84,
+    "unit": "% do PIB",
+    "year": 2021,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "GC.XPN.TOTL.GD.ZS",
+    "source_url": "https://data.worldbank.org/indicator/GC.XPN.TOTL.GD.ZS?locations=PE"
+   },
+   "debt": {
+    "value": 35.24,
+    "unit": "% do PIB",
+    "year": 2021,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "GC.DOD.TOTL.GD.ZS",
+    "source_url": "https://data.worldbank.org/indicator/GC.DOD.TOTL.GD.ZS?locations=PE",
+    "simulation_value": 35.24
+   }
+  },
+  "SR": {
+   "name": "Suriname",
+   "region": "América do Sul",
+   "gdp_growth": {
+    "value": 1.72,
+    "unit": "% ao ano",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "NY.GDP.MKTP.KD.ZG",
+    "source_url": "https://data.worldbank.org/indicator/NY.GDP.MKTP.KD.ZG?locations=SR",
+    "simulation_value": 1.72
+   },
+   "inflation": {
+    "value": 16.23,
+    "unit": "% ao ano",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "FP.CPI.TOTL.ZG",
+    "source_url": "https://data.worldbank.org/indicator/FP.CPI.TOTL.ZG?locations=SR",
+    "simulation_value": 15.0,
+    "calibration": "Valor inicial limitado a [1.5, 15] porque a simulação não representa a magnitude observada; o dado original é mantido em value."
+   },
+   "unemployment": {
+    "value": 7.62,
+    "unit": "% da força de trabalho",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "SL.UEM.TOTL.ZS",
+    "source_url": "https://data.worldbank.org/indicator/SL.UEM.TOTL.ZS?locations=SR",
+    "simulation_value": 7.62
+   },
+   "gdp": {
+    "value": 4416775113,
+    "unit": "US$ correntes",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "NY.GDP.MKTP.CD",
+    "source_url": "https://data.worldbank.org/indicator/NY.GDP.MKTP.CD?locations=SR"
+   },
+   "gdp_per_capita": {
+    "value": 6961.8,
+    "unit": "US$ correntes",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "NY.GDP.PCAP.CD",
+    "source_url": "https://data.worldbank.org/indicator/NY.GDP.PCAP.CD?locations=SR"
+   },
+   "population": {
+    "value": 634431,
+    "unit": "habitantes",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "SP.POP.TOTL",
+    "source_url": "https://data.worldbank.org/indicator/SP.POP.TOTL?locations=SR"
+   },
+   "revenue": {
+    "value": 23.85,
+    "unit": "% do PIB",
+    "year": 2024,
+    "status": "estimated",
+    "source": "Estimativa do projeto (sem observação no World Bank WDI)",
+    "source_code": "GC.REV.XGRT.GD.ZS",
+    "methodology": "Mediana de 8 observações oficiais do mesmo indicador em países da região América do Sul; usada porque o país não tem observação publicada na janela 2019-2024."
+   },
+   "expense": {
+    "value": 27.5,
+    "unit": "% do PIB",
+    "year": 2023,
+    "status": "estimated",
+    "source": "Estimativa do projeto (sem observação no World Bank WDI)",
+    "source_code": "GC.XPN.TOTL.GD.ZS",
+    "methodology": "Mediana de 8 observações oficiais do mesmo indicador em países da região América do Sul; usada porque o país não tem observação publicada na janela 2019-2024."
+   },
+   "debt": {
+    "value": 68.25,
+    "unit": "% do PIB",
+    "year": 2024,
+    "status": "estimated",
+    "source": "Estimativa do projeto (sem observação no World Bank WDI)",
+    "source_code": "GC.DOD.TOTL.GD.ZS",
+    "methodology": "Mediana de 4 observações oficiais de dívida na região América do Sul (ano de referência 2024); o país não tem nenhuma observação publicada no WDI na janela 2000-2024.",
+    "simulation_value": 68.25
+   }
+  },
+  "UY": {
+   "name": "Uruguai",
+   "region": "América do Sul",
+   "gdp_growth": {
+    "value": 3.33,
+    "unit": "% ao ano",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "NY.GDP.MKTP.KD.ZG",
+    "source_url": "https://data.worldbank.org/indicator/NY.GDP.MKTP.KD.ZG?locations=UY",
+    "simulation_value": 3.33
+   },
+   "inflation": {
+    "value": 4.85,
+    "unit": "% ao ano",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "FP.CPI.TOTL.ZG",
+    "source_url": "https://data.worldbank.org/indicator/FP.CPI.TOTL.ZG?locations=UY",
+    "simulation_value": 4.85
+   },
+   "unemployment": {
+    "value": 8.21,
+    "unit": "% da força de trabalho",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "SL.UEM.TOTL.ZS",
+    "source_url": "https://data.worldbank.org/indicator/SL.UEM.TOTL.ZS?locations=UY",
+    "simulation_value": 8.21
+   },
+   "gdp": {
+    "value": 82322859144,
+    "unit": "US$ correntes",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "NY.GDP.MKTP.CD",
+    "source_url": "https://data.worldbank.org/indicator/NY.GDP.MKTP.CD?locations=UY"
+   },
+   "gdp_per_capita": {
+    "value": 24308.5,
+    "unit": "US$ correntes",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "NY.GDP.PCAP.CD",
+    "source_url": "https://data.worldbank.org/indicator/NY.GDP.PCAP.CD?locations=UY"
+   },
+   "population": {
+    "value": 3386588,
+    "unit": "habitantes",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "SP.POP.TOTL",
+    "source_url": "https://data.worldbank.org/indicator/SP.POP.TOTL?locations=UY"
+   },
+   "revenue": {
+    "value": 30.6,
+    "unit": "% do PIB",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "GC.REV.XGRT.GD.ZS",
+    "source_url": "https://data.worldbank.org/indicator/GC.REV.XGRT.GD.ZS?locations=UY"
+   },
+   "expense": {
+    "value": 36.45,
+    "unit": "% do PIB",
+    "year": 2023,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "GC.XPN.TOTL.GD.ZS",
+    "source_url": "https://data.worldbank.org/indicator/GC.XPN.TOTL.GD.ZS?locations=UY"
+   },
+   "debt": {
+    "value": 65.31,
+    "unit": "% do PIB",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "GC.DOD.TOTL.GD.ZS",
+    "source_url": "https://data.worldbank.org/indicator/GC.DOD.TOTL.GD.ZS?locations=UY",
+    "simulation_value": 65.31
+   }
+  },
+  "VE": {
+   "name": "Venezuela",
+   "region": "América do Sul",
+   "gdp_growth": {
+    "value": 5.52,
+    "unit": "% ao ano",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "NY.GDP.MKTP.KD.ZG",
+    "source_url": "https://data.worldbank.org/indicator/NY.GDP.MKTP.KD.ZG?locations=VE",
+    "simulation_value": 5.52
+   },
+   "inflation": {
+    "value": 4.37,
+    "unit": "% ao ano",
+    "year": 2024,
+    "status": "estimated",
+    "source": "Estimativa do projeto (sem observação no World Bank WDI)",
+    "source_code": "FP.CPI.TOTL.ZG",
+    "methodology": "Mediana de 11 observações oficiais do mesmo indicador em países da região América do Sul; usada porque o país não tem observação publicada na janela 2019-2024.",
+    "simulation_value": 4.37
+   },
+   "unemployment": {
+    "value": 5.32,
+    "unit": "% da força de trabalho",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "SL.UEM.TOTL.ZS",
+    "source_url": "https://data.worldbank.org/indicator/SL.UEM.TOTL.ZS?locations=VE",
+    "simulation_value": 5.32
+   },
+   "gdp": {
+    "value": 120566112397,
+    "unit": "US$ correntes",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "NY.GDP.MKTP.CD",
+    "source_url": "https://data.worldbank.org/indicator/NY.GDP.MKTP.CD?locations=VE"
+   },
+   "gdp_per_capita": {
+    "value": 4244.5,
+    "unit": "US$ correntes",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "NY.GDP.PCAP.CD",
+    "source_url": "https://data.worldbank.org/indicator/NY.GDP.PCAP.CD?locations=VE"
+   },
+   "population": {
+    "value": 28405543,
+    "unit": "habitantes",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "SP.POP.TOTL",
+    "source_url": "https://data.worldbank.org/indicator/SP.POP.TOTL?locations=VE"
+   },
+   "revenue": {
+    "value": 23.85,
+    "unit": "% do PIB",
+    "year": 2024,
+    "status": "estimated",
+    "source": "Estimativa do projeto (sem observação no World Bank WDI)",
+    "source_code": "GC.REV.XGRT.GD.ZS",
+    "methodology": "Mediana de 8 observações oficiais do mesmo indicador em países da região América do Sul; usada porque o país não tem observação publicada na janela 2019-2024."
+   },
+   "expense": {
+    "value": 27.5,
+    "unit": "% do PIB",
+    "year": 2023,
+    "status": "estimated",
+    "source": "Estimativa do projeto (sem observação no World Bank WDI)",
+    "source_code": "GC.XPN.TOTL.GD.ZS",
+    "methodology": "Mediana de 8 observações oficiais do mesmo indicador em países da região América do Sul; usada porque o país não tem observação publicada na janela 2019-2024."
+   },
+   "debt": {
+    "value": 68.25,
+    "unit": "% do PIB",
+    "year": 2024,
+    "status": "estimated",
+    "source": "Estimativa do projeto (sem observação no World Bank WDI)",
+    "source_code": "GC.DOD.TOTL.GD.ZS",
+    "methodology": "Mediana de 4 observações oficiais de dívida na região América do Sul (ano de referência 2024); o país não tem nenhuma observação publicada no WDI na janela 2000-2024.",
+    "simulation_value": 68.25
+   }
+  },
+  "CA": {
+   "name": "Canadá",
+   "region": "América do Norte",
+   "gdp_growth": {
+    "value": 2.05,
+    "unit": "% ao ano",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "NY.GDP.MKTP.KD.ZG",
+    "source_url": "https://data.worldbank.org/indicator/NY.GDP.MKTP.KD.ZG?locations=CA",
+    "simulation_value": 2.05
+   },
+   "inflation": {
+    "value": 2.38,
+    "unit": "% ao ano",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "FP.CPI.TOTL.ZG",
+    "source_url": "https://data.worldbank.org/indicator/FP.CPI.TOTL.ZG?locations=CA",
+    "simulation_value": 2.38
+   },
+   "unemployment": {
+    "value": 6.35,
+    "unit": "% da força de trabalho",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "SL.UEM.TOTL.ZS",
+    "source_url": "https://data.worldbank.org/indicator/SL.UEM.TOTL.ZS?locations=CA",
+    "simulation_value": 6.35
+   },
+   "gdp": {
+    "value": 2270076189683,
+    "unit": "US$ correntes",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "NY.GDP.MKTP.CD",
+    "source_url": "https://data.worldbank.org/indicator/NY.GDP.MKTP.CD?locations=CA"
+   },
+   "gdp_per_capita": {
+    "value": 55015.7,
+    "unit": "US$ correntes",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "NY.GDP.PCAP.CD",
+    "source_url": "https://data.worldbank.org/indicator/NY.GDP.PCAP.CD?locations=CA"
+   },
+   "population": {
+    "value": 41262329,
+    "unit": "habitantes",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "SP.POP.TOTL",
+    "source_url": "https://data.worldbank.org/indicator/SP.POP.TOTL?locations=CA"
+   },
+   "revenue": {
+    "value": 19.93,
+    "unit": "% do PIB",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "GC.REV.XGRT.GD.ZS",
+    "source_url": "https://data.worldbank.org/indicator/GC.REV.XGRT.GD.ZS?locations=CA"
+   },
+   "expense": {
+    "value": 19.06,
+    "unit": "% do PIB",
+    "year": 2023,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "GC.XPN.TOTL.GD.ZS",
+    "source_url": "https://data.worldbank.org/indicator/GC.XPN.TOTL.GD.ZS?locations=CA"
+   },
+   "debt": {
+    "value": 64.13,
+    "unit": "% do PIB",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "GC.DOD.TOTL.GD.ZS",
+    "source_url": "https://data.worldbank.org/indicator/GC.DOD.TOTL.GD.ZS?locations=CA",
+    "simulation_value": 64.13
+   }
+  },
+  "US": {
+   "name": "Estados Unidos",
+   "region": "América do Norte",
+   "gdp_growth": {
+    "value": 2.79,
+    "unit": "% ao ano",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "NY.GDP.MKTP.KD.ZG",
+    "source_url": "https://data.worldbank.org/indicator/NY.GDP.MKTP.KD.ZG?locations=US",
+    "simulation_value": 2.79
+   },
+   "inflation": {
+    "value": 2.95,
+    "unit": "% ao ano",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "FP.CPI.TOTL.ZG",
+    "source_url": "https://data.worldbank.org/indicator/FP.CPI.TOTL.ZG?locations=US",
+    "simulation_value": 2.95
+   },
+   "unemployment": {
+    "value": 4.02,
+    "unit": "% da força de trabalho",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "SL.UEM.TOTL.ZS",
+    "source_url": "https://data.worldbank.org/indicator/SL.UEM.TOTL.ZS?locations=US",
+    "simulation_value": 4.02
+   },
+   "gdp": {
+    "value": 29298013000000,
+    "unit": "US$ correntes",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "NY.GDP.MKTP.CD",
+    "source_url": "https://data.worldbank.org/indicator/NY.GDP.MKTP.CD?locations=US"
+   },
+   "gdp_per_capita": {
+    "value": 86169.7,
+    "unit": "US$ correntes",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "NY.GDP.PCAP.CD",
+    "source_url": "https://data.worldbank.org/indicator/NY.GDP.PCAP.CD?locations=US"
+   },
+   "population": {
+    "value": 340003797,
+    "unit": "habitantes",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "SP.POP.TOTL",
+    "source_url": "https://data.worldbank.org/indicator/SP.POP.TOTL?locations=US"
+   },
+   "revenue": {
+    "value": 17.78,
+    "unit": "% do PIB",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "GC.REV.XGRT.GD.ZS",
+    "source_url": "https://data.worldbank.org/indicator/GC.REV.XGRT.GD.ZS?locations=US"
+   },
+   "expense": {
+    "value": 24.43,
+    "unit": "% do PIB",
+    "year": 2023,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "GC.XPN.TOTL.GD.ZS",
+    "source_url": "https://data.worldbank.org/indicator/GC.XPN.TOTL.GD.ZS?locations=US"
+   },
+   "debt": {
+    "value": 115.79,
+    "unit": "% do PIB",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "GC.DOD.TOTL.GD.ZS",
+    "source_url": "https://data.worldbank.org/indicator/GC.DOD.TOTL.GD.ZS?locations=US",
+    "simulation_value": 115.79
+   }
+  },
+  "MX": {
+   "name": "México",
+   "region": "América do Norte",
+   "gdp_growth": {
+    "value": 1.35,
+    "unit": "% ao ano",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "NY.GDP.MKTP.KD.ZG",
+    "source_url": "https://data.worldbank.org/indicator/NY.GDP.MKTP.KD.ZG?locations=MX",
+    "simulation_value": 1.35
+   },
+   "inflation": {
+    "value": 4.72,
+    "unit": "% ao ano",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "FP.CPI.TOTL.ZG",
+    "source_url": "https://data.worldbank.org/indicator/FP.CPI.TOTL.ZG?locations=MX",
+    "simulation_value": 4.72
+   },
+   "unemployment": {
+    "value": 2.68,
+    "unit": "% da força de trabalho",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "SL.UEM.TOTL.ZS",
+    "source_url": "https://data.worldbank.org/indicator/SL.UEM.TOTL.ZS?locations=MX",
+    "simulation_value": 3.5,
+    "calibration": "Valor inicial limitado a [3.5, 18] porque a simulação não representa a magnitude observada; o dado original é mantido em value."
+   },
+   "gdp": {
+    "value": 1830489311089,
+    "unit": "US$ correntes",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "NY.GDP.MKTP.CD",
+    "source_url": "https://data.worldbank.org/indicator/NY.GDP.MKTP.CD?locations=MX"
+   },
+   "gdp_per_capita": {
+    "value": 13988.0,
+    "unit": "US$ correntes",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "NY.GDP.PCAP.CD",
+    "source_url": "https://data.worldbank.org/indicator/NY.GDP.PCAP.CD?locations=MX"
+   },
+   "population": {
+    "value": 130861007,
+    "unit": "habitantes",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "SP.POP.TOTL",
+    "source_url": "https://data.worldbank.org/indicator/SP.POP.TOTL?locations=MX"
+   },
+   "revenue": {
+    "value": 19.43,
+    "unit": "% do PIB",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "GC.REV.XGRT.GD.ZS",
+    "source_url": "https://data.worldbank.org/indicator/GC.REV.XGRT.GD.ZS?locations=MX"
+   },
+   "expense": {
+    "value": 22.46,
+    "unit": "% do PIB",
+    "year": 2023,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "GC.XPN.TOTL.GD.ZS",
+    "source_url": "https://data.worldbank.org/indicator/GC.XPN.TOTL.GD.ZS?locations=MX"
+   },
+   "debt": {
+    "value": 50.27,
+    "unit": "% do PIB",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "GC.DOD.TOTL.GD.ZS",
+    "source_url": "https://data.worldbank.org/indicator/GC.DOD.TOTL.GD.ZS?locations=MX",
+    "simulation_value": 50.27
+   }
+  },
+  "BZ": {
+   "name": "Belize",
+   "region": "América Central",
+   "gdp_growth": {
+    "value": 3.5,
+    "unit": "% ao ano",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "NY.GDP.MKTP.KD.ZG",
+    "source_url": "https://data.worldbank.org/indicator/NY.GDP.MKTP.KD.ZG?locations=BZ",
+    "simulation_value": 3.5
+   },
+   "inflation": {
+    "value": 3.29,
+    "unit": "% ao ano",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "FP.CPI.TOTL.ZG",
+    "source_url": "https://data.worldbank.org/indicator/FP.CPI.TOTL.ZG?locations=BZ",
+    "simulation_value": 3.29
+   },
+   "unemployment": {
+    "value": 8.7,
+    "unit": "% da força de trabalho",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "SL.UEM.TOTL.ZS",
+    "source_url": "https://data.worldbank.org/indicator/SL.UEM.TOTL.ZS?locations=BZ",
+    "simulation_value": 8.7
+   },
+   "gdp": {
+    "value": 3203631800,
+    "unit": "US$ correntes",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "NY.GDP.MKTP.CD",
+    "source_url": "https://data.worldbank.org/indicator/NY.GDP.MKTP.CD?locations=BZ"
+   },
+   "gdp_per_capita": {
+    "value": 7681.2,
+    "unit": "US$ correntes",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "NY.GDP.PCAP.CD",
+    "source_url": "https://data.worldbank.org/indicator/NY.GDP.PCAP.CD?locations=BZ"
+   },
+   "population": {
+    "value": 417072,
+    "unit": "habitantes",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "SP.POP.TOTL",
+    "source_url": "https://data.worldbank.org/indicator/SP.POP.TOTL?locations=BZ"
+   },
+   "revenue": {
+    "value": 21.86,
+    "unit": "% do PIB",
+    "year": 2024,
+    "status": "estimated",
+    "source": "Estimativa do projeto (sem observação no World Bank WDI)",
+    "source_code": "GC.REV.XGRT.GD.ZS",
+    "methodology": "Mediana de 6 observações oficiais do mesmo indicador em países da região América Central; usada porque o país não tem observação publicada na janela 2019-2024."
+   },
+   "expense": {
+    "value": 20.77,
+    "unit": "% do PIB",
+    "year": 2023,
+    "status": "estimated",
+    "source": "Estimativa do projeto (sem observação no World Bank WDI)",
+    "source_code": "GC.XPN.TOTL.GD.ZS",
+    "methodology": "Mediana de 6 observações oficiais do mesmo indicador em países da região América Central; usada porque o país não tem observação publicada na janela 2019-2024."
+   },
+   "debt": {
+    "value": 61.03,
+    "unit": "% do PIB",
+    "year": 2014,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "GC.DOD.TOTL.GD.ZS",
+    "source_url": "https://data.worldbank.org/indicator/GC.DOD.TOTL.GD.ZS?locations=BZ",
+    "note": "Observação oficial mais recente publicada no WDI para o país; não há valor na janela 2019-2024 e o dado não foi projetado.",
+    "simulation_value": 61.03
+   }
+  },
+  "CR": {
+   "name": "Costa Rica",
+   "region": "América Central",
+   "gdp_growth": {
+    "value": 4.08,
+    "unit": "% ao ano",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "NY.GDP.MKTP.KD.ZG",
+    "source_url": "https://data.worldbank.org/indicator/NY.GDP.MKTP.KD.ZG?locations=CR",
+    "simulation_value": 4.08
+   },
+   "inflation": {
+    "value": -0.41,
+    "unit": "% ao ano",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "FP.CPI.TOTL.ZG",
+    "source_url": "https://data.worldbank.org/indicator/FP.CPI.TOTL.ZG?locations=CR",
+    "simulation_value": 1.5,
+    "calibration": "Valor inicial limitado a [1.5, 15] porque a simulação não representa a magnitude observada; o dado original é mantido em value."
+   },
+   "unemployment": {
+    "value": 6.94,
+    "unit": "% da força de trabalho",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "SL.UEM.TOTL.ZS",
+    "source_url": "https://data.worldbank.org/indicator/SL.UEM.TOTL.ZS?locations=CR",
+    "simulation_value": 6.94
+   },
+   "gdp": {
+    "value": 96715644331,
+    "unit": "US$ correntes",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "NY.GDP.MKTP.CD",
+    "source_url": "https://data.worldbank.org/indicator/NY.GDP.MKTP.CD?locations=CR"
+   },
+   "gdp_per_capita": {
+    "value": 18853.3,
+    "unit": "US$ correntes",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "NY.GDP.PCAP.CD",
+    "source_url": "https://data.worldbank.org/indicator/NY.GDP.PCAP.CD?locations=CR"
+   },
+   "population": {
+    "value": 5129910,
+    "unit": "habitantes",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "SP.POP.TOTL",
+    "source_url": "https://data.worldbank.org/indicator/SP.POP.TOTL?locations=CR"
+   },
+   "revenue": {
+    "value": 27.42,
+    "unit": "% do PIB",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "GC.REV.XGRT.GD.ZS",
+    "source_url": "https://data.worldbank.org/indicator/GC.REV.XGRT.GD.ZS?locations=CR"
+   },
+   "expense": {
+    "value": 28.57,
+    "unit": "% do PIB",
+    "year": 2023,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "GC.XPN.TOTL.GD.ZS",
+    "source_url": "https://data.worldbank.org/indicator/GC.XPN.TOTL.GD.ZS?locations=CR"
+   },
+   "debt": {
+    "value": 39.34,
+    "unit": "% do PIB",
+    "year": 2001,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "GC.DOD.TOTL.GD.ZS",
+    "source_url": "https://data.worldbank.org/indicator/GC.DOD.TOTL.GD.ZS?locations=CR",
+    "note": "Observação oficial mais recente publicada no WDI para o país; não há valor na janela 2019-2024 e o dado não foi projetado.",
+    "simulation_value": 39.34
+   }
+  },
+  "SV": {
+   "name": "El Salvador",
+   "region": "América Central",
+   "gdp_growth": {
+    "value": 2.59,
+    "unit": "% ao ano",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "NY.GDP.MKTP.KD.ZG",
+    "source_url": "https://data.worldbank.org/indicator/NY.GDP.MKTP.KD.ZG?locations=SV",
+    "simulation_value": 2.59
+   },
+   "inflation": {
+    "value": 0.85,
+    "unit": "% ao ano",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "FP.CPI.TOTL.ZG",
+    "source_url": "https://data.worldbank.org/indicator/FP.CPI.TOTL.ZG?locations=SV",
+    "simulation_value": 1.5,
+    "calibration": "Valor inicial limitado a [1.5, 15] porque a simulação não representa a magnitude observada; o dado original é mantido em value."
+   },
+   "unemployment": {
+    "value": 3.26,
+    "unit": "% da força de trabalho",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "SL.UEM.TOTL.ZS",
+    "source_url": "https://data.worldbank.org/indicator/SL.UEM.TOTL.ZS?locations=SV",
+    "simulation_value": 3.5,
+    "calibration": "Valor inicial limitado a [3.5, 18] porque a simulação não representa a magnitude observada; o dado original é mantido em value."
+   },
+   "gdp": {
+    "value": 34879730000,
+    "unit": "US$ correntes",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "NY.GDP.MKTP.CD",
+    "source_url": "https://data.worldbank.org/indicator/NY.GDP.MKTP.CD?locations=SV"
+   },
+   "gdp_per_capita": {
+    "value": 5503.1,
+    "unit": "US$ correntes",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "NY.GDP.PCAP.CD",
+    "source_url": "https://data.worldbank.org/indicator/NY.GDP.PCAP.CD?locations=SV"
+   },
+   "population": {
+    "value": 6338193,
+    "unit": "habitantes",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "SP.POP.TOTL",
+    "source_url": "https://data.worldbank.org/indicator/SP.POP.TOTL?locations=SV"
+   },
+   "revenue": {
+    "value": 27.26,
+    "unit": "% do PIB",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "GC.REV.XGRT.GD.ZS",
+    "source_url": "https://data.worldbank.org/indicator/GC.REV.XGRT.GD.ZS?locations=SV"
+   },
+   "expense": {
+    "value": 27.92,
+    "unit": "% do PIB",
+    "year": 2023,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "GC.XPN.TOTL.GD.ZS",
+    "source_url": "https://data.worldbank.org/indicator/GC.XPN.TOTL.GD.ZS?locations=SV"
+   },
+   "debt": {
+    "value": 107.28,
+    "unit": "% do PIB",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "GC.DOD.TOTL.GD.ZS",
+    "source_url": "https://data.worldbank.org/indicator/GC.DOD.TOTL.GD.ZS?locations=SV",
+    "simulation_value": 107.28
+   }
+  },
+  "GT": {
+   "name": "Guatemala",
+   "region": "América Central",
+   "gdp_growth": {
+    "value": 3.72,
+    "unit": "% ao ano",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "NY.GDP.MKTP.KD.ZG",
+    "source_url": "https://data.worldbank.org/indicator/NY.GDP.MKTP.KD.ZG?locations=GT",
+    "simulation_value": 3.72
+   },
+   "inflation": {
+    "value": 2.87,
+    "unit": "% ao ano",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "FP.CPI.TOTL.ZG",
+    "source_url": "https://data.worldbank.org/indicator/FP.CPI.TOTL.ZG?locations=GT",
+    "simulation_value": 2.87
+   },
+   "unemployment": {
+    "value": 2.61,
+    "unit": "% da força de trabalho",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "SL.UEM.TOTL.ZS",
+    "source_url": "https://data.worldbank.org/indicator/SL.UEM.TOTL.ZS?locations=GT",
+    "simulation_value": 3.5,
+    "calibration": "Valor inicial limitado a [3.5, 18] porque a simulação não representa a magnitude observada; o dado original é mantido em value."
+   },
+   "gdp": {
+    "value": 113215575151,
+    "unit": "US$ correntes",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "NY.GDP.MKTP.CD",
+    "source_url": "https://data.worldbank.org/indicator/NY.GDP.MKTP.CD?locations=GT"
+   },
+   "gdp_per_capita": {
+    "value": 6150.9,
+    "unit": "US$ correntes",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "NY.GDP.PCAP.CD",
+    "source_url": "https://data.worldbank.org/indicator/NY.GDP.PCAP.CD?locations=GT"
+   },
+   "population": {
+    "value": 18406359,
+    "unit": "habitantes",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "SP.POP.TOTL",
+    "source_url": "https://data.worldbank.org/indicator/SP.POP.TOTL?locations=GT"
+   },
+   "revenue": {
+    "value": 12.78,
+    "unit": "% do PIB",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "GC.REV.XGRT.GD.ZS",
+    "source_url": "https://data.worldbank.org/indicator/GC.REV.XGRT.GD.ZS?locations=GT"
+   },
+   "expense": {
+    "value": 13.51,
+    "unit": "% do PIB",
+    "year": 2023,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "GC.XPN.TOTL.GD.ZS",
+    "source_url": "https://data.worldbank.org/indicator/GC.XPN.TOTL.GD.ZS?locations=GT"
+   },
+   "debt": {
+    "value": 25.21,
+    "unit": "% do PIB",
+    "year": 2013,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "GC.DOD.TOTL.GD.ZS",
+    "source_url": "https://data.worldbank.org/indicator/GC.DOD.TOTL.GD.ZS?locations=GT",
+    "note": "Observação oficial mais recente publicada no WDI para o país; não há valor na janela 2019-2024 e o dado não foi projetado.",
+    "simulation_value": 25.21
+   }
+  },
+  "HN": {
+   "name": "Honduras",
+   "region": "América Central",
+   "gdp_growth": {
+    "value": 3.63,
+    "unit": "% ao ano",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "NY.GDP.MKTP.KD.ZG",
+    "source_url": "https://data.worldbank.org/indicator/NY.GDP.MKTP.KD.ZG?locations=HN",
+    "simulation_value": 3.63
+   },
+   "inflation": {
+    "value": 4.61,
+    "unit": "% ao ano",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "FP.CPI.TOTL.ZG",
+    "source_url": "https://data.worldbank.org/indicator/FP.CPI.TOTL.ZG?locations=HN",
+    "simulation_value": 4.61
+   },
+   "unemployment": {
+    "value": 4.91,
+    "unit": "% da força de trabalho",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "SL.UEM.TOTL.ZS",
+    "source_url": "https://data.worldbank.org/indicator/SL.UEM.TOTL.ZS?locations=HN",
+    "simulation_value": 4.91
+   },
+   "gdp": {
+    "value": 36980171442,
+    "unit": "US$ correntes",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "NY.GDP.MKTP.CD",
+    "source_url": "https://data.worldbank.org/indicator/NY.GDP.MKTP.CD?locations=HN"
+   },
+   "gdp_per_capita": {
+    "value": 3416.0,
+    "unit": "US$ correntes",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "NY.GDP.PCAP.CD",
+    "source_url": "https://data.worldbank.org/indicator/NY.GDP.PCAP.CD?locations=HN"
+   },
+   "population": {
+    "value": 10825703,
+    "unit": "habitantes",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "SP.POP.TOTL",
+    "source_url": "https://data.worldbank.org/indicator/SP.POP.TOTL?locations=HN"
+   },
+   "revenue": {
+    "value": 22.21,
+    "unit": "% do PIB",
+    "year": 2020,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "GC.REV.XGRT.GD.ZS",
+    "source_url": "https://data.worldbank.org/indicator/GC.REV.XGRT.GD.ZS?locations=HN"
+   },
+   "expense": {
+    "value": 24.39,
+    "unit": "% do PIB",
+    "year": 2020,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "GC.XPN.TOTL.GD.ZS",
+    "source_url": "https://data.worldbank.org/indicator/GC.XPN.TOTL.GD.ZS?locations=HN"
+   },
+   "debt": {
+    "value": 107.28,
+    "unit": "% do PIB",
+    "year": 2024,
+    "status": "estimated",
+    "source": "Estimativa do projeto (sem observação no World Bank WDI)",
+    "source_code": "GC.DOD.TOTL.GD.ZS",
+    "methodology": "Mediana de 1 observações oficiais de dívida na região América Central (ano de referência 2024); o país não tem nenhuma observação publicada no WDI na janela 2000-2024.",
+    "simulation_value": 107.28
+   }
+  },
+  "NI": {
+   "name": "Nicarágua",
+   "region": "América Central",
+   "gdp_growth": {
+    "value": 3.58,
+    "unit": "% ao ano",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "NY.GDP.MKTP.KD.ZG",
+    "source_url": "https://data.worldbank.org/indicator/NY.GDP.MKTP.KD.ZG?locations=NI",
+    "simulation_value": 3.58
+   },
+   "inflation": {
+    "value": 4.62,
+    "unit": "% ao ano",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "FP.CPI.TOTL.ZG",
+    "source_url": "https://data.worldbank.org/indicator/FP.CPI.TOTL.ZG?locations=NI",
+    "simulation_value": 4.62
+   },
+   "unemployment": {
+    "value": 4.98,
+    "unit": "% da força de trabalho",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "SL.UEM.TOTL.ZS",
+    "source_url": "https://data.worldbank.org/indicator/SL.UEM.TOTL.ZS?locations=NI",
+    "simulation_value": 4.98
+   },
+   "gdp": {
+    "value": 19696311850,
+    "unit": "US$ correntes",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "NY.GDP.MKTP.CD",
+    "source_url": "https://data.worldbank.org/indicator/NY.GDP.MKTP.CD?locations=NI"
+   },
+   "gdp_per_capita": {
+    "value": 2847.9,
+    "unit": "US$ correntes",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "NY.GDP.PCAP.CD",
+    "source_url": "https://data.worldbank.org/indicator/NY.GDP.PCAP.CD?locations=NI"
+   },
+   "population": {
+    "value": 6916140,
+    "unit": "habitantes",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "SP.POP.TOTL",
+    "source_url": "https://data.worldbank.org/indicator/SP.POP.TOTL?locations=NI"
+   },
+   "revenue": {
+    "value": 21.52,
+    "unit": "% do PIB",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "GC.REV.XGRT.GD.ZS",
+    "source_url": "https://data.worldbank.org/indicator/GC.REV.XGRT.GD.ZS?locations=NI"
+   },
+   "expense": {
+    "value": 16.28,
+    "unit": "% do PIB",
+    "year": 2023,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "GC.XPN.TOTL.GD.ZS",
+    "source_url": "https://data.worldbank.org/indicator/GC.XPN.TOTL.GD.ZS?locations=NI"
+   },
+   "debt": {
+    "value": 107.28,
+    "unit": "% do PIB",
+    "year": 2024,
+    "status": "estimated",
+    "source": "Estimativa do projeto (sem observação no World Bank WDI)",
+    "source_code": "GC.DOD.TOTL.GD.ZS",
+    "methodology": "Mediana de 1 observações oficiais de dívida na região América Central (ano de referência 2024); o país não tem nenhuma observação publicada no WDI na janela 2000-2024.",
+    "simulation_value": 107.28
+   }
+  },
+  "PA": {
+   "name": "Panamá",
+   "region": "América Central",
+   "gdp_growth": {
+    "value": 2.75,
+    "unit": "% ao ano",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "NY.GDP.MKTP.KD.ZG",
+    "source_url": "https://data.worldbank.org/indicator/NY.GDP.MKTP.KD.ZG?locations=PA",
+    "simulation_value": 2.75
+   },
+   "inflation": {
+    "value": 0.69,
+    "unit": "% ao ano",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "FP.CPI.TOTL.ZG",
+    "source_url": "https://data.worldbank.org/indicator/FP.CPI.TOTL.ZG?locations=PA",
+    "simulation_value": 1.5,
+    "calibration": "Valor inicial limitado a [1.5, 15] porque a simulação não representa a magnitude observada; o dado original é mantido em value."
+   },
+   "unemployment": {
+    "value": 8.45,
+    "unit": "% da força de trabalho",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "SL.UEM.TOTL.ZS",
+    "source_url": "https://data.worldbank.org/indicator/SL.UEM.TOTL.ZS?locations=PA",
+    "simulation_value": 8.45
+   },
+   "gdp": {
+    "value": 86523959100,
+    "unit": "US$ correntes",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "NY.GDP.MKTP.CD",
+    "source_url": "https://data.worldbank.org/indicator/NY.GDP.MKTP.CD?locations=PA"
+   },
+   "gdp_per_capita": {
+    "value": 19161.2,
+    "unit": "US$ correntes",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "NY.GDP.PCAP.CD",
+    "source_url": "https://data.worldbank.org/indicator/NY.GDP.PCAP.CD?locations=PA"
+   },
+   "population": {
+    "value": 4515577,
+    "unit": "habitantes",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "SP.POP.TOTL",
+    "source_url": "https://data.worldbank.org/indicator/SP.POP.TOTL?locations=PA"
+   },
+   "revenue": {
+    "value": 10.7,
+    "unit": "% do PIB",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "GC.REV.XGRT.GD.ZS",
+    "source_url": "https://data.worldbank.org/indicator/GC.REV.XGRT.GD.ZS?locations=PA"
+   },
+   "expense": {
+    "value": 17.14,
+    "unit": "% do PIB",
+    "year": 2021,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "GC.XPN.TOTL.GD.ZS",
+    "source_url": "https://data.worldbank.org/indicator/GC.XPN.TOTL.GD.ZS?locations=PA"
+   },
+   "debt": {
+    "value": 107.28,
+    "unit": "% do PIB",
+    "year": 2024,
+    "status": "estimated",
+    "source": "Estimativa do projeto (sem observação no World Bank WDI)",
+    "source_code": "GC.DOD.TOTL.GD.ZS",
+    "methodology": "Mediana de 1 observações oficiais de dívida na região América Central (ano de referência 2024); o país não tem nenhuma observação publicada no WDI na janela 2000-2024.",
+    "simulation_value": 107.28
+   }
+  },
+  "AG": {
+   "name": "Antígua e Barbuda",
+   "region": "Caribe",
+   "gdp_growth": {
+    "value": 2.54,
+    "unit": "% ao ano",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "NY.GDP.MKTP.KD.ZG",
+    "source_url": "https://data.worldbank.org/indicator/NY.GDP.MKTP.KD.ZG?locations=AG",
+    "simulation_value": 2.54
+   },
+   "inflation": {
+    "value": 6.2,
+    "unit": "% ao ano",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "FP.CPI.TOTL.ZG",
+    "source_url": "https://data.worldbank.org/indicator/FP.CPI.TOTL.ZG?locations=AG",
+    "simulation_value": 6.2
+   },
+   "unemployment": {
+    "value": 6.45,
+    "unit": "% da força de trabalho",
+    "year": 2024,
+    "status": "estimated",
+    "source": "Estimativa do projeto (sem observação no World Bank WDI)",
+    "source_code": "SL.UEM.TOTL.ZS",
+    "methodology": "Mediana de 9 observações oficiais do mesmo indicador em países da região Caribe; usada porque o país não tem observação publicada na janela 2019-2024.",
+    "simulation_value": 6.45
+   },
+   "gdp": {
+    "value": 2162366667,
+    "unit": "US$ correntes",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "NY.GDP.MKTP.CD",
+    "source_url": "https://data.worldbank.org/indicator/NY.GDP.MKTP.CD?locations=AG"
+   },
+   "gdp_per_capita": {
+    "value": 23059.8,
+    "unit": "US$ correntes",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "NY.GDP.PCAP.CD",
+    "source_url": "https://data.worldbank.org/indicator/NY.GDP.PCAP.CD?locations=AG"
+   },
+   "population": {
+    "value": 93772,
+    "unit": "habitantes",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "SP.POP.TOTL",
+    "source_url": "https://data.worldbank.org/indicator/SP.POP.TOTL?locations=AG"
+   },
+   "revenue": {
+    "value": 24.26,
+    "unit": "% do PIB",
+    "year": 2024,
+    "status": "estimated",
+    "source": "Estimativa do projeto (sem observação no World Bank WDI)",
+    "source_code": "GC.REV.XGRT.GD.ZS",
+    "methodology": "Mediana de 5 observações oficiais do mesmo indicador em países da região Caribe; usada porque o país não tem observação publicada na janela 2019-2024."
+   },
+   "expense": {
+    "value": 26.75,
+    "unit": "% do PIB",
+    "year": 2023,
+    "status": "estimated",
+    "source": "Estimativa do projeto (sem observação no World Bank WDI)",
+    "source_code": "GC.XPN.TOTL.GD.ZS",
+    "methodology": "Mediana de 5 observações oficiais do mesmo indicador em países da região Caribe; usada porque o país não tem observação publicada na janela 2019-2024."
+   },
+   "debt": {
+    "value": 84.66,
+    "unit": "% do PIB",
+    "year": 2024,
+    "status": "estimated",
+    "source": "Estimativa do projeto (sem observação no World Bank WDI)",
+    "source_code": "GC.DOD.TOTL.GD.ZS",
+    "methodology": "Mediana de 2 observações oficiais de dívida na região Caribe (ano de referência 2024); o país não tem nenhuma observação publicada no WDI na janela 2000-2024.",
+    "simulation_value": 84.66
+   }
+  },
+  "BS": {
+   "name": "Bahamas",
+   "region": "Caribe",
+   "gdp_growth": {
+    "value": 3.38,
+    "unit": "% ao ano",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "NY.GDP.MKTP.KD.ZG",
+    "source_url": "https://data.worldbank.org/indicator/NY.GDP.MKTP.KD.ZG?locations=BS",
+    "simulation_value": 3.38
+   },
+   "inflation": {
+    "value": 0.41,
+    "unit": "% ao ano",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "FP.CPI.TOTL.ZG",
+    "source_url": "https://data.worldbank.org/indicator/FP.CPI.TOTL.ZG?locations=BS",
+    "simulation_value": 1.5,
+    "calibration": "Valor inicial limitado a [1.5, 15] porque a simulação não representa a magnitude observada; o dado original é mantido em value."
+   },
+   "unemployment": {
+    "value": 9.05,
+    "unit": "% da força de trabalho",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "SL.UEM.TOTL.ZS",
+    "source_url": "https://data.worldbank.org/indicator/SL.UEM.TOTL.ZS?locations=BS",
+    "simulation_value": 9.05
+   },
+   "gdp": {
+    "value": 15832800000,
+    "unit": "US$ correntes",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "NY.GDP.MKTP.CD",
+    "source_url": "https://data.worldbank.org/indicator/NY.GDP.MKTP.CD?locations=BS"
+   },
+   "gdp_per_capita": {
+    "value": 39455.4,
+    "unit": "US$ correntes",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "NY.GDP.PCAP.CD",
+    "source_url": "https://data.worldbank.org/indicator/NY.GDP.PCAP.CD?locations=BS"
+   },
+   "population": {
+    "value": 401283,
+    "unit": "habitantes",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "SP.POP.TOTL",
+    "source_url": "https://data.worldbank.org/indicator/SP.POP.TOTL?locations=BS"
+   },
+   "revenue": {
+    "value": 19.38,
+    "unit": "% do PIB",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "GC.REV.XGRT.GD.ZS",
+    "source_url": "https://data.worldbank.org/indicator/GC.REV.XGRT.GD.ZS?locations=BS"
+   },
+   "expense": {
+    "value": 20.35,
+    "unit": "% do PIB",
+    "year": 2023,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "GC.XPN.TOTL.GD.ZS",
+    "source_url": "https://data.worldbank.org/indicator/GC.XPN.TOTL.GD.ZS?locations=BS"
+   },
+   "debt": {
+    "value": 71.46,
+    "unit": "% do PIB",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "GC.DOD.TOTL.GD.ZS",
+    "source_url": "https://data.worldbank.org/indicator/GC.DOD.TOTL.GD.ZS?locations=BS",
+    "simulation_value": 71.46
+   }
+  },
+  "BB": {
+   "name": "Barbados",
+   "region": "Caribe",
+   "gdp_growth": {
+    "value": 3.37,
+    "unit": "% ao ano",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "NY.GDP.MKTP.KD.ZG",
+    "source_url": "https://data.worldbank.org/indicator/NY.GDP.MKTP.KD.ZG?locations=BB",
+    "simulation_value": 3.37
+   },
+   "inflation": {
+    "value": 1.45,
+    "unit": "% ao ano",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "FP.CPI.TOTL.ZG",
+    "source_url": "https://data.worldbank.org/indicator/FP.CPI.TOTL.ZG?locations=BB",
+    "simulation_value": 1.5,
+    "calibration": "Valor inicial limitado a [1.5, 15] porque a simulação não representa a magnitude observada; o dado original é mantido em value."
+   },
+   "unemployment": {
+    "value": 6.45,
+    "unit": "% da força de trabalho",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "SL.UEM.TOTL.ZS",
+    "source_url": "https://data.worldbank.org/indicator/SL.UEM.TOTL.ZS?locations=BB",
+    "simulation_value": 6.45
+   },
+   "gdp": {
+    "value": 7597571450,
+    "unit": "US$ correntes",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "NY.GDP.MKTP.CD",
+    "source_url": "https://data.worldbank.org/indicator/NY.GDP.MKTP.CD?locations=BB"
+   },
+   "gdp_per_capita": {
+    "value": 26897.2,
+    "unit": "US$ correntes",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "NY.GDP.PCAP.CD",
+    "source_url": "https://data.worldbank.org/indicator/NY.GDP.PCAP.CD?locations=BB"
+   },
+   "population": {
+    "value": 282467,
+    "unit": "habitantes",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "SP.POP.TOTL",
+    "source_url": "https://data.worldbank.org/indicator/SP.POP.TOTL?locations=BB"
+   },
+   "revenue": {
+    "value": 24.26,
+    "unit": "% do PIB",
+    "year": 2024,
+    "status": "estimated",
+    "source": "Estimativa do projeto (sem observação no World Bank WDI)",
+    "source_code": "GC.REV.XGRT.GD.ZS",
+    "methodology": "Mediana de 5 observações oficiais do mesmo indicador em países da região Caribe; usada porque o país não tem observação publicada na janela 2019-2024."
+   },
+   "expense": {
+    "value": 26.75,
+    "unit": "% do PIB",
+    "year": 2023,
+    "status": "estimated",
+    "source": "Estimativa do projeto (sem observação no World Bank WDI)",
+    "source_code": "GC.XPN.TOTL.GD.ZS",
+    "methodology": "Mediana de 5 observações oficiais do mesmo indicador em países da região Caribe; usada porque o país não tem observação publicada na janela 2019-2024."
+   },
+   "debt": {
+    "value": 125.03,
+    "unit": "% do PIB",
+    "year": 2016,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "GC.DOD.TOTL.GD.ZS",
+    "source_url": "https://data.worldbank.org/indicator/GC.DOD.TOTL.GD.ZS?locations=BB",
+    "note": "Observação oficial mais recente publicada no WDI para o país; não há valor na janela 2019-2024 e o dado não foi projetado.",
+    "simulation_value": 120.0,
+    "calibration": "Valor inicial limitado a [20, 120] porque a simulação não representa a magnitude observada; o dado original é mantido em value."
+   }
+  },
+  "CU": {
+   "name": "Cuba",
+   "region": "Caribe",
+   "gdp_growth": {
+    "value": -1.06,
+    "unit": "% ao ano",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "NY.GDP.MKTP.KD.ZG",
+    "source_url": "https://data.worldbank.org/indicator/NY.GDP.MKTP.KD.ZG?locations=CU",
+    "simulation_value": -1.06
+   },
+   "inflation": {
+    "value": 3.02,
+    "unit": "% ao ano",
+    "year": 2024,
+    "status": "estimated",
+    "source": "Estimativa do projeto (sem observação no World Bank WDI)",
+    "source_code": "FP.CPI.TOTL.ZG",
+    "methodology": "Mediana de 12 observações oficiais do mesmo indicador em países da região Caribe; usada porque o país não tem observação publicada na janela 2019-2024.",
+    "simulation_value": 3.02
+   },
+   "unemployment": {
+    "value": 1.75,
+    "unit": "% da força de trabalho",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "SL.UEM.TOTL.ZS",
+    "source_url": "https://data.worldbank.org/indicator/SL.UEM.TOTL.ZS?locations=CU",
+    "simulation_value": 3.5,
+    "calibration": "Valor inicial limitado a [3.5, 18] porque a simulação não representa a magnitude observada; o dado original é mantido em value."
+   },
+   "gdp": {
+    "value": 107352000000,
+    "unit": "US$ correntes",
+    "year": 2020,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "NY.GDP.MKTP.CD",
+    "source_url": "https://data.worldbank.org/indicator/NY.GDP.MKTP.CD?locations=CU"
+   },
+   "gdp_per_capita": {
+    "value": 9605.3,
+    "unit": "US$ correntes",
+    "year": 2020,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "NY.GDP.PCAP.CD",
+    "source_url": "https://data.worldbank.org/indicator/NY.GDP.PCAP.CD?locations=CU"
+   },
+   "population": {
+    "value": 10979783,
+    "unit": "habitantes",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "SP.POP.TOTL",
+    "source_url": "https://data.worldbank.org/indicator/SP.POP.TOTL?locations=CU"
+   },
+   "revenue": {
+    "value": 24.26,
+    "unit": "% do PIB",
+    "year": 2024,
+    "status": "estimated",
+    "source": "Estimativa do projeto (sem observação no World Bank WDI)",
+    "source_code": "GC.REV.XGRT.GD.ZS",
+    "methodology": "Mediana de 5 observações oficiais do mesmo indicador em países da região Caribe; usada porque o país não tem observação publicada na janela 2019-2024."
+   },
+   "expense": {
+    "value": 26.75,
+    "unit": "% do PIB",
+    "year": 2023,
+    "status": "estimated",
+    "source": "Estimativa do projeto (sem observação no World Bank WDI)",
+    "source_code": "GC.XPN.TOTL.GD.ZS",
+    "methodology": "Mediana de 5 observações oficiais do mesmo indicador em países da região Caribe; usada porque o país não tem observação publicada na janela 2019-2024."
+   },
+   "debt": {
+    "value": 84.66,
+    "unit": "% do PIB",
+    "year": 2024,
+    "status": "estimated",
+    "source": "Estimativa do projeto (sem observação no World Bank WDI)",
+    "source_code": "GC.DOD.TOTL.GD.ZS",
+    "methodology": "Mediana de 2 observações oficiais de dívida na região Caribe (ano de referência 2024); o país não tem nenhuma observação publicada no WDI na janela 2000-2024.",
+    "simulation_value": 84.66
+   }
+  },
+  "DM": {
+   "name": "Dominica",
+   "region": "Caribe",
+   "gdp_growth": {
+    "value": 2.05,
+    "unit": "% ao ano",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "NY.GDP.MKTP.KD.ZG",
+    "source_url": "https://data.worldbank.org/indicator/NY.GDP.MKTP.KD.ZG?locations=DM",
+    "simulation_value": 2.05
+   },
+   "inflation": {
+    "value": 2.74,
+    "unit": "% ao ano",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "FP.CPI.TOTL.ZG",
+    "source_url": "https://data.worldbank.org/indicator/FP.CPI.TOTL.ZG?locations=DM",
+    "simulation_value": 2.74
+   },
+   "unemployment": {
+    "value": 6.45,
+    "unit": "% da força de trabalho",
+    "year": 2024,
+    "status": "estimated",
+    "source": "Estimativa do projeto (sem observação no World Bank WDI)",
+    "source_code": "SL.UEM.TOTL.ZS",
+    "methodology": "Mediana de 9 observações oficiais do mesmo indicador em países da região Caribe; usada porque o país não tem observação publicada na janela 2019-2024.",
+    "simulation_value": 6.45
+   },
+   "gdp": {
+    "value": 688881481,
+    "unit": "US$ correntes",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "NY.GDP.MKTP.CD",
+    "source_url": "https://data.worldbank.org/indicator/NY.GDP.MKTP.CD?locations=DM"
+   },
+   "gdp_per_capita": {
+    "value": 10405.3,
+    "unit": "US$ correntes",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "NY.GDP.PCAP.CD",
+    "source_url": "https://data.worldbank.org/indicator/NY.GDP.PCAP.CD?locations=DM"
+   },
+   "population": {
+    "value": 66205,
+    "unit": "habitantes",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "SP.POP.TOTL",
+    "source_url": "https://data.worldbank.org/indicator/SP.POP.TOTL?locations=DM"
+   },
+   "revenue": {
+    "value": 24.26,
+    "unit": "% do PIB",
+    "year": 2024,
+    "status": "estimated",
+    "source": "Estimativa do projeto (sem observação no World Bank WDI)",
+    "source_code": "GC.REV.XGRT.GD.ZS",
+    "methodology": "Mediana de 5 observações oficiais do mesmo indicador em países da região Caribe; usada porque o país não tem observação publicada na janela 2019-2024."
+   },
+   "expense": {
+    "value": 26.75,
+    "unit": "% do PIB",
+    "year": 2023,
+    "status": "estimated",
+    "source": "Estimativa do projeto (sem observação no World Bank WDI)",
+    "source_code": "GC.XPN.TOTL.GD.ZS",
+    "methodology": "Mediana de 5 observações oficiais do mesmo indicador em países da região Caribe; usada porque o país não tem observação publicada na janela 2019-2024."
+   },
+   "debt": {
+    "value": 84.66,
+    "unit": "% do PIB",
+    "year": 2024,
+    "status": "estimated",
+    "source": "Estimativa do projeto (sem observação no World Bank WDI)",
+    "source_code": "GC.DOD.TOTL.GD.ZS",
+    "methodology": "Mediana de 2 observações oficiais de dívida na região Caribe (ano de referência 2024); o país não tem nenhuma observação publicada no WDI na janela 2000-2024.",
+    "simulation_value": 84.66
+   }
+  },
+  "DO": {
+   "name": "República Dominicana",
+   "region": "Caribe",
+   "gdp_growth": {
+    "value": 4.95,
+    "unit": "% ao ano",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "NY.GDP.MKTP.KD.ZG",
+    "source_url": "https://data.worldbank.org/indicator/NY.GDP.MKTP.KD.ZG?locations=DO",
+    "simulation_value": 4.95
+   },
+   "inflation": {
+    "value": 3.3,
+    "unit": "% ao ano",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "FP.CPI.TOTL.ZG",
+    "source_url": "https://data.worldbank.org/indicator/FP.CPI.TOTL.ZG?locations=DO",
+    "simulation_value": 3.3
+   },
+   "unemployment": {
+    "value": 5.31,
+    "unit": "% da força de trabalho",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "SL.UEM.TOTL.ZS",
+    "source_url": "https://data.worldbank.org/indicator/SL.UEM.TOTL.ZS?locations=DO",
+    "simulation_value": 5.31
+   },
+   "gdp": {
+    "value": 124282245639,
+    "unit": "US$ correntes",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "NY.GDP.MKTP.CD",
+    "source_url": "https://data.worldbank.org/indicator/NY.GDP.MKTP.CD?locations=DO"
+   },
+   "gdp_per_capita": {
+    "value": 10875.7,
+    "unit": "US$ correntes",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "NY.GDP.PCAP.CD",
+    "source_url": "https://data.worldbank.org/indicator/NY.GDP.PCAP.CD?locations=DO"
+   },
+   "population": {
+    "value": 11427557,
+    "unit": "habitantes",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "SP.POP.TOTL",
+    "source_url": "https://data.worldbank.org/indicator/SP.POP.TOTL?locations=DO"
+   },
+   "revenue": {
+    "value": 17.5,
+    "unit": "% do PIB",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "GC.REV.XGRT.GD.ZS",
+    "source_url": "https://data.worldbank.org/indicator/GC.REV.XGRT.GD.ZS?locations=DO"
+   },
+   "expense": {
+    "value": 18.07,
+    "unit": "% do PIB",
+    "year": 2023,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "GC.XPN.TOTL.GD.ZS",
+    "source_url": "https://data.worldbank.org/indicator/GC.XPN.TOTL.GD.ZS?locations=DO"
+   },
+   "debt": {
+    "value": 84.66,
+    "unit": "% do PIB",
+    "year": 2024,
+    "status": "estimated",
+    "source": "Estimativa do projeto (sem observação no World Bank WDI)",
+    "source_code": "GC.DOD.TOTL.GD.ZS",
+    "methodology": "Mediana de 2 observações oficiais de dívida na região Caribe (ano de referência 2024); o país não tem nenhuma observação publicada no WDI na janela 2000-2024.",
+    "simulation_value": 84.66
+   }
+  },
+  "GD": {
+   "name": "Granada",
+   "region": "Caribe",
+   "gdp_growth": {
+    "value": 2.4,
+    "unit": "% ao ano",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "NY.GDP.MKTP.KD.ZG",
+    "source_url": "https://data.worldbank.org/indicator/NY.GDP.MKTP.KD.ZG?locations=GD",
+    "simulation_value": 2.4
+   },
+   "inflation": {
+    "value": 1.09,
+    "unit": "% ao ano",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "FP.CPI.TOTL.ZG",
+    "source_url": "https://data.worldbank.org/indicator/FP.CPI.TOTL.ZG?locations=GD",
+    "simulation_value": 1.5,
+    "calibration": "Valor inicial limitado a [1.5, 15] porque a simulação não representa a magnitude observada; o dado original é mantido em value."
+   },
+   "unemployment": {
+    "value": 6.45,
+    "unit": "% da força de trabalho",
+    "year": 2024,
+    "status": "estimated",
+    "source": "Estimativa do projeto (sem observação no World Bank WDI)",
+    "source_code": "SL.UEM.TOTL.ZS",
+    "methodology": "Mediana de 9 observações oficiais do mesmo indicador em países da região Caribe; usada porque o país não tem observação publicada na janela 2019-2024.",
+    "simulation_value": 6.45
+   },
+   "gdp": {
+    "value": 1351270370,
+    "unit": "US$ correntes",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "NY.GDP.MKTP.CD",
+    "source_url": "https://data.worldbank.org/indicator/NY.GDP.MKTP.CD?locations=GD"
+   },
+   "gdp_per_capita": {
+    "value": 11528.9,
+    "unit": "US$ correntes",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "NY.GDP.PCAP.CD",
+    "source_url": "https://data.worldbank.org/indicator/NY.GDP.PCAP.CD?locations=GD"
+   },
+   "population": {
+    "value": 117207,
+    "unit": "habitantes",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "SP.POP.TOTL",
+    "source_url": "https://data.worldbank.org/indicator/SP.POP.TOTL?locations=GD"
+   },
+   "revenue": {
+    "value": 24.26,
+    "unit": "% do PIB",
+    "year": 2024,
+    "status": "estimated",
+    "source": "Estimativa do projeto (sem observação no World Bank WDI)",
+    "source_code": "GC.REV.XGRT.GD.ZS",
+    "methodology": "Mediana de 5 observações oficiais do mesmo indicador em países da região Caribe; usada porque o país não tem observação publicada na janela 2019-2024."
+   },
+   "expense": {
+    "value": 26.75,
+    "unit": "% do PIB",
+    "year": 2023,
+    "status": "estimated",
+    "source": "Estimativa do projeto (sem observação no World Bank WDI)",
+    "source_code": "GC.XPN.TOTL.GD.ZS",
+    "methodology": "Mediana de 5 observações oficiais do mesmo indicador em países da região Caribe; usada porque o país não tem observação publicada na janela 2019-2024."
+   },
+   "debt": {
+    "value": 84.66,
+    "unit": "% do PIB",
+    "year": 2024,
+    "status": "estimated",
+    "source": "Estimativa do projeto (sem observação no World Bank WDI)",
+    "source_code": "GC.DOD.TOTL.GD.ZS",
+    "methodology": "Mediana de 2 observações oficiais de dívida na região Caribe (ano de referência 2024); o país não tem nenhuma observação publicada no WDI na janela 2000-2024.",
+    "simulation_value": 84.66
+   }
+  },
+  "HT": {
+   "name": "Haiti",
+   "region": "Caribe",
+   "gdp_growth": {
+    "value": -4.18,
+    "unit": "% ao ano",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "NY.GDP.MKTP.KD.ZG",
+    "source_url": "https://data.worldbank.org/indicator/NY.GDP.MKTP.KD.ZG?locations=HT",
+    "simulation_value": -4.18
+   },
+   "inflation": {
+    "value": 26.95,
+    "unit": "% ao ano",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "FP.CPI.TOTL.ZG",
+    "source_url": "https://data.worldbank.org/indicator/FP.CPI.TOTL.ZG?locations=HT",
+    "simulation_value": 15.0,
+    "calibration": "Valor inicial limitado a [1.5, 15] porque a simulação não representa a magnitude observada; o dado original é mantido em value."
+   },
+   "unemployment": {
+    "value": 14.61,
+    "unit": "% da força de trabalho",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "SL.UEM.TOTL.ZS",
+    "source_url": "https://data.worldbank.org/indicator/SL.UEM.TOTL.ZS?locations=HT",
+    "simulation_value": 14.61
+   },
+   "gdp": {
+    "value": 24255657481,
+    "unit": "US$ correntes",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "NY.GDP.MKTP.CD",
+    "source_url": "https://data.worldbank.org/indicator/NY.GDP.MKTP.CD?locations=HT"
+   },
+   "gdp_per_capita": {
+    "value": 2060.4,
+    "unit": "US$ correntes",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "NY.GDP.PCAP.CD",
+    "source_url": "https://data.worldbank.org/indicator/NY.GDP.PCAP.CD?locations=HT"
+   },
+   "population": {
+    "value": 11772557,
+    "unit": "habitantes",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "SP.POP.TOTL",
+    "source_url": "https://data.worldbank.org/indicator/SP.POP.TOTL?locations=HT"
+   },
+   "revenue": {
+    "value": 24.26,
+    "unit": "% do PIB",
+    "year": 2024,
+    "status": "estimated",
+    "source": "Estimativa do projeto (sem observação no World Bank WDI)",
+    "source_code": "GC.REV.XGRT.GD.ZS",
+    "methodology": "Mediana de 5 observações oficiais do mesmo indicador em países da região Caribe; usada porque o país não tem observação publicada na janela 2019-2024."
+   },
+   "expense": {
+    "value": 26.75,
+    "unit": "% do PIB",
+    "year": 2023,
+    "status": "estimated",
+    "source": "Estimativa do projeto (sem observação no World Bank WDI)",
+    "source_code": "GC.XPN.TOTL.GD.ZS",
+    "methodology": "Mediana de 5 observações oficiais do mesmo indicador em países da região Caribe; usada porque o país não tem observação publicada na janela 2019-2024."
+   },
+   "debt": {
+    "value": 84.66,
+    "unit": "% do PIB",
+    "year": 2024,
+    "status": "estimated",
+    "source": "Estimativa do projeto (sem observação no World Bank WDI)",
+    "source_code": "GC.DOD.TOTL.GD.ZS",
+    "methodology": "Mediana de 2 observações oficiais de dívida na região Caribe (ano de referência 2024); o país não tem nenhuma observação publicada no WDI na janela 2000-2024.",
+    "simulation_value": 84.66
+   }
+  },
+  "JM": {
+   "name": "Jamaica",
+   "region": "Caribe",
+   "gdp_growth": {
+    "value": -0.54,
+    "unit": "% ao ano",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "NY.GDP.MKTP.KD.ZG",
+    "source_url": "https://data.worldbank.org/indicator/NY.GDP.MKTP.KD.ZG?locations=JM",
+    "simulation_value": -0.54
+   },
+   "inflation": {
+    "value": 5.41,
+    "unit": "% ao ano",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "FP.CPI.TOTL.ZG",
+    "source_url": "https://data.worldbank.org/indicator/FP.CPI.TOTL.ZG?locations=JM",
+    "simulation_value": 5.41
+   },
+   "unemployment": {
+    "value": 3.15,
+    "unit": "% da força de trabalho",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "SL.UEM.TOTL.ZS",
+    "source_url": "https://data.worldbank.org/indicator/SL.UEM.TOTL.ZS?locations=JM",
+    "simulation_value": 3.5,
+    "calibration": "Valor inicial limitado a [3.5, 18] porque a simulação não representa a magnitude observada; o dado original é mantido em value."
+   },
+   "gdp": {
+    "value": 22014429051,
+    "unit": "US$ correntes",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "NY.GDP.MKTP.CD",
+    "source_url": "https://data.worldbank.org/indicator/NY.GDP.MKTP.CD?locations=JM"
+   },
+   "gdp_per_capita": {
+    "value": 7753.8,
+    "unit": "US$ correntes",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "NY.GDP.PCAP.CD",
+    "source_url": "https://data.worldbank.org/indicator/NY.GDP.PCAP.CD?locations=JM"
+   },
+   "population": {
+    "value": 2839175,
+    "unit": "habitantes",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "SP.POP.TOTL",
+    "source_url": "https://data.worldbank.org/indicator/SP.POP.TOTL?locations=JM"
+   },
+   "revenue": {
+    "value": 26.94,
+    "unit": "% do PIB",
+    "year": 2020,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "GC.REV.XGRT.GD.ZS",
+    "source_url": "https://data.worldbank.org/indicator/GC.REV.XGRT.GD.ZS?locations=JM"
+   },
+   "expense": {
+    "value": 27.47,
+    "unit": "% do PIB",
+    "year": 2020,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "GC.XPN.TOTL.GD.ZS",
+    "source_url": "https://data.worldbank.org/indicator/GC.XPN.TOTL.GD.ZS?locations=JM"
+   },
+   "debt": {
+    "value": 97.87,
+    "unit": "% do PIB",
+    "year": 2020,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "GC.DOD.TOTL.GD.ZS",
+    "source_url": "https://data.worldbank.org/indicator/GC.DOD.TOTL.GD.ZS?locations=JM",
+    "simulation_value": 97.87
+   }
+  },
+  "KN": {
+   "name": "São Cristóvão e Névis",
+   "region": "Caribe",
+   "gdp_growth": {
+    "value": 0.31,
+    "unit": "% ao ano",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "NY.GDP.MKTP.KD.ZG",
+    "source_url": "https://data.worldbank.org/indicator/NY.GDP.MKTP.KD.ZG?locations=KN",
+    "simulation_value": 0.31
+   },
+   "inflation": {
+    "value": 3.56,
+    "unit": "% ao ano",
+    "year": 2023,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "FP.CPI.TOTL.ZG",
+    "source_url": "https://data.worldbank.org/indicator/FP.CPI.TOTL.ZG?locations=KN",
+    "simulation_value": 3.56
+   },
+   "unemployment": {
+    "value": 6.45,
+    "unit": "% da força de trabalho",
+    "year": 2024,
+    "status": "estimated",
+    "source": "Estimativa do projeto (sem observação no World Bank WDI)",
+    "source_code": "SL.UEM.TOTL.ZS",
+    "methodology": "Mediana de 9 observações oficiais do mesmo indicador em países da região Caribe; usada porque o país não tem observação publicada na janela 2019-2024.",
+    "simulation_value": 6.45
+   },
+   "gdp": {
+    "value": 1122388889,
+    "unit": "US$ correntes",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "NY.GDP.MKTP.CD",
+    "source_url": "https://data.worldbank.org/indicator/NY.GDP.MKTP.CD?locations=KN"
+   },
+   "gdp_per_capita": {
+    "value": 23960.7,
+    "unit": "US$ correntes",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "NY.GDP.PCAP.CD",
+    "source_url": "https://data.worldbank.org/indicator/NY.GDP.PCAP.CD?locations=KN"
+   },
+   "population": {
+    "value": 46843,
+    "unit": "habitantes",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "SP.POP.TOTL",
+    "source_url": "https://data.worldbank.org/indicator/SP.POP.TOTL?locations=KN"
+   },
+   "revenue": {
+    "value": 28.46,
+    "unit": "% do PIB",
+    "year": 2020,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "GC.REV.XGRT.GD.ZS",
+    "source_url": "https://data.worldbank.org/indicator/GC.REV.XGRT.GD.ZS?locations=KN"
+   },
+   "expense": {
+    "value": 26.75,
+    "unit": "% do PIB",
+    "year": 2020,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "GC.XPN.TOTL.GD.ZS",
+    "source_url": "https://data.worldbank.org/indicator/GC.XPN.TOTL.GD.ZS?locations=KN"
+   },
+   "debt": {
+    "value": 57.67,
+    "unit": "% do PIB",
+    "year": 2014,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "GC.DOD.TOTL.GD.ZS",
+    "source_url": "https://data.worldbank.org/indicator/GC.DOD.TOTL.GD.ZS?locations=KN",
+    "note": "Observação oficial mais recente publicada no WDI para o país; não há valor na janela 2019-2024 e o dado não foi projetado.",
+    "simulation_value": 57.67
+   }
+  },
+  "LC": {
+   "name": "Santa Lúcia",
+   "region": "Caribe",
+   "gdp_growth": {
+    "value": 4.77,
+    "unit": "% ao ano",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "NY.GDP.MKTP.KD.ZG",
+    "source_url": "https://data.worldbank.org/indicator/NY.GDP.MKTP.KD.ZG?locations=LC",
+    "simulation_value": 4.77
+   },
+   "inflation": {
+    "value": -0.67,
+    "unit": "% ao ano",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "FP.CPI.TOTL.ZG",
+    "source_url": "https://data.worldbank.org/indicator/FP.CPI.TOTL.ZG?locations=LC",
+    "simulation_value": 1.5,
+    "calibration": "Valor inicial limitado a [1.5, 15] porque a simulação não representa a magnitude observada; o dado original é mantido em value."
+   },
+   "unemployment": {
+    "value": 10.2,
+    "unit": "% da força de trabalho",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "SL.UEM.TOTL.ZS",
+    "source_url": "https://data.worldbank.org/indicator/SL.UEM.TOTL.ZS?locations=LC",
+    "simulation_value": 10.2
+   },
+   "gdp": {
+    "value": 2605148148,
+    "unit": "US$ correntes",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "NY.GDP.MKTP.CD",
+    "source_url": "https://data.worldbank.org/indicator/NY.GDP.MKTP.CD?locations=LC"
+   },
+   "gdp_per_capita": {
+    "value": 14493.7,
+    "unit": "US$ correntes",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "NY.GDP.PCAP.CD",
+    "source_url": "https://data.worldbank.org/indicator/NY.GDP.PCAP.CD?locations=LC"
+   },
+   "population": {
+    "value": 179744,
+    "unit": "habitantes",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "SP.POP.TOTL",
+    "source_url": "https://data.worldbank.org/indicator/SP.POP.TOTL?locations=LC"
+   },
+   "revenue": {
+    "value": 24.26,
+    "unit": "% do PIB",
+    "year": 2024,
+    "status": "estimated",
+    "source": "Estimativa do projeto (sem observação no World Bank WDI)",
+    "source_code": "GC.REV.XGRT.GD.ZS",
+    "methodology": "Mediana de 5 observações oficiais do mesmo indicador em países da região Caribe; usada porque o país não tem observação publicada na janela 2019-2024."
+   },
+   "expense": {
+    "value": 26.75,
+    "unit": "% do PIB",
+    "year": 2023,
+    "status": "estimated",
+    "source": "Estimativa do projeto (sem observação no World Bank WDI)",
+    "source_code": "GC.XPN.TOTL.GD.ZS",
+    "methodology": "Mediana de 5 observações oficiais do mesmo indicador em países da região Caribe; usada porque o país não tem observação publicada na janela 2019-2024."
+   },
+   "debt": {
+    "value": 45.86,
+    "unit": "% do PIB",
+    "year": 2010,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "GC.DOD.TOTL.GD.ZS",
+    "source_url": "https://data.worldbank.org/indicator/GC.DOD.TOTL.GD.ZS?locations=LC",
+    "note": "Observação oficial mais recente publicada no WDI para o país; não há valor na janela 2019-2024 e o dado não foi projetado.",
+    "simulation_value": 45.86
+   }
+  },
+  "VC": {
+   "name": "São Vicente e Granadinas",
+   "region": "Caribe",
+   "gdp_growth": {
+    "value": 4.06,
+    "unit": "% ao ano",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "NY.GDP.MKTP.KD.ZG",
+    "source_url": "https://data.worldbank.org/indicator/NY.GDP.MKTP.KD.ZG?locations=VC",
+    "simulation_value": 4.06
+   },
+   "inflation": {
+    "value": 3.63,
+    "unit": "% ao ano",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "FP.CPI.TOTL.ZG",
+    "source_url": "https://data.worldbank.org/indicator/FP.CPI.TOTL.ZG?locations=VC",
+    "simulation_value": 3.63
+   },
+   "unemployment": {
+    "value": 18.09,
+    "unit": "% da força de trabalho",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "SL.UEM.TOTL.ZS",
+    "source_url": "https://data.worldbank.org/indicator/SL.UEM.TOTL.ZS?locations=VC",
+    "simulation_value": 18.0,
+    "calibration": "Valor inicial limitado a [3.5, 18] porque a simulação não representa a magnitude observada; o dado original é mantido em value."
+   },
+   "gdp": {
+    "value": 1157207407,
+    "unit": "US$ correntes",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "NY.GDP.MKTP.CD",
+    "source_url": "https://data.worldbank.org/indicator/NY.GDP.MKTP.CD?locations=VC"
+   },
+   "gdp_per_capita": {
+    "value": 11501.2,
+    "unit": "US$ correntes",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "NY.GDP.PCAP.CD",
+    "source_url": "https://data.worldbank.org/indicator/NY.GDP.PCAP.CD?locations=VC"
+   },
+   "population": {
+    "value": 100616,
+    "unit": "habitantes",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "SP.POP.TOTL",
+    "source_url": "https://data.worldbank.org/indicator/SP.POP.TOTL?locations=VC"
+   },
+   "revenue": {
+    "value": 24.26,
+    "unit": "% do PIB",
+    "year": 2024,
+    "status": "estimated",
+    "source": "Estimativa do projeto (sem observação no World Bank WDI)",
+    "source_code": "GC.REV.XGRT.GD.ZS",
+    "methodology": "Mediana de 5 observações oficiais do mesmo indicador em países da região Caribe; usada porque o país não tem observação publicada na janela 2019-2024."
+   },
+   "expense": {
+    "value": 26.75,
+    "unit": "% do PIB",
+    "year": 2023,
+    "status": "estimated",
+    "source": "Estimativa do projeto (sem observação no World Bank WDI)",
+    "source_code": "GC.XPN.TOTL.GD.ZS",
+    "methodology": "Mediana de 5 observações oficiais do mesmo indicador em países da região Caribe; usada porque o país não tem observação publicada na janela 2019-2024."
+   },
+   "debt": {
+    "value": 53.7,
+    "unit": "% do PIB",
+    "year": 2009,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "GC.DOD.TOTL.GD.ZS",
+    "source_url": "https://data.worldbank.org/indicator/GC.DOD.TOTL.GD.ZS?locations=VC",
+    "note": "Observação oficial mais recente publicada no WDI para o país; não há valor na janela 2019-2024 e o dado não foi projetado.",
+    "simulation_value": 53.7
+   }
+  },
+  "TT": {
+   "name": "Trinidad e Tobago",
+   "region": "Caribe",
+   "gdp_growth": {
+    "value": 2.51,
+    "unit": "% ao ano",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "NY.GDP.MKTP.KD.ZG",
+    "source_url": "https://data.worldbank.org/indicator/NY.GDP.MKTP.KD.ZG?locations=TT",
+    "simulation_value": 2.51
+   },
+   "inflation": {
+    "value": 0.53,
+    "unit": "% ao ano",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "FP.CPI.TOTL.ZG",
+    "source_url": "https://data.worldbank.org/indicator/FP.CPI.TOTL.ZG?locations=TT",
+    "simulation_value": 1.5,
+    "calibration": "Valor inicial limitado a [1.5, 15] porque a simulação não representa a magnitude observada; o dado original é mantido em value."
+   },
+   "unemployment": {
+    "value": 3.32,
+    "unit": "% da força de trabalho",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "SL.UEM.TOTL.ZS",
+    "source_url": "https://data.worldbank.org/indicator/SL.UEM.TOTL.ZS?locations=TT",
+    "simulation_value": 3.5,
+    "calibration": "Valor inicial limitado a [3.5, 18] porque a simulação não representa a magnitude observada; o dado original é mantido em value."
+   },
+   "gdp": {
+    "value": 25633544529,
+    "unit": "US$ correntes",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "NY.GDP.MKTP.CD",
+    "source_url": "https://data.worldbank.org/indicator/NY.GDP.MKTP.CD?locations=TT"
+   },
+   "gdp_per_capita": {
+    "value": 18733.4,
+    "unit": "US$ correntes",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "NY.GDP.PCAP.CD",
+    "source_url": "https://data.worldbank.org/indicator/NY.GDP.PCAP.CD?locations=TT"
+   },
+   "population": {
+    "value": 1368333,
+    "unit": "habitantes",
+    "year": 2024,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "SP.POP.TOTL",
+    "source_url": "https://data.worldbank.org/indicator/SP.POP.TOTL?locations=TT"
+   },
+   "revenue": {
+    "value": 24.26,
+    "unit": "% do PIB",
+    "year": 2019,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "GC.REV.XGRT.GD.ZS",
+    "source_url": "https://data.worldbank.org/indicator/GC.REV.XGRT.GD.ZS?locations=TT"
+   },
+   "expense": {
+    "value": 33.32,
+    "unit": "% do PIB",
+    "year": 2019,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "GC.XPN.TOTL.GD.ZS",
+    "source_url": "https://data.worldbank.org/indicator/GC.XPN.TOTL.GD.ZS?locations=TT"
+   },
+   "debt": {
+    "value": 15.93,
+    "unit": "% do PIB",
+    "year": 2007,
+    "status": "official",
+    "source": "World Bank, World Development Indicators (WDI)",
+    "source_code": "GC.DOD.TOTL.GD.ZS",
+    "source_url": "https://data.worldbank.org/indicator/GC.DOD.TOTL.GD.ZS?locations=TT",
+    "note": "Observação oficial mais recente publicada no WDI para o país; não há valor na janela 2019-2024 e o dado não foi projetado.",
+    "simulation_value": 20.0,
+    "calibration": "Valor inicial limitado a [20, 120] porque a simulação não representa a magnitude observada; o dado original é mantido em value."
+   }
+  }
+ }
+}

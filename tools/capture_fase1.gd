@@ -4,6 +4,7 @@ extends SceneTree
 ## Uso: Godot_v4.7-stable_win64_console.exe --path . --script tools/capture_fase1.gd --res 1280x720
 ## Resoluções: 1280x720 (base, padrão), 1600x900, 1920x1080
 var SHOT_DIR := "res://docs/shots/baseline"
+const Scandals := preload("res://scripts/sim/scandal_system.gd")
 
 func _parse_out() -> void:
 	var args := OS.get_cmdline_args()
@@ -37,6 +38,8 @@ func _run() -> void:
 	var packed: PackedScene = load("res://scenes/main.tscn")
 	var game: Node = packed.instantiate()
 	root.add_child(game)
+	# Capturas comparam telas densas; o onboarding tem registro próprio.
+	game.get("state")["tutorial_done"] = true
 	await _settle()
 	# Fallback determinístico: sem isso o avanço de mês fica bloqueado esperando
 	# o modelo e as capturas saem com o painel de espera em cima da tela.
@@ -57,6 +60,12 @@ func _run() -> void:
 	_shot("programa-de-governo")
 	game.call("_auto_pick_promises")
 	await _settle()
+	# Registro do onboarding: o cartão aparece uma vez por tela.
+	game.call("_restart_tutorial")
+	await _settle()
+	_shot("onboarding")
+	game.call("_skip_tutorial")
+	await _settle()
 	for _month in 8:
 		await _advance(game)
 	await _settle()
@@ -66,10 +75,80 @@ func _run() -> void:
 	game.call("_select_nav", "Congresso")
 	await _settle()
 	_shot("congresso-hemiciclo")
+	var congress_scroll := (game.get("main_column") as Node).get_parent().get_parent() as ScrollContainer
+	if congress_scroll != null:
+		congress_scroll.scroll_vertical = 980
+		await _settle()
+		_shot("congresso-relacoes")
+		congress_scroll.scroll_vertical = 0
+
+	game.call("_select_nav", "Meu partido")
+	await _settle()
+	var party_scroll := (game.get("main_column") as Node).get_parent().get_parent() as ScrollContainer
+	if party_scroll != null:
+		party_scroll.scroll_vertical = 360
+		await _settle()
+	_shot("partido-ideologia")
+	if party_scroll != null:
+		party_scroll.scroll_vertical = 760
+		await _settle()
+		_shot("partido-faccoes")
+		party_scroll.scroll_vertical = 0
+
+	game.call("_select_nav", "Sociedade")
+	await _settle()
+	_shot("sociedade")
+
+	# Caso gerado pelo motor de risco (não é dado inventado na UI).
+	var crisis_state: Dictionary = game.get("state")
+	var credibility_before := float(crisis_state.get("credibility", 0.0))
+	var cohesion_before := float(crisis_state.get("coalition_cohesion", 0.0))
+	var finance_before: Dictionary = (crisis_state.get("campaign_finance", {}) as Dictionary).duplicate(true)
+	var scandals_before: Array = (crisis_state.get("scandals", []) as Array).duplicate(true)
+	var news_before: Array = (crisis_state.get("news", []) as Array).duplicate(true)
+	var penalty_before := float(crisis_state.get("scandal_penalty", 0.0))
+	crisis_state["credibility"] = 8.0
+	crisis_state["coalition_cohesion"] = 20.0
+	crisis_state["campaign_finance"] = {"risk": 100.0}
+	var crisis_rng := RandomNumberGenerator.new()
+	crisis_rng.seed = 20261122
+	if Scandals.active(crisis_state).is_empty():
+		for _i in 40:
+			if not Scandals.maybe_spawn(crisis_state, crisis_rng).is_empty():
+				break
+	game.call("_select_nav", "Crises")
+	await _settle()
+	_shot("crises")
+	# Avança um estágio real do caso para registrar uma cadeia causal verificável
+	# (cobertura -> aprovação) antes da captura da tela Sociedade.
+	Scandals.advance(crisis_state, crisis_rng)
+	game.call("_select_nav", "Sociedade")
+	await _settle()
+	var society_scroll := (game.get("main_column") as Node).get_parent().get_parent() as ScrollContainer
+	if society_scroll != null:
+		society_scroll.scroll_vertical = 1450
+		await _settle()
+		_shot("sociedade-cadeias")
+		society_scroll.scroll_vertical = 0
+		await _settle()
+	# Restaura o estado para as capturas seguintes não herdarem o caso de teste.
+	crisis_state["credibility"] = credibility_before
+	crisis_state["coalition_cohesion"] = cohesion_before
+	crisis_state["campaign_finance"] = finance_before
+	crisis_state["scandals"] = scandals_before
+	crisis_state["news"] = news_before
+	crisis_state["scandal_penalty"] = penalty_before
 
 	game.call("_select_nav", "Economia")
 	await _settle()
 	_shot("economia")
+	var scroll := (game.get("main_column") as Node).get_parent().get_parent() as ScrollContainer
+	if scroll != null:
+		scroll.scroll_vertical = 560
+		await _settle()
+		_shot("economia-dados")
+		scroll.scroll_vertical = 0
+		await _settle()
 
 	game.call("_select_nav", "Regiões")
 	await _settle()
@@ -82,6 +161,13 @@ func _run() -> void:
 	game.call("_select_nav", "Eleições")
 	await _settle()
 	_shot("eleicoes")
+	var election_scroll := (game.get("main_column") as Node).get_parent().get_parent() as ScrollContainer
+	if election_scroll != null:
+		election_scroll.scroll_vertical = 520
+		await _settle()
+		_shot("eleicoes-campanha")
+		election_scroll.scroll_vertical = 0
+		await _settle()
 
 	game.get("state")["months_to_election"] = 0
 	game.call("_select_nav", "Eleições")

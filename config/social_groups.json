@@ -1,0 +1,46 @@
+{
+  "version": 1,
+  "notes": "Participações são um MODELO DE SIMULAÇÃO, não estatísticas oficiais. Cada camada soma 1,0; uma pessoa pode aparecer em uma categoria ocupacional e em uma faixa de renda, mas as duas camadas nunca são somadas entre si.",
+  "layers": {
+    "occupation": ["industrial_workers", "service_workers", "public_sector", "entrepreneurs", "farmers", "students", "retirees", "unemployed", "informal"],
+    "income": ["low_income", "middle_income", "high_income"]
+  },
+  "groups": [
+    {"id": "industrial_workers", "label": "Trabalhadores industriais", "layer": "occupation", "share": 0.13, "concerns": ["salário real", "emprego", "direitos trabalhistas"], "economic": -55, "social": -30},
+    {"id": "service_workers", "label": "Trabalhadores de serviços", "layer": "occupation", "share": 0.24, "concerns": ["custo de vida", "transporte", "emprego"], "economic": -35, "social": -25},
+    {"id": "public_sector", "label": "Servidores públicos", "layer": "occupation", "share": 0.10, "concerns": ["salário", "carreira", "investimento público"], "economic": -60, "social": -40},
+    {"id": "entrepreneurs", "label": "Empresários e autônomos", "layer": "occupation", "share": 0.08, "concerns": ["impostos", "crédito", "regulação"], "economic": 70, "social": 25},
+    {"id": "farmers", "label": "Produtores rurais", "layer": "occupation", "share": 0.07, "concerns": ["crédito rural", "preço agrícola", "terra"], "economic": 35, "social": 50},
+    {"id": "students", "label": "Estudantes", "layer": "occupation", "share": 0.08, "concerns": ["educação", "emprego jovem", "moradia"], "economic": -55, "social": -75},
+    {"id": "retirees", "label": "Aposentados e pensionistas", "layer": "occupation", "share": 0.15, "concerns": ["previdência", "saúde", "poder de compra"], "economic": -30, "social": 20},
+    {"id": "unemployed", "label": "Desempregados", "layer": "occupation", "share": 0.06, "concerns": ["emprego", "renda mínima", "qualificação"], "economic": -65, "social": -30},
+    {"id": "informal", "label": "Trabalhadores informais", "layer": "occupation", "share": 0.09, "concerns": ["renda", "proteção", "custo de vida"], "economic": -45, "social": 0},
+    {"id": "low_income", "label": "Famílias de baixa renda", "layer": "income", "share": 0.45, "concerns": ["renda", "alimentação", "moradia"], "economic": -65, "social": -20},
+    {"id": "middle_income", "label": "Famílias de renda média", "layer": "income", "share": 0.40, "concerns": ["impostos", "serviços públicos", "segurança"], "economic": 0, "social": 0},
+    {"id": "high_income", "label": "Famílias de alta renda", "layer": "income", "share": 0.15, "concerns": ["impostos", "estabilidade", "mercado"], "economic": 65, "social": 30}
+  ],
+  "policies": {
+    "minimum_wage": {"label": "Salário mínimo real", "explanation": "Reajuste acima da inflação eleva a renda do trabalho formal e pressiona custos das empresas.", "groups": {"industrial_workers": 7, "service_workers": 6, "public_sector": 3, "low_income": 6, "middle_income": 1, "entrepreneurs": -4, "high_income": -2, "farmers": -1}},
+    "welfare": {"label": "Piso social emergencial", "explanation": "Transferência financiada por dívida melhora a renda baixa e é percebida como custo por renda alta.", "groups": {"low_income": 7, "unemployed": 5, "informal": 3, "middle_income": 1, "high_income": -3, "entrepreneurs": -1}},
+    "pension": {"label": "Reforma da previdência", "explanation": "Regra de idade maior reduz o déficit e impõe perda direta aos aposentados e aos mais velhos no serviço público.", "groups": {"retirees": -9, "public_sector": -3, "high_income": 3, "entrepreneurs": 2}},
+    "labor": {"label": "Reforma trabalhista", "explanation": "Flexibilização reduz custo de contratação e retira proteções do trabalho formal.", "groups": {"entrepreneurs": 6, "high_income": 3, "industrial_workers": -7, "service_workers": -5, "unemployed": 2}},
+    "deregulation": {"label": "Desregulamentação econômica", "explanation": "Menos licenças e regras reduzem custo empresarial e enfraquecem proteções difusas.", "groups": {"entrepreneurs": 6, "high_income": 4, "industrial_workers": -3, "farmers": -1}},
+    "tax": {"label": "Reforma tributária", "explanation": "Simplificação e base mais ampla afetam setores de forma desigual; o texto não define quem paga a conta.", "groups": {"entrepreneurs": 4, "high_income": -2, "low_income": -1, "farmers": -2}},
+    "education": {"label": "Pacto pela educação", "explanation": "Verba vinculada e piso docente atendem estudantes e servidores da educação no médio prazo.", "groups": {"students": 7, "public_sector": 3, "low_income": 2, "middle_income": 1}},
+    "transition": {"label": "Transição energética", "explanation": "Investimento em matriz limpa e requalificação distribui custos e benefícios entre indústria, campo e trabalhadores.", "groups": {"students": 4, "service_workers": 1, "industrial_workers": 1, "farmers": -2, "entrepreneurs": -1}},
+    "investment": {"label": "Investimento regional", "explanation": "Aporte em infraestrutura cria emprego local e aumenta a dívida; o benefício imediato é difuso.", "groups": {"industrial_workers": 2, "service_workers": 2, "unemployed": 3, "informal": 2, "high_income": -1}},
+    "austerity": {"label": "Ajuste fiscal", "explanation": "Corte de despesa reduz a dívida e atinge setores dependentes do gasto público.", "groups": {"public_sector": -6, "retirees": -3, "low_income": -4, "unemployed": -4, "entrepreneurs": 3, "high_income": 4}},
+    "public_salary": {"label": "Reajuste do funcionalismo", "explanation": "Aumento real para servidores melhora a máquina pública e pressiona o caixa; quem financia sente o custo.", "groups": {"public_sector": 9, "service_workers": 2, "middle_income": 2, "retirees": 1, "entrepreneurs": -3, "high_income": -4}},
+    "transparency": {"label": "Pacote de transparência", "explanation": "Regras de divulgação e controle externo elevam credibilidade e incomodam redes de favorecimento.", "groups": {"students": 3, "middle_income": 3, "high_income": -1, "public_sector": -1}},
+    "electoral": {"label": "Reforma eleitoral", "explanation": "Financiamento e transparência mudam o custo de entrada e o poder de incumbentes.", "groups": {"students": 2, "middle_income": 2, "entrepreneurs": -1}},
+    "jobs": {"label": "Pacto de empregos", "explanation": "Programa executivo de emprego direto e qualificação.", "groups": {"unemployed": 6, "industrial_workers": 4, "service_workers": 3, "informal": 3, "entrepreneurs": -1}},
+    "schools": {"label": "Escolas técnicas", "explanation": "Formação técnica amplia oportunidades de jovens e trabalhadores.", "groups": {"students": 6, "industrial_workers": 3, "unemployed": 3, "public_sector": 2}},
+    "infra": {"label": "Fundo de infraestrutura", "explanation": "Obra pública emprega e melhora logística, com custo fiscal.", "groups": {"industrial_workers": 3, "unemployed": 3, "entrepreneurs": 2, "farmers": 1}},
+    "health": {"label": "Saúde da família", "explanation": "Serviço universal atende famílias, aposentados e servidores da saúde.", "groups": {"retirees": 6, "low_income": 5, "middle_income": 3, "public_sector": 2}},
+    "rural": {"label": "Crédito rural", "explanation": "Crédito subsidiado protege produtores rurais e tem custo fiscal.", "groups": {"farmers": 8, "high_income": 1, "low_income": -1}},
+    "Finanças": {"label": "Ministério da Fazenda", "explanation": "Gestão fiscal melhora a confiança de mercado e impõe disciplina aos demais grupos.", "groups": {"entrepreneurs": 3, "high_income": 3, "public_sector": -1}},
+    "Educação": {"label": "Ministério da Educação", "explanation": "Capacidade permanente de execução educacional.", "groups": {"students": 4, "public_sector": 2}},
+    "Saúde": {"label": "Ministério da Saúde", "explanation": "Capacidade permanente de execução em saúde.", "groups": {"retirees": 4, "low_income": 3}},
+    "Infraestrutura": {"label": "Ministério da Infraestrutura", "explanation": "Capacidade permanente de obra e logística.", "groups": {"industrial_workers": 2, "unemployed": 2, "entrepreneurs": 2}}
+  }
+}

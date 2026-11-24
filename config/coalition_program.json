@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "notes": "Pautas de coalizão são um modelo declarado de barganha, não posições oficiais dos partidos. Cada bloco liga uma família ideológica a uma proposição concreta do Congresso.",
+  "demands": {
+    "left": {"label": "piso social e salário real", "policy": "welfare", "axis": -0.5},
+    "right": {"label": "desregulação e ajuste fiscal", "policy": "deregulation", "axis": 0.7},
+    "progressive": {"label": "direitos e transparência", "policy": "transparency", "axis": 0.0},
+    "conservative": {"label": "reforma previdenciária e ordem fiscal", "policy": "pension", "axis": 0.4},
+    "center": {"label": "investimento regional e cargos técnicos", "policy": "investment", "axis": -0.2}
+  },
+  "tolerance": 0.55,
+  "violation_relation": -6.0,
+  "violation_cohesion": -4.0,
+  "compliance_relation": 2.0,
+  "compliance_cohesion": 1.5
+}

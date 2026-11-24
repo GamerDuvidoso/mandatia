@@ -1,0 +1,31 @@
+{
+  "version": 1,
+  "notes": "Ciclo processual: alegação não é condenação. Cada caso mantém status jurídico explícito e pode terminar sem culpa comprovada.",
+  "categories": [
+    {"id": "corruption", "label": "Corrupção", "weight": 1.0, "severity": 7, "title": "Suspeita de desvio em contratos públicos"},
+    {"id": "finance", "label": "Irregularidade financeira", "weight": 0.8, "severity": 6, "title": "Movimentações partidárias sob suspeita"},
+    {"id": "campaign", "label": "Financiamento de campanha", "weight": 1.0, "severity": 5, "title": "Doações de campanha entram na mira"},
+    {"id": "authority", "label": "Abuso de autoridade", "weight": 0.7, "severity": 6, "title": "Uso de estrutura pública vira alvo de apuração"},
+    {"id": "conflict", "label": "Conflito de interesses", "weight": 0.8, "severity": 4, "title": "Negócios privados de auxiliares geram questionamento"},
+    {"id": "admin", "label": "Falha administrativa", "weight": 0.9, "severity": 3, "title": "Falha de gestão provoca cobrança pública"},
+    {"id": "favoritism", "label": "Favorecimento político", "weight": 0.7, "severity": 4, "title": "Nomeações e emendas sob suspeita de favorecimento"}
+  ],
+  "stages": ["alegacao", "midia", "reacao", "investigacao", "consequencias", "resolucao"],
+  "status_labels": {
+    "alegacao": "ALEGAÇÃO", "midia": "COBERTURA", "reacao": "REAÇÃO PÚBLICA",
+    "investigacao": "INVESTIGAÇÃO", "consequencias": "CONSEQUÊNCIAS",
+    "resolucao": "RESOLUÇÃO"
+  },
+  "legal_labels": {
+    "unproven": "NÃO COMPROVADO", "investigating": "EM APURAÇÃO",
+    "confirmed": "MISCONDUTA CONFIRMADA", "acquitted": "ABSOLVIÇÃO",
+    "unresolved": "CASO SEM DESFECHO"
+  },
+  "responses": {
+    "cooperate": {"label": "COOPERAR COM A APURAÇÃO", "cost": 0, "hint": "Credibilidade +, desgaste imediato; reduz a chance de agravamento."},
+    "investigate": {"label": "ABRIR INVESTIGAÇÃO INTERNA", "cost": 600, "hint": "Custa caixa e expõe o caso, mas separa instituição e partido."},
+    "replace": {"label": "AFASTAR O ENVOLVIDO", "cost": 0, "hint": "Protege a imagem e enfraquece a bancada e a coalizão."},
+    "defend": {"label": "DEFENDER PUBLICAMENTE", "cost": 0, "hint": "Mobiliza a base, mas aumenta o risco de agravamento."},
+    "transparency": {"label": "PACOTE DE TRANSPARÊNCIA", "cost": 900, "hint": "Custo fiscal e político; maior ganho de credibilidade."}
+  }
+}
