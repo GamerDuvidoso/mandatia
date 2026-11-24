@@ -161,6 +161,9 @@ static func player_share(state: Dictionary) -> float:
 	base *= 0.8
 	base += float(state.get("campaign", 0.0)) * 0.3
 	base += float(state.get("recognition", 0.0)) * 0.05
+	# B2/B6: apoio dos grupos detalhados e custo eleitoral de crises ativas.
+	base += (float(state.get("social_support", 50.0)) - 50.0) * 0.04
+	base -= maxf(0.0, float(state.get("campaign_penalty", 0.0))) * 0.35
 	var approval_gap := float(state.get("approval", 45.0)) - 45.0
 	var inflation_gap := maxf(0.0, float(state.get("inflation", 4.8)) - 4.0)
 	var jobless_gap := maxf(0.0, float(state.get("unemployment", 8.2)) - 8.0)
@@ -169,6 +172,42 @@ static func player_share(state: Dictionary) -> float:
 	else:
 		base += clampf(-approval_gap * 0.10, -3.0, 3.0) + minf(inflation_gap * 0.25, 2.5) + minf(jobless_gap * 0.15, 2.0)
 	return clampf(base, 0.5, 65.0)
+
+## Segundo turno em dois eixos: a transferência usa a distância completa
+## (econômica e social), não apenas o eixo esquerda-direita.
+static func presidential_2d(shares: Dictionary, positions: Dictionary, rng: RandomNumberGenerator) -> Dictionary:
+	var round1 := []
+	for key in shares.keys():
+		if key == UNDECIDED:
+			continue
+		round1.append([str(key), maxf(float(shares[key]) + rng.randf_range(-1.2, 1.2), 0.1)])
+	round1.sort_custom(func(a, b): return float(a[1]) > float(b[1]))
+	if round1.is_empty():
+		return {"winner": "", "round1": [], "round2": [], "second_round": false}
+	if float(round1[0][1]) > 50.0 or round1.size() == 1:
+		return {"winner": str(round1[0][0]), "round1": round1, "round2": [], "second_round": false}
+	var left: Array = round1[0]
+	var right: Array = round1[1]
+	var left_pos: Vector2 = positions.get(str(left[0]), Vector2.ZERO)
+	var right_pos: Vector2 = positions.get(str(right[0]), Vector2.ZERO)
+	var left_score := float(left[1])
+	var right_score := float(right[1])
+	for i in range(2, round1.size()):
+		var item: Array = round1[i]
+		var weight := float(item[1])
+		var pos: Vector2 = positions.get(str(item[0]), Vector2.ZERO)
+		var left_distance := pos.distance_to(left_pos)
+		var right_distance := pos.distance_to(right_pos)
+		var total := left_distance + right_distance
+		if total <= 0.001:
+			left_score += weight * 0.5
+			right_score += weight * 0.5
+		else:
+			left_score += weight * (right_distance / total)
+			right_score += weight * (left_distance / total)
+	var round2 := [[str(left[0]), left_score], [str(right[0]), right_score]]
+	round2.sort_custom(func(a, b): return float(a[1]) > float(b[1]))
+	return {"winner": str(round2[0][0]), "round1": round1, "round2": round2, "second_round": true}
 
 static func undecided_share(state: Dictionary) -> float:
 	return clampf(14.0 - float(state.get("recognition", 2.0)) * 0.08, 4.0, 14.0)

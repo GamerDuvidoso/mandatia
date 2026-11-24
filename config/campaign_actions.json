@@ -1,0 +1,22 @@
+{
+  "version": 1,
+  "notes": "Três ações por mês continuam valendo. Cada ação declara custo, alcance e mecanismo; nenhuma altera votos diretamente, apenas apoio, organização e regiões que o motor eleitoral já lê.",
+  "actions": [
+    {"id": "debate", "label": "Debate nacional", "cost": 2200, "campaign": 4.5, "recognition": 2.0, "region": 0.0, "groups": [], "finance_risk": 0, "hint": "Alcance nacional; risco de erro e desgaste."},
+    {"id": "rally", "label": "Comício regional", "cost": 1500, "campaign": 2.4, "recognition": 1.0, "region": 5.0, "groups": ["industrial_workers", "service_workers"], "finance_risk": 0, "hint": "Concentra apoio na região-alvo."},
+    {"id": "media", "label": "Entrevista e mídia", "cost": 1800, "campaign": 2.8, "recognition": 3.0, "region": 0.0, "groups": ["middle_income"], "finance_risk": 0, "hint": "Reconhecimento e eleitor médio."},
+    {"id": "policy", "label": "Anúncio de política", "cost": 1000, "campaign": 1.6, "recognition": 1.0, "region": 1.0, "groups": ["low_income", "public_sector"], "finance_risk": 0, "hint": "Conquista grupos ligados à proposta."},
+    {"id": "ads", "label": "Publicidade de campanha", "cost": 3000, "campaign": 5.0, "recognition": 1.0, "region": 2.0, "groups": [], "finance_risk": 8, "hint": "Maior alcance; exige financiamento e aumenta exposição."},
+    {"id": "community", "label": "Mobilização comunitária", "cost": 700, "campaign": 1.2, "recognition": 0.5, "region": 3.0, "groups": ["low_income", "informal"], "finance_risk": 0, "hint": "Barata, fortalece base local."},
+    {"id": "targeted", "label": "Campanha segmentada", "cost": 1200, "campaign": 1.8, "recognition": 0.5, "region": 3.5, "groups": ["middle_income", "students"], "finance_risk": 2, "hint": "Região e grupo-alvo escolhidos."},
+    {"id": "endorsement", "label": "Buscar endosso", "cost": 0, "campaign": 2.0, "recognition": 1.0, "region": 0.0, "groups": [], "finance_risk": 0, "hint": "Depende de relação com organização de interesse."},
+    {"id": "crisis", "label": "Responder a crise", "cost": 900, "campaign": 1.0, "recognition": 1.5, "region": 0.0, "groups": [], "finance_risk": 0, "hint": "Reduz o custo eleitoral de um escândalo ativo."}
+  ],
+  "finance": {
+    "private_cap": 6000,
+    "private_amount": 2500,
+    "public_amount": 1200,
+    "public_cap": 2400,
+    "risk_per_private": 9
+  }
+}

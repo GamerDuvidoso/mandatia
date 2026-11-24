@@ -1,0 +1,89 @@
+{
+  "version": 1,
+  "notes": "Modelo declarado de administração pública. Não são estatísticas oficiais: as participações, bases tributárias e custos de projeto são parâmetros de jogo calibrados para o PIB-índice do simulador (gdp 100 = M$ 100.000/ano). A fonte de cada família de indicadores está no README e em docs/fase_c_desenvolvimento.md.",
+  "fiscal": {
+    "gdp_unit_millions": 1000.0,
+    "interest_base_rate": 6.5,
+    "debt_warning": 70.0,
+    "debt_critical": 95.0,
+    "treasury_buffer_pct_gdp": 0.5,
+    "max_deficit_pct_gdp": 12.0,
+    "execution_base": 0.86,
+    "default_minister_cost": 260,
+    "replace_minister_cost": 320,
+    "project_feasibility_cost": 0.01,
+    "ppp_contract_cost": 0.005
+  },
+  "budget_categories": [
+    {"id": "saude", "label": "Saúde", "ministry": "saude", "type": "mandatory", "base_share": 3.6, "floor_share": 3.2, "cap_share": 5.4, "service": "saude", "linked_group": "service_workers", "priority": "alta"},
+    {"id": "educacao", "label": "Educação", "ministry": "educacao", "type": "mandatory", "base_share": 3.4, "floor_share": 3.0, "cap_share": 5.2, "service": "educacao", "linked_group": "students", "priority": "alta"},
+    {"id": "seguranca", "label": "Segurança pública", "ministry": "seguranca", "type": "mandatory", "base_share": 2.0, "floor_share": 1.7, "cap_share": 3.2, "service": "seguranca", "linked_group": "service_workers", "priority": "alta"},
+    {"id": "defesa", "label": "Defesa", "ministry": "defesa", "type": "mandatory", "base_share": 1.4, "floor_share": 1.2, "cap_share": 2.4, "service": "seguranca", "linked_group": "", "priority": "média"},
+    {"id": "infraestrutura", "label": "Infraestrutura", "ministry": "infraestrutura", "type": "investment", "base_share": 2.0, "floor_share": 0.6, "cap_share": 4.2, "service": "transporte", "linked_group": "industrial_workers", "priority": "alta"},
+    {"id": "habitacao", "label": "Habitação", "ministry": "infraestrutura", "type": "investment", "base_share": 0.8, "floor_share": 0.2, "cap_share": 2.0, "service": "habitacao", "linked_group": "low_income", "priority": "média"},
+    {"id": "assistencia", "label": "Assistência social", "ministry": "desenvolvimento_social", "type": "mandatory", "base_share": 2.0, "floor_share": 1.6, "cap_share": 3.2, "service": "assistencia", "linked_group": "unemployed", "priority": "alta"},
+    {"id": "previdencia", "label": "Previdência", "ministry": "desenvolvimento_social", "type": "mandatory", "base_share": 7.2, "floor_share": 6.6, "cap_share": 9.0, "service": "assistencia", "linked_group": "retirees", "priority": "alta"},
+    {"id": "ciencia", "label": "Ciência e tecnologia", "ministry": "ciencia", "type": "investment", "base_share": 0.9, "floor_share": 0.25, "cap_share": 2.2, "service": "digital", "linked_group": "students", "priority": "média"},
+    {"id": "meio_ambiente", "label": "Meio ambiente", "ministry": "meio_ambiente", "type": "discretionary", "base_share": 0.6, "floor_share": 0.2, "cap_share": 1.6, "service": "saneamento", "linked_group": "farmers", "priority": "baixa"},
+    {"id": "administracao", "label": "Administração pública", "ministry": "administracao", "type": "operational", "base_share": 1.9, "floor_share": 1.5, "cap_share": 3.0, "service": "administracao", "linked_group": "public_sector", "priority": "média"},
+    {"id": "divida", "label": "Serviço da dívida", "ministry": "financas", "type": "debt_service", "base_share": 3.2, "floor_share": 2.2, "cap_share": 5.0, "service": "", "linked_group": "", "priority": "alta"}
+  ],
+  "taxes": [
+    {"id": "renda", "label": "Imposto de renda", "base_share": 30.0, "rate": 20.0, "neutral_rate": 20.0, "min_rate": 8.0, "max_rate": 45.0, "elasticity": 0.35, "compliance": 0.78, "kind": "income", "activity": "labor", "group": "middle_income"},
+    {"id": "empresas", "label": "Imposto corporativo", "base_share": 12.0, "rate": 25.0, "neutral_rate": 25.0, "min_rate": 10.0, "max_rate": 45.0, "elasticity": 0.60, "compliance": 0.82, "kind": "corporate", "activity": "capital", "group": "entrepreneurs"},
+    {"id": "consumo", "label": "Imposto sobre consumo", "base_share": 50.0, "rate": 15.0, "neutral_rate": 15.0, "min_rate": 5.0, "max_rate": 32.0, "elasticity": 0.25, "compliance": 0.80, "kind": "consumption", "activity": "consumption", "group": "low_income"},
+    {"id": "propriedade", "label": "Imposto sobre propriedade", "base_share": 20.0, "rate": 2.0, "neutral_rate": 2.0, "min_rate": 0.5, "max_rate": 6.0, "elasticity": 0.15, "compliance": 0.72, "kind": "property", "activity": "capital", "group": "high_income"},
+    {"id": "riqueza", "label": "Tributo sobre riqueza", "base_share": 15.0, "rate": 1.0, "neutral_rate": 1.0, "min_rate": 0.0, "max_rate": 5.0, "elasticity": 0.70, "compliance": 0.65, "kind": "wealth", "activity": "capital", "group": "high_income"},
+    {"id": "contribuicoes", "label": "Contribuições sociais", "base_share": 35.0, "rate": 20.0, "neutral_rate": 20.0, "min_rate": 10.0, "max_rate": 34.0, "elasticity": 0.20, "compliance": 0.75, "kind": "payroll", "activity": "labor", "group": "industrial_workers"},
+    {"id": "comercio", "label": "Direitos de importação", "base_share": 20.0, "rate": 8.0, "neutral_rate": 8.0, "min_rate": 0.0, "max_rate": 25.0, "elasticity": 0.30, "compliance": 0.70, "kind": "trade", "activity": "trade", "group": "farmers"}
+  ],
+  "ministries": [
+    {"id": "financas", "label": "Finanças", "category": "divida", "service": "administracao", "base_capacity": 62, "responsibilities": ["orçamento", "dívida", "arrecadação"]},
+    {"id": "educacao", "label": "Educação", "category": "educacao", "service": "educacao", "base_capacity": 56, "responsibilities": ["escolas", "docentes", "qualificação"]},
+    {"id": "saude", "label": "Saúde", "category": "saude", "service": "saude", "base_capacity": 55, "responsibilities": ["hospitais", "atenção básica", "vigilância"]},
+    {"id": "infraestrutura", "label": "Infraestrutura", "category": "infraestrutura", "service": "transporte", "base_capacity": 50, "responsibilities": ["obras", "transportes", "saneamento"]},
+    {"id": "seguranca", "label": "Segurança", "category": "seguranca", "service": "seguranca", "base_capacity": 52, "responsibilities": ["policiamento", "investigação", "fronteiras"]},
+    {"id": "defesa", "label": "Defesa", "category": "defesa", "service": "seguranca", "base_capacity": 58, "responsibilities": ["forças armadas", "logística"]},
+    {"id": "desenvolvimento_social", "label": "Desenvolvimento social", "category": "assistencia", "service": "assistencia", "base_capacity": 48, "responsibilities": ["transferências", "previdência", "proteção"]},
+    {"id": "ciencia", "label": "Ciência e tecnologia", "category": "ciencia", "service": "digital", "base_capacity": 54, "responsibilities": ["pesquisa", "inovação", "conectividade"]},
+    {"id": "meio_ambiente", "label": "Meio ambiente", "category": "meio_ambiente", "service": "saneamento", "base_capacity": 46, "responsibilities": ["licenciamento", "fiscalização", "recursos hídricos"]},
+    {"id": "administracao", "label": "Administração", "category": "administracao", "service": "administracao", "base_capacity": 60, "responsibilities": ["serviço civil", "compras", "gestão"]}
+  ],
+  "services": [
+    {"id": "saude", "label": "Saúde", "ministry": "saude", "category": "saude", "coverage": 62, "quality": 54, "capacity": 58, "demand": 74, "linked_groups": ["retirees", "unemployed", "low_income"]},
+    {"id": "educacao", "label": "Educação", "ministry": "educacao", "category": "educacao", "coverage": 70, "quality": 50, "capacity": 60, "demand": 80, "linked_groups": ["students", "middle_income"]},
+    {"id": "seguranca", "label": "Segurança", "ministry": "seguranca", "category": "seguranca", "coverage": 56, "quality": 48, "capacity": 55, "demand": 72, "linked_groups": ["service_workers", "middle_income"]},
+    {"id": "transporte", "label": "Transporte", "ministry": "infraestrutura", "category": "infraestrutura", "coverage": 52, "quality": 44, "capacity": 50, "demand": 70, "linked_groups": ["industrial_workers", "service_workers"]},
+    {"id": "habitacao", "label": "Habitação", "ministry": "infraestrutura", "category": "habitacao", "coverage": 44, "quality": 42, "capacity": 40, "demand": 68, "linked_groups": ["low_income", "unemployed"]},
+    {"id": "saneamento", "label": "Água e saneamento", "ministry": "meio_ambiente", "category": "meio_ambiente", "coverage": 58, "quality": 48, "capacity": 46, "demand": 76, "linked_groups": ["low_income", "farmers"]},
+    {"id": "energia", "label": "Energia", "ministry": "infraestrutura", "category": "infraestrutura", "coverage": 72, "quality": 62, "capacity": 64, "demand": 78, "linked_groups": ["entrepreneurs", "industrial_workers"]},
+    {"id": "assistencia", "label": "Assistência social", "ministry": "desenvolvimento_social", "category": "assistencia", "coverage": 50, "quality": 44, "capacity": 48, "demand": 72, "linked_groups": ["unemployed", "low_income"]},
+    {"id": "digital", "label": "Infraestrutura digital", "ministry": "ciencia", "category": "ciencia", "coverage": 48, "quality": 52, "capacity": 50, "demand": 68, "linked_groups": ["students", "entrepreneurs"]},
+    {"id": "administracao", "label": "Administração pública", "ministry": "administracao", "category": "administracao", "coverage": 60, "quality": 52, "capacity": 58, "demand": 70, "linked_groups": ["public_sector"]}
+  ],
+  "projects": [
+    {"id": "hospital_regional", "label": "Hospital regional", "category": "saude", "ministry": "saude", "capex": 2400.0, "months": 18, "op_cost": 90.0, "service": "saude", "service_gain": 8.0, "jobs": 900, "beneficiaries": 180000, "group": "service_workers", "risk": 22, "description": "Atenção secundária com 220 leitos e pronto-socorro."},
+    {"id": "centro_saude", "label": "Rede de centros de saúde", "category": "saude", "ministry": "saude", "capex": 900.0, "months": 10, "op_cost": 30.0, "service": "saude", "service_gain": 3.0, "jobs": 300, "beneficiaries": 60000, "group": "low_income", "risk": 14, "description": "Atenção básica em bairros com baixa cobertura."},
+    {"id": "escolas_tecnicas", "label": "Escolas técnicas", "category": "educacao", "ministry": "educacao", "capex": 1800.0, "months": 15, "op_cost": 55.0, "service": "educacao", "service_gain": 7.0, "jobs": 600, "beneficiaries": 120000, "group": "students", "risk": 18, "description": "Formação técnica integrada ao mercado de trabalho regional."},
+    {"id": "ferrovia", "label": "Corredor ferroviário", "category": "infraestrutura", "ministry": "infraestrutura", "capex": 6500.0, "months": 36, "op_cost": 180.0, "service": "transporte", "service_gain": 10.0, "jobs": 2500, "beneficiaries": 400000, "group": "industrial_workers", "risk": 34, "description": "Liga a produção do interior aos portos."},
+    {"id": "rodovia", "label": "Duplicação de rodovia", "category": "infraestrutura", "ministry": "infraestrutura", "capex": 3200.0, "months": 24, "op_cost": 110.0, "service": "transporte", "service_gain": 6.0, "jobs": 1400, "beneficiaries": 250000, "group": "farmers", "risk": 25, "description": "Reduz o custo logístico entre regiões."},
+    {"id": "habitacao", "label": "Programa habitacional", "category": "habitacao", "ministry": "infraestrutura", "capex": 2800.0, "months": 30, "op_cost": 40.0, "service": "habitacao", "service_gain": 9.0, "jobs": 800, "beneficiaries": 90000, "group": "low_income", "risk": 20, "description": "Unidades subsidiadas com infraestrutura urbana."},
+    {"id": "usina_solar", "label": "Parque solar", "category": "infraestrutura", "ministry": "meio_ambiente", "capex": 3600.0, "months": 28, "op_cost": 70.0, "service": "energia", "service_gain": 8.0, "jobs": 1000, "beneficiaries": 300000, "group": "farmers", "risk": 26, "description": "Geração limpa e redução da dependência fóssil."},
+    {"id": "saneamento", "label": "Rede de saneamento", "category": "meio_ambiente", "ministry": "meio_ambiente", "capex": 2200.0, "months": 24, "op_cost": 60.0, "service": "saneamento", "service_gain": 8.0, "jobs": 850, "beneficiaries": 210000, "group": "low_income", "risk": 19, "description": "Água tratada e coleta de esgoto em áreas vulneráveis."},
+    {"id": "polo_industrial", "label": "Polo industrial", "category": "ciencia", "ministry": "ciencia", "capex": 4200.0, "months": 32, "op_cost": 130.0, "service": "digital", "service_gain": 4.0, "jobs": 1800, "beneficiaries": 80000, "group": "industrial_workers", "risk": 30, "description": "Distrito produtivo com incentivos e logística."},
+    {"id": "fibra_digital", "label": "Rede de fibra óptica", "category": "ciencia", "ministry": "ciencia", "capex": 1500.0, "months": 12, "op_cost": 35.0, "service": "digital", "service_gain": 9.0, "jobs": 300, "beneficiaries": 500000, "group": "students", "risk": 12, "description": "Conectividade em escolas e municípios pequenos."}
+  ],
+  "minister_names": [
+    "Alba Ferraz", "Caio Bittencourt", "Dandara Nunes", "Elias Prado", "Fátima Sampaio",
+    "Gustavo Rangel", "Helena Vilar", "Ivo Menezes", "Joana Trancoso", "Kleber Assis",
+    "Lúcia Fontes", "Marcelo Tavares", "Nara Queiroz", "Otávio Bastos", "Paula Serrano",
+    "Quirino Lopes", "Renata Sá", "Sérgio Caldas", "Tereza Galvão", "Ubirajara Melo",
+    "Vera Antunes", "Wagner Dutra", "Xênia Barros", "Yuri Campos", "Zilda Rocha"
+  ],
+  "minister_archetypes": [
+    {"id": "tecnico", "label": "técnico", "competence": 16, "loyalty": -8, "experience": 12, "credibility": 10, "leadership": -2},
+    {"id": "aliado", "label": "aliado político", "competence": -7, "loyalty": 22, "experience": 2, "credibility": -2, "leadership": 12},
+    {"id": "gestor", "label": "gestor público", "competence": 9, "loyalty": 4, "experience": 10, "credibility": 6, "leadership": 6},
+    {"id": "quadro", "label": "quadro do partido", "competence": 0, "loyalty": 14, "experience": 5, "credibility": 2, "leadership": 4}
+  ]
+}

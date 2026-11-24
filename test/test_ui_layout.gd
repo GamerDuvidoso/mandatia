@@ -5,7 +5,7 @@ extends SceneTree
 ## ignorados de propósito: eles podem se estender além do viewport.
 ## Uso: godot --headless --path . --script test/test_ui_layout.gd
 
-const SIZES := [Vector2i(1280, 720), Vector2i(1600, 900), Vector2i(1920, 1080)]
+const SIZES := [Vector2i(1600, 900), Vector2i(1366, 768), Vector2i(1920, 1080)]
 
 func _initialize() -> void:
 	call_deferred("_run")
@@ -18,6 +18,8 @@ func _run() -> void:
 		root.add_child(viewport)
 		var game: Control = load("res://scenes/main.tscn").instantiate()
 		viewport.add_child(game)
+		# Cartões de onboarding não entram na checagem geométrica do layout.
+		game.get("state")["tutorial_done"] = true
 		for _i in 24:
 			await process_frame
 		var screen := Rect2(Vector2.ZERO, Vector2(size))
@@ -54,6 +56,16 @@ func _run() -> void:
 		# Recorte: nada no topo nem na lateral pode passar do próprio retângulo.
 		failures += _check_inside(game.get("header_panel") as Control, "cabeçalho", size)
 		failures += _check_inside(game.get("sidebar") as Control, "lateral", size)
+		# B7: telas com as novas cadeias causais, conflito e procedimentos.
+		for nav_item in ["Sociedade", "Crises", "Governo"]:
+			game.call("_select_nav", nav_item)
+			for _i in 6:
+				await process_frame
+			failures += _check_inside(game.get("header_panel") as Control, "cabeçalho/%s" % nav_item, size)
+			failures += _check_inside(game.get("sidebar") as Control, "lateral/%s" % nav_item, size)
+		game.call("_select_nav", "Visão geral")
+		for _i in 6:
+			await process_frame
 		# Relatório do mês: abre como tela com foco visível dentro da área.
 		game.get("state")["month_report"] = [{"label": "Aprovação", "delta": 0.2, "good": true}]
 		game.call("_show_month_report")

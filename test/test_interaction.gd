@@ -64,6 +64,8 @@ func _make_game() -> Array:
 	root.add_child(viewport)
 	var game: Control = load("res://scenes/main.tscn").instantiate()
 	viewport.add_child(game)
+	# O onboarding é validado na suíte; aqui ele não deve roubar foco do fluxo.
+	game.get("state")["tutorial_done"] = true
 	await _frames(12)
 	var ai: Node = game.get("ai")
 	if ai != null:

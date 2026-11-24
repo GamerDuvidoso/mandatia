@@ -96,8 +96,24 @@ func _press(text: String, include_disabled := false) -> bool:
 	await _frames()
 	return true
 
+## Navegação em duas faixas: o rail mostra grupos curtos (PAÍS, PODER, ECON,
+## MUNDO, REGIS) e a faixa contextual mostra o item. Abre o grupo antes.
+const NAV_GROUP := {
+	"Visão geral": "PAÍS", "Meu partido": "PAÍS",
+	"Eleições": "PODER", "Congresso": "PODER", "Governo": "PODER", "Crises": "PODER",
+	"Economia": "ECON", "População": "ECON", "Sociedade": "ECON", "Regiões": "ECON",
+	"Internacional": "MUNDO",
+	"Notícias": "REGIS", "História": "REGIS", "Configurações": "REGIS",
+}
+
 func _nav(item: String) -> void:
 	var b := _find_button(item)
+	if b == null:
+		var rail := _find_button(str(NAV_GROUP.get(item, "")))
+		if rail != null:
+			rail.pressed.emit()
+			await _frames()
+			b = _find_button(item)
 	if b == null:
 		_check(false, "navegação não encontrada: " + item)
 		return
@@ -141,6 +157,8 @@ func _run() -> void:
 	var packed: PackedScene = load("res://scenes/main.tscn")
 	game = packed.instantiate()
 	root.add_child(game)
+	# Onboarding tem teste próprio; o walkthrough mede o fluxo de jogo.
+	game.get("state")["tutorial_done"] = true
 	await _frames(4)
 	# IA desligada: todo contrato cai no fallback síncrono do motor.
 	var ai: Node = game.get("ai")
@@ -262,6 +280,7 @@ func _phase_campaign_zero(country_id: String) -> void:
 	_check(int(_state().get("months_to_election", 0)) > 0, "campanha deve ter prazo até a eleição")
 
 	await _tour_screens()
+	await _phase_b_actions()
 	await _opposition_actions()
 	await _congress_actions()
 	await _advance_months_and_international()
@@ -270,12 +289,41 @@ func _phase_campaign_zero(country_id: String) -> void:
 	await _back_to_menu_and_continue()
 
 func _tour_screens() -> void:
-	for item in ["Visão geral", "Meu partido", "Eleições", "Congresso", "Governo", "Economia", "População", "Regiões", "Internacional", "Notícias", "História", "Configurações"]:
+	for item in ["Visão geral", "Meu partido", "Eleições", "Congresso", "Governo", "Crises", "Economia", "População", "Sociedade", "Regiões", "Internacional", "Notícias", "História", "Configurações"]:
 		await _nav(item)
 		_check(_screen() == "game", "navegar para %s deve manter a tela de jogo" % item)
 		_check(_count_labels(game.get("main_column")) >= 3, "%s deve renderizar conteúdo" % item)
-		_check((game.get("right_column") as Node).get_child_count() >= 2, "%s deve renderizar a coluna lateral" % item)
+		var rail_node: Node = game.get("right_column")
+		_check(rail_node != null and (rail_node.get_child_count() >= 2 or not bool(game.call("_rail_enabled"))), "%s deve renderizar a coluna lateral quando habilitada" % item)
 		_check(not _main_text().contains("null"), "%s não deve exibir texto nulo" % item)
+
+## B1-B6: ações reais nas telas novas, além de apenas renderizá-las.
+func _phase_b_actions() -> void:
+	await _nav("Meu partido")
+	_check(_main_text().contains("POSIÇÃO IDEOLÓGICA"), "B1: tela do partido deve mostrar o gráfico de dois eixos")
+	_check((_state().get("factions", []) as Array).size() == 3, "B4: partido deve exibir três facções")
+	_check((_state().get("ideology_position", {}) as Dictionary).has("social"), "B1: estado deve persistir o eixo social")
+
+	await _nav("Sociedade")
+	_check(_main_text().contains("CAMADA OCUPACIONAL") and _main_text().contains("CAMADA DE RENDA"), "B2: sociedade deve separar as duas camadas")
+	_check(_main_text().contains("ORGANIZAÇÕES DE INTERESSE"), "B3: sociedade deve listar organizações")
+	_check(_main_text().contains("CADEIAS CAUSAIS") and _main_text().contains("GREVES ATIVAS"), "B7: sociedade deve mostrar conflito e cadeias causais observáveis")
+	var funds_before := float(_state().get("funds", 0.0))
+	var relation_before := float((_state().get("interest_groups", {}) as Dictionary).get("business_association", {}).get("relationship", 0.0))
+	await _press("NEGOCIAR")
+	_check(float(_state().get("funds", 0.0)) < funds_before, "B3: negociar com organização deve custar caixa")
+	_check(float((_state().get("interest_groups", {}) as Dictionary).get("business_association", {}).get("relationship", 0.0)) > relation_before, "B3: negociação deve melhorar a relação")
+
+	await _nav("Crises")
+	_check(_main_text().contains("RISCO MENSAL") and (_main_text().contains("ALEGAÇÃO") or _main_text().contains("NENHUMA APURAÇÃO")), "B5: tela de crises deve mostrar risco e estágios")
+	if not (_state().get("scandals", []) as Array).is_empty():
+		_check(_main_text().contains("Procedimento:") and _main_text().contains("cobertura"), "B7: crise deve expor procedimento, cobertura e evidência")
+	if _find_button("ABRIR AUDITORIA PREVENTIVA") != null:
+		var credibility_before := float(_state().get("credibility", 0.0))
+		await _press("ABRIR AUDITORIA PREVENTIVA")
+		_check(float(_state().get("credibility", 0.0)) > credibility_before, "B5: auditoria preventiva deve elevar credibilidade")
+	await _nav("Eleições")
+	_check(_main_text().contains("LEITURA REGIONAL") and _main_text().contains("FINANCIAMENTO"), "B6: eleições devem mostrar análise regional e financiamento")
 
 func _opposition_actions() -> void:
 	await _nav("Visão geral")
@@ -380,7 +428,8 @@ func _election_and_result() -> void:
 	_check(int(_state().get("months_to_election", 0)) == expected_months, "novo ciclo deve ter %d meses" % expected_months)
 
 func _back_to_menu_and_continue() -> void:
-	await _press("MENU PRINCIPAL")
+	# No jogo o rail expõe "MENU"; a tela de resultado usa "MENU PRINCIPAL".
+	await _press("MENU PRINCIPAL" if _find_button("MENU PRINCIPAL") != null else "MENU")
 	_check(_screen() == "menu", "menu principal deve voltar à primeira tela")
 	var continue_button := _find_button("CONTINUAR CAMPANHA", true)
 	_check(continue_button != null and not continue_button.disabled, "continuar deve ficar disponível com save")
@@ -412,6 +461,11 @@ func _phase_campaign_official(country_id: String) -> void:
 	var text := _main_text()
 	_check(text.contains("FORMAÇÃO DE GOVERNO") or text.contains("GABINETE"), "governo deve oferecer formação ou gabinete")
 	if _find_button("FECHAR COALIZÃO") != null:
+		_check(text.contains("pasta") and text.contains("estabilidade"), "B4: formação deve mostrar pastas e estabilidade")
+		if _find_button("RENEGOCIAR TERMOS") != null:
+			await _press("RENEGOCIAR TERMOS")
+			_check(bool(_state().get("coalition_negotiated", false)), "B4: renegociação deve registrar concessão")
+			await _nav("Governo")
 		await _press("FECHAR COALIZÃO")
 		_check(bool(_state().get("government", false)), "coalizão deve formar governo")
 		await _nav("Governo")
@@ -423,6 +477,17 @@ func _phase_campaign_official(country_id: String) -> void:
 			var unemployment_before := float(_state().get("unemployment", 0.0))
 			await _press("Pacto de empregos")
 			_check(float(_state().get("unemployment", 0.0)) < unemployment_before, "programa de empregos deve reduzir desemprego")
+		# B6: ação de campanha avançada e financiamento privado.
+		_state()["campaign_actions"] = 0
+		await _nav("Eleições")
+		var region_before := float((_state().get("region_support", []) as Array)[0])
+		await _press("Comício regional")
+		_check(int(_state().get("campaign_actions", 0)) == 1, "B6: comício deve consumir uma das três ações")
+		_check(float((_state().get("region_support", []) as Array)[0]) > region_before, "B6: comício deve elevar a região-alvo")
+		var funds_campaign := float(_state().get("funds", 0.0))
+		await _press("CAPTAR RECURSOS PRIVADOS")
+		_check(float(_state().get("campaign_finance", {}).get("risk", 0.0)) > 0.0, "B6: captação privada deve elevar o risco")
+		_check(float(_state().get("funds", 0.0)) != funds_campaign, "B6: captação deve mover o caixa")
 		await _nav("Congresso")
 		var bills := 0
 		for item in _buttons():

@@ -2,12 +2,14 @@ class_name TutorialCallout
 extends Control
 
 signal continued
+signal skipped
 
 var _panel: PanelContainer
 var _title: Label
 var _message: Label
 var _input_hint: Label
 var _continue_button: Button
+var _skip_button: Button
 var _line: Line2D
 var _arrow_head: Polygon2D
 var _anchor := Vector2.ZERO
@@ -34,8 +36,8 @@ func _ready() -> void:
 	_arrow_head.z_index = 2
 	add_child(_arrow_head)
 	_panel = ScreenFactory.holo_panel(ScreenFactory.AMBER, Vector2(24.0, 20.0))
-	_panel.custom_minimum_size = Vector2(460.0, 245.0)
-	_panel.size = Vector2(460.0, 245.0)
+	_panel.custom_minimum_size = Vector2(460.0, 286.0)
+	_panel.size = Vector2(460.0, 286.0)
 	_panel.z_index = 3
 	add_child(_panel)
 	var content := VBoxContainer.new()
@@ -58,6 +60,10 @@ func _ready() -> void:
 	_continue_button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	_continue_button.pressed.connect(_on_continue)
 	content.add_child(_continue_button)
+	_skip_button = ScreenFactory.quiet_button("PULAR GUIA", 12)
+	_skip_button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	_skip_button.pressed.connect(_on_skip)
+	content.add_child(_skip_button)
 	visible = false
 
 
@@ -68,7 +74,7 @@ func show_callout(title: String, message: String, input_hint: String, anchor: Ve
 	_message.text = message
 	_input_hint.text = input_hint
 	_input_hint.visible = not input_hint.is_empty()
-	_continue_button.text = I18n.t("tutorial.continue")
+	_continue_button.text = "CONTINUAR"
 	_anchor = anchor
 	visible = true
 	await get_tree().process_frame
@@ -88,7 +94,7 @@ func set_input_hint(text: String) -> void:
 
 func _place_panel() -> void:
 	var portrait := size.y > size.x * 1.15
-	var panel_size := Vector2(minf(680.0 if portrait else 460.0, size.x - 36.0), 310.0 if portrait else 245.0)
+	var panel_size := Vector2(minf(680.0 if portrait else 460.0, size.x - 36.0), 350.0 if portrait else 286.0)
 	_panel.size = panel_size
 	_title.add_theme_font_size_override("font_size", 34 if portrait else 25)
 	_message.add_theme_font_size_override("font_size", 26 if portrait else 18)
@@ -126,3 +132,8 @@ func _on_continue() -> void:
 	_callout_token += 1
 	visible = false
 	continued.emit()
+
+func _on_skip() -> void:
+	_callout_token += 1
+	visible = false
+	skipped.emit()

@@ -93,21 +93,36 @@ func _draw_dashboard() -> void:
 	var x0 := left + w * 0.56 + 34.0
 	var panel_w := maxf(110.0, w - x0 - 20.0)
 	draw_string(font, Vector2(x0, 78), "TRAJETÓRIA", HORIZONTAL_ALIGNMENT_LEFT, -1, 11, AMBER)
-	draw_string(font, Vector2(x0, 98), "Popularidade", HORIZONTAL_ALIGNMENT_LEFT, -1, 12, MUTED)
+	draw_string(font, Vector2(x0, 98), "Crescimento · série real", HORIZONTAL_ALIGNMENT_LEFT, -1, 12, MUTED)
 	var line_rect := Rect2(x0, 110, panel_w, maxf(80.0, h - 224.0))
 	for i in 5:
 		var gy := line_rect.position.y + i * line_rect.size.y / 4.0
 		draw_line(Vector2(line_rect.position.x, gy), Vector2(line_rect.end.x, gy), Color(LINE, 0.45), 1)
+	var history: Array = data.get("economy_history", [])
+	var values: Array = []
+	for entry in history:
+		values.append(float((entry as Dictionary).get("economy", 0.0)) if entry is Dictionary else 0.0)
+	if values.is_empty():
+		values.append(float(data.get("economy", 2.4)))
+	var high: float = maxf(0.5, values.max())
+	var low: float = minf(-0.5, values.min())
+	var span := maxf(0.4, high - low)
+	if low < 0.0 and high > 0.0:
+		var zero_y := line_rect.end.y - (0.0 - low) / span * line_rect.size.y
+		draw_line(Vector2(line_rect.position.x, zero_y), Vector2(line_rect.end.x, zero_y), Color(LINE, 0.9), 1)
 	var points := PackedVector2Array()
-	var current := float(data.get("popularity", 27.0))
-	for i in 9:
-		var v := clampf(current + sin(float(i) * 0.8) * 3.0 - float(8 - i) * 0.7, 5.0, 80.0)
-		points.append(Vector2(line_rect.position.x + i * line_rect.size.x / 8.0, line_rect.end.y - v / 80.0 * line_rect.size.y))
+	var last_index := maxf(1.0, float(values.size() - 1))
+	for i in values.size():
+		var px := line_rect.position.x + float(i) / last_index * line_rect.size.x
+		var py := line_rect.end.y - (float(values[i]) - low) / span * line_rect.size.y
+		points.append(Vector2(px, py))
 	if points.size() > 1:
 		draw_polyline(points, AMBER, 3, true)
+	var current := float(values[values.size() - 1])
+	var total_delta := current - float(values[0])
 	draw_circle(points[-1], 4, AMBER)
-	draw_string(font, Vector2(x0, line_rect.end.y + 32), "%.0f%%" % current, HORIZONTAL_ALIGNMENT_LEFT, -1, 25, AMBER)
-	draw_string(font, Vector2(x0, line_rect.end.y + 52), "voto provável", HORIZONTAL_ALIGNMENT_LEFT, -1, 11, MUTED)
+	draw_string(font, Vector2(x0, line_rect.end.y + 32), "%+.1f%%" % current, HORIZONTAL_ALIGNMENT_LEFT, -1, 25, GREEN if current >= 2.0 else (AMBER if current >= 0.0 else Color("e97878")))
+	draw_string(font, Vector2(x0, line_rect.end.y + 52), "%+.1f p.p. no mandato  ·  %d meses" % [total_delta, maxi(1, history.size())], HORIZONTAL_ALIGNMENT_LEFT, -1, 11, MUTED)
 
 func _draw_map() -> void:
 	draw_string(font, Vector2(22, 28), "MAPA POLÍTICO 2D", HORIZONTAL_ALIGNMENT_LEFT, -1, 12, AMBER)
@@ -156,7 +171,8 @@ func _draw_economy() -> void:
 		draw_string(font, Vector2(x, 92), str(series[i][0]), HORIZONTAL_ALIGNMENT_LEFT, -1, 11, MUTED)
 		draw_string(font, Vector2(x, 122), "%.1f%%" % values[values.size() - 1], HORIZONTAL_ALIGNMENT_LEFT, -1, 24, color)
 		var delta: float = values[values.size() - 1] - values[0]
-		draw_string(font, Vector2(x, 142), "%+.1f p.p. no período" % delta, HORIZONTAL_ALIGNMENT_LEFT, -1, 11, MUTED)
+		var month_delta: float = values[values.size() - 1] - values[values.size() - 2] if values.size() >= 2 else 0.0
+		draw_string(font, Vector2(x, 142), "%+.1f p.p. no mandato  ·  %+.1f no mês" % [delta, month_delta], HORIZONTAL_ALIGNMENT_LEFT, -1, 11, MUTED)
 		var rect := Rect2(x, 156, panel_w, maxf(60.0, size.y - 202.0))
 		for g in 3:
 			var gy := rect.position.y + g * rect.size.y / 2.0
