@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "notes": "Ator EXECUTIVO NPC (A2). Decide sancionar, vetar, decretar, nomear, demitir, convocar coalizão, discursar e negociar com a oposição. O motor só aceita veto ou sanção do projeto que passou no mês.",
+  "veto_chance": 0.22,
+  "low_stability": 42.0,
+  "max_history": 12,
+  "effects": {
+    "sancionar": { "stability": 0.2, "approval": 0.1 },
+    "vetar": { "stability": -0.6, "approval": -0.4, "revert": 0.5 },
+    "decretar": { "stability": 0.3, "debt": 0.03 },
+    "nomear": { "stability": 0.4 },
+    "demitir": { "stability": -0.4 },
+    "convocar_coalizao": { "cohesion": 0.8 },
+    "discursar": { "approval": 0.3 },
+    "negociar_oposicao": { "cohesion": 0.5, "stability": 0.2 }
+  }
+}

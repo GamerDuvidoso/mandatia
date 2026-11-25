@@ -15,6 +15,11 @@ extends Node
 signal availability_changed(available: bool)
 
 const Contracts := preload("res://scripts/ai/ai_contracts.gd")
+## Fase 2: o catálogo (config/ai_catalog.json) passa a ser a fonte dos limites
+## por contrato. Os valores são idênticos aos antigos e a equivalência é
+## verificada por test/test_ai_layer.gd; sem o JSON, o catálogo devolve os
+## mesmos padrões de antes.
+const DecisionCatalog := preload("res://scripts/ai/decision_catalog.gd")
 
 ## 127.0.0.1 e não "localhost": no Windows o Godot resolve localhost para
 ## ::1 e o Ollama só escuta em IPv4, o que derrubava toda chamada no fallback.
@@ -266,16 +271,9 @@ func _attempt(op_id: String) -> void:
 		return
 
 ## O voto bancada por bancada é o contrato mais longo: 13 partidos não cabem
-## nos mesmos 320 tokens de uma manchete.
+## nos mesmos 320 tokens de uma manchete. O valor vem do catálogo.
 func _max_tokens(contract: String) -> int:
-	match contract:
-		Contracts.LEGISLATIVE:
-			return 720
-		Contracts.ELECTORAL:
-			return 400
-		Contracts.INTERNATIONAL:
-			return 480
-	return 220
+	return DecisionCatalog.max_tokens(contract)
 
 func _on_timeout(op_id: String, attempt: int) -> void:
 	var op: Dictionary = _ops.get(op_id, {})

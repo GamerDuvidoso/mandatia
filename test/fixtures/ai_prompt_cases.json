@@ -1,0 +1,55 @@
+{
+  "cases": [
+    {
+      "contract": "legislative",
+      "ctx": {
+        "bancadas": [
+          "PL: 99 cadeiras, eixo 0.10, oposição",
+          "PT: 68 cadeiras, eixo -0.40, aliado"
+        ],
+        "coesao": 62.0,
+        "eixo": -0.2,
+        "ids_permitidos": [
+          "PL",
+          "PT"
+        ],
+        "proposicao": "Investimento regional"
+      },
+      "prompt": "Analista político do jogo Mandatia. Responda apenas JSON, sem markdown, em português do Brasil.\nFormato: {\"votes\": {\"PL\": [70, 20, 10], \"PT\": [70, 20, 10]}}\nRegra: Para cada bancada, [sim, abstencao, nao] em porcentagem somando 100.\nIDs (use todos, sem inventar): PL, PT\nContexto: bancadas: PL: 99 cadeiras, eixo 0.10, oposição; PT: 68 cadeiras, eixo -0.40, aliado | coesao: 62.0 | eixo: -0.2 | proposicao: Investimento regional\n"
+    },
+    {
+      "contract": "electoral",
+      "ctx": {
+        "ids_permitidos": [
+          "PL",
+          "PT",
+          "UNIAO"
+        ],
+        "pais": "Brasil",
+        "pesquisa": "PL 30, PT 28, UNIAO 18"
+      },
+      "prompt": "Analista político do jogo Mandatia. Responda apenas JSON, sem markdown, em português do Brasil.\nFormato: {\"parties\": {\"PL\": {\"delta_pp\": 2.1, \"reason\": \"motivo curto\"}}}\nRegra: delta_pp entre -3 e 3 por partido.\nIDs (use todos, sem inventar): PL, PT, UNIAO\nContexto: pais: Brasil | pesquisa: PL 30, PT 28, UNIAO 18\nExemplo: {\"parties\": {\"PL\": {\"delta_pp\": 1.4, \"reason\": \"debate venceu\"}, \"PT\": {\"delta_pp\": -1.2, \"reason\": \"desgaste na base\"}, \"UNIAO\": {\"delta_pp\": 0.8, \"reason\": \"apoio do agronegócio\"}}}\n"
+    },
+    {
+      "contract": "events",
+      "ctx": {
+        "desemprego": 9.4,
+        "inflacao": 6.1,
+        "mes": "2027-03"
+      },
+      "prompt": "Analista político do jogo Mandatia. Responda apenas JSON, sem markdown, em português do Brasil.\nFormato: {\"headline\": \"manchete\", \"effects\": {\"approval\": 3, \"popularity\": -2, \"funds\": 400, \"debt\": 0.5}}\nRegra: Manchete até 160 caracteres; approval ±6, popularity ±4, funds ±800, debt ±1.\nContexto: desemprego: 9.4 | inflacao: 6.1 | mes: 2027-03\nExemplo: {\"headline\": \"Greve pressiona governo por reajuste real\", \"effects\": {\"approval\": -3, \"popularity\": 2, \"funds\": -400, \"debt\": 0.3}}\n"
+    },
+    {
+      "contract": "international",
+      "ctx": {
+        "evento": "Tarifas sobre aço e alumínio",
+        "ids_permitidos": [
+          "PL",
+          "PT"
+        ]
+      },
+      "prompt": "Analista político do jogo Mandatia. Responda apenas JSON, sem markdown, em português do Brasil.\nFormato: {\"reactions\": {\"PL\": {\"support_change\": -5, \"cohesion_change\": 2, \"reason\": \"motivo\"}}, \"international\": {\"event\": \"evento\", \"impact\": \"impacto\"}}\nRegra: Inclua reactions e international; support_change e cohesion_change entre -10 e 10.\nIDs (use todos, sem inventar): PL, PT\nContexto: evento: Tarifas sobre aço e alumínio\nExemplo: {\"reactions\": {\"PL\": {\"support_change\": 3, \"cohesion_change\": 2, \"reason\": \"defesa do setor exportador\"}, \"PT\": {\"support_change\": -4, \"cohesion_change\": 1, \"reason\": \"crítica ao ajuste\"}}, \"international\": {\"event\": \"Tarifas sobre aço e alumínio\", \"impact\": \"Exportadores pressionam o governo por compensação\"}}\n"
+    }
+  ],
+  "version": 1
+}

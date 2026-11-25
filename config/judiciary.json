@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "notes": "Ator JUDICIÁRIO (A5). Só efeitos procedimentais: suspender lei, avançar investigação, julgar disputa. O tribunal nunca altera contagem de votos nem cadeiras. Os efeitos abaixo são parâmetros de jogo.",
+  "justices": 15,
+  "challenge_chance": 0.35,
+  "close_split_seats": 4,
+  "max_cases": 8,
+  "max_history": 12,
+  "effects": {
+    "suspender_revert": 0.5,
+    "suspended_stability": -0.2,
+    "procedente_stability": 0.3,
+    "improcedente_stability": -0.1,
+    "investigation_approval": -0.3,
+    "investigation_stability": -0.2
+  }
+}

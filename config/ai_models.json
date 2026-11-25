@@ -1,0 +1,19 @@
+{
+  "version": "3.0.0",
+  "models": {
+    "mandatia-qwen35-local:latest": {
+      "family": "qwen",
+      "context_window": 8192,
+      "json_mode": true,
+      "temperature": 0.2,
+      "seed": 7,
+      "thinking": {
+        "supported": true,
+        "request_field": "think",
+        "default_off": true
+      },
+      "strip_tags": ["think"],
+      "max_parallel": 2
+    }
+  }
+}

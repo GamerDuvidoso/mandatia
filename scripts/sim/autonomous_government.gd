@@ -26,6 +26,15 @@ const POLICY_APPROVAL := {
 	"negociacao": 0.08,
 }
 
+## Fase 3: normaliza a decisão da camada de IA num override aceito por
+## `monthly`. Só devolve valores; não escreve estado.
+static func priority_override(args: Dictionary) -> Dictionary:
+	var action := str(args.get("action", ""))
+	if not POLICY_LABELS.has(action):
+		return {}
+	var intensity := clampf(float(args.get("intensity", 1.0)), 0.0, 1.0)
+	return {"action": action, "intensity": intensity}
+
 static func _hash01(text: String) -> float:
 	var h := 2166136261
 	for i in text.length():
@@ -57,21 +66,30 @@ static func choose_priority(wc: Dictionary, profile: Dictionary, base: Dictionar
 		return "austeridade" if debt >= 70.0 else "investimento"
 	return "investimento"
 
-static func monthly(world: Dictionary, wc: Dictionary, profile: Dictionary, base: Dictionary, year: int, month: int) -> Dictionary:
+static func monthly(world: Dictionary, wc: Dictionary, profile: Dictionary, base: Dictionary, year: int, month: int, override: Dictionary = {}) -> Dictionary:
 	var previous := str(wc.get("last_priority", ""))
 	var priority := choose_priority(wc, profile, base)
-	# Histerese: uma prioridade nova precisa se sustentar por dois meses. Sem
-	# isso, condições próximas do limiar fazem o governo alternar de agenda todo
-	# mês e geram fatos repetidos sem mudança real de situação.
-	if previous != "" and priority != previous:
-		var streak := int(wc.get("priority_streak", 0)) + 1
-		if streak < 2:
-			priority = previous
-			wc["priority_streak"] = streak
+	var intensity := 1.0
+	var forced := priority_override(override)
+	if not forced.is_empty():
+		# Decisão da camada de IA: veio validada, então o ator decidiu e a
+		# histerese não se aplica. A intensidade escala o efeito de aprovação.
+		priority = str(forced.get("action", priority))
+		intensity = float(forced.get("intensity", 1.0))
+		wc["priority_streak"] = 0
+	else:
+		# Histerese: uma prioridade nova precisa se sustentar por dois meses. Sem
+		# isso, condições próximas do limiar fazem o governo alternar de agenda todo
+		# mês e geram fatos repetidos sem mudança real de situação.
+		if previous != "" and priority != previous:
+			var streak := int(wc.get("priority_streak", 0)) + 1
+			if streak < 2:
+				priority = previous
+				wc["priority_streak"] = streak
+			else:
+				wc["priority_streak"] = 0
 		else:
 			wc["priority_streak"] = 0
-	else:
-		wc["priority_streak"] = 0
 	var potential := float(base.get("potential_growth", 2.0))
 	var natural := float(base.get("natural_unemployment", 7.0))
 	var growth := float(profile.get("growth", potential))
@@ -81,7 +99,7 @@ static func monthly(world: Dictionary, wc: Dictionary, profile: Dictionary, base
 	var approval := float(wc.get("approval", 50.0))
 	# O desgaste de incumbência empurra a aprovação para baixo devagar; a
 	# economia e a política precisam compensar para um governo se sustentar.
-	approval = clampf(approval + economy_score + float(POLICY_APPROVAL.get(priority, 0.0)) - 0.03 + (50.0 - approval) * 0.015, 3.0, 92.0)
+	approval = clampf(approval + economy_score + float(POLICY_APPROVAL.get(priority, 0.0)) * intensity - 0.03 + (50.0 - approval) * 0.015, 3.0, 92.0)
 	var cohesion := float(wc.get("coalition_cohesion", 60.0))
 	var stability := clampf(float(wc.get("stability", 60.0)) + (approval - float(wc.get("stability", 60.0))) * 0.06 + (cohesion - 60.0) * 0.01, 5.0, 98.0)
 	wc["approval"] = approval

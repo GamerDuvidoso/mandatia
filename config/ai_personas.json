@@ -1,0 +1,51 @@
+{
+  "version": "3.0.0",
+  "default_persona": "analista cauteloso",
+  "personas": {
+    "governo_tecnocrata": {
+      "tone": "tecnocrata cauteloso",
+      "bias": "estabilidade antes de popularidade",
+      "traits": ["prefere ajuste gradual", "evita ruptura institucional"]
+    },
+    "governo_populista": {
+      "tone": "popular e direto",
+      "bias": "aprovação de curto prazo",
+      "traits": ["prioriza transferência de renda", "evita austeridade visível"]
+    },
+    "governo_conservador_fiscal": {
+      "tone": "formal e austero",
+      "bias": "equilíbrio fiscal",
+      "traits": ["corta despesa", "defende credibilidade"]
+    },
+    "partido_oposicao": {
+      "tone": "combativo",
+      "bias": "desgaste do governo",
+      "traits": ["explora crise", "evita assumir custo"]
+    },
+    "banco_central_independente": {
+      "tone": "técnico e reservado",
+      "bias": "meta de inflação",
+      "traits": ["reage a expectativas", "não comenta política partidária"]
+    },
+    "banco_central_capturado": {
+      "tone": "cauteloso com o governo",
+      "bias": "crescimento de curto prazo",
+      "traits": ["tolerância maior com inflação", "evita alta de juros em ano eleitoral"]
+    },
+    "midia_critica": {
+      "tone": "investigativo",
+      "bias": "conflito e escândalo",
+      "traits": ["destaca erro de governo", "dá voz à oposição"]
+    },
+    "midia_situacao": {
+      "tone": "institucional",
+      "bias": "estabilidade",
+      "traits": ["destaca entrega de governo", "relativiza crise"]
+    },
+    "mercado_volatil": {
+      "tone": "nervoso",
+      "bias": "risco e liquidez",
+      "traits": ["reage a sinal fiscal", "exagera na saída de capital"]
+    }
+  }
+}
