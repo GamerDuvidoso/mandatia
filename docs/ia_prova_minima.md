@@ -6,11 +6,11 @@ Gerado por `tools/ai_proof.gd` (Fase 3). Reproduza com:
 Godot_v4.7.2-stable_win64_console.exe --headless --path . --script tools/ai_proof.gd
 ```
 
-- Data: 2026-11-24T21:28:32
+- Data: 2026-11-24T22:49:23
 - Godot: 4.7.2-stable (official)
 - Sistema: Windows
 - Contrato: `gov_priority` no `WorldSim.monthly`, via broker
-- Modo do jogo: `off` (`config/ai_config.json`); a prova liga os modos explicitamente
+- Modo do jogo: `preferred` (`config/ai_config.json`); a prova liga os modos explicitamente
 - Cliente da prova: `FakeAIClient` (sem Ollama, sem GPU)
 
 ## Resultado por gate
@@ -32,7 +32,7 @@ dependem do modelo e do hardware do dono saem como `NÃO MEDIDO` com motivo.
 
 ### G3 — PASS
 
-chamadas no último mês: 40 (teto 40) · meses concluídos: 12/12 (off) e 12/12 (IA) · custo do mês: 23.7 ms (off) vs 86.3 ms (IA), extra 62.7 ms/mês (teto 100)
+chamadas no último mês: 40 (teto 40) · meses concluídos: 12/12 (off) e 12/12 (IA) · custo do mês: 21.7 ms (off) vs 77.1 ms (IA), extra 55.4 ms/mês (teto 100)
 
 _chamadas bloqueantes: 0 — a prioridade do mês é decidida em segundo plano e aplicada no mês seguinte_
 
@@ -71,15 +71,10 @@ depende de 20 casos rotulados ANTES da medição e das saídas reais do modelo; 
 - `G3` mede o custo do mês com cliente instantâneo. Com o Ollama real o pedido é assíncrono e o mês continua sem esperar; a latência por chamada é o objeto de G2.
 - `G5` verifica estrutura e faixa do que passa pelo applier; não prova ausência de escrita em outros módulos por análise estática.
 
-## Pendências para o dono (não respondidas por esta prova)
+## Decisões P1–P5
 
-1. **P1** — quem governa o país do jogador na oposição: NPC do mundo (A) ou motor com IA (B)?
-2. **P2** — espera aceitável por mês (`player_blocking_ms`).
-3. **P3** — versão do Ollama, GPU, VRAM e RAM.
-4. **P4** — modo padrão `preferred` ou `required` (hoje `off` até a prova com modelo).
-5. **P5** — forças armadas entram na Onda 5 ou ficam fora?
+Respondidas e integradas em `docs/ia_decisoes_p1_p5.md`: P1 governo NPC do país do jogador na oposição (livro-caixa único); P2 0 ms extra ao avançar o mês, 25 s só em decisão bloqueante; P3 baseline do repositório, hardware do dono para G1/G2/G7; P4 modo padrão `preferred`; P5 forças armadas como contrato opcional da Onda 5.
 
 ## Próximo passo
 
-Ligar `mode: "preferred"` no `config/ai_config.json` com o Ollama do dono,
-rodar este mesmo script para medir G1/G2/G7 e só então promover a Onda 1.
+Subir o Ollama do dono com `mode: "preferred"`, rodar este mesmo script para medir G1/G2/G7 e só então promover a Onda 1.

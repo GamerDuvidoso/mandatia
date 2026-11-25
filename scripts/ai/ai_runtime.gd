@@ -169,7 +169,7 @@ func _queue_next(st: Dictionary, country: String, actor: String, _stamp: String,
 		next_month = 1
 		next_year += 1
 	var next_stamp := "%d-%02d" % [next_year, next_month]
-	var meta := {"year": next_year, "month": next_month, "country": country, "model": model()}
+	var meta := {"year": next_year, "month": next_month, "country": country, "model": model(), "background": true}
 	var data := {"base": base, "profile": profile, "entities": [country]}
 	var callback := func(payload: Dictionary) -> void:
 		_on_decision(st, country, next_stamp, ctx, payload)
@@ -317,7 +317,7 @@ func _queue_actor(st: Dictionary, wc: Dictionary, contract: String, actor: Strin
 		next_month = 1
 		next_year += 1
 	var next_stamp := "%d-%02d" % [next_year, next_month]
-	var meta := {"year": next_year, "month": next_month, "country": country, "model": model()}
+	var meta := {"year": next_year, "month": next_month, "country": country, "model": model(), "background": true}
 	var data := {"base": base, "profile": profile, "entities": [country]}
 	var key := "%s|%s|%s" % [contract, actor, next_stamp]
 	var callback := func(payload: Dictionary) -> void:

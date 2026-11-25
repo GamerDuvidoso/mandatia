@@ -20,6 +20,10 @@ const Contracts := preload("res://scripts/ai/ai_contracts.gd")
 ## verificada por test/test_ai_layer.gd; sem o JSON, o catálogo devolve os
 ## mesmos padrões de antes.
 const DecisionCatalog := preload("res://scripts/ai/decision_catalog.gd")
+## Fase 4/5: os contratos do catálogo (governo, mercado, banco central,
+## executivo, judiciário, mídia) usam o validador único. O cliente não decide
+## nada: só entrega o JSON cru; o runtime valida e aplica.
+const DecisionValidator := preload("res://scripts/ai/decision_validator.gd")
 
 ## 127.0.0.1 e não "localhost": no Windows o Godot resolve localhost para
 ## ::1 e o Ollama só escuta em IPv4, o que derrubava toda chamada no fallback.
@@ -233,6 +237,19 @@ func pending_count() -> int:
 			total += 1
 	return total
 
+## Só as decisões que o jogador está esperando (eleição, votação). O mundo
+## decide em segundo plano: `_advance_month` não pode travar por causa delas.
+func pending_blocking_count() -> int:
+	var total := 0
+	for op in _ops.values():
+		if str((op as Dictionary).get("state", "")) != "pending":
+			continue
+		var meta: Variant = (op as Dictionary).get("meta", {})
+		if meta is Dictionary and bool((meta as Dictionary).get("background", false)):
+			continue
+		total += 1
+	return total
+
 func _attempt(op_id: String) -> void:
 	var op: Dictionary = _ops.get(op_id, {})
 	if op.is_empty() or str(op.get("state", "")) != "pending":
@@ -240,7 +257,7 @@ func _attempt(op_id: String) -> void:
 	var attempt := int(op.get("attempt", 0)) + 1
 	op["attempt"] = attempt
 	var contract := str(op.get("contract", ""))
-	var prompt := Contracts.prompt(contract, op.get("prompt_ctx", {}), examples)
+	var prompt := _prompt_for(contract, op.get("prompt_ctx", {}))
 	var rejected := str(op.get("validation", ""))
 	if int(op.get("retries", 0)) > 0 and rejected != "":
 		prompt += "\nA tentativa anterior foi rejeitada: %s. Corrija exatamente esse ponto e responda apenas o JSON.\n" % rejected
@@ -274,6 +291,20 @@ func _attempt(op_id: String) -> void:
 ## nos mesmos 320 tokens de uma manchete. O valor vem do catálogo.
 func _max_tokens(contract: String) -> int:
 	return DecisionCatalog.max_tokens(contract)
+
+## Prompt dos contratos do catálogo: schema e regra curtos do JSON, contexto
+## compacto já montado pelo `context_builder`. Os quatro contratos antigos
+## continuam com o prompt congelado de `ai_contracts.gd`.
+func _prompt_for(contract: String, ctx: Dictionary) -> String:
+	if Contracts.CONTRACTS.has(contract):
+		return Contracts.prompt(contract, ctx, examples)
+	var schema := DecisionCatalog.schema(contract)
+	var rules := DecisionCatalog.rules(contract)
+	return "Analista político do jogo Mandatia. Responda apenas JSON, sem markdown, em português do Brasil.\nFormato: %s\nRegra: %s\nContexto: %s\n" % [
+		schema,
+		rules,
+		JSON.stringify(ctx),
+	]
 
 func _on_timeout(op_id: String, attempt: int) -> void:
 	var op: Dictionary = _ops.get(op_id, {})
@@ -313,7 +344,18 @@ func _on_response(result: int, response_code: int, _headers: PackedStringArray, 
 		_retry_or_fallback(op_id, "resposta vazia")
 		return
 	var parsed: Variant = JSON.parse_string(inner_text)
-	var validation := _validate(str(op.get("contract", "")), parsed, op.get("data", {}))
+	var contract := str(op.get("contract", ""))
+	if not Contracts.CONTRACTS.has(contract):
+		var prompt_ctx: Variant = op.get("prompt_ctx", {})
+		var ids: Variant = (prompt_ctx as Dictionary).get("ids_permitidos", []) if prompt_ctx is Dictionary else []
+		var check := DecisionValidator.validate(contract, parsed, {"ids_permitidos": ids})
+		if bool(check.get("ok", false)):
+			var decision: Variant = check.get("decision", {})
+			_finish(op_id, (decision as Dictionary).duplicate(true) if decision is Dictionary else {}, "ollama", "")
+		else:
+			_retry_or_fallback(op_id, _first_error(check))
+		return
+	var validation := _validate(contract, parsed, op.get("data", {}))
 	if bool(validation.get("ok", false)):
 		# Bloco incompleto: uma correção pedindo as bancadas que faltaram. Se o
 		# modelo repetir o corte, o que veio é aceito e o motor vota o resto.
@@ -336,6 +378,12 @@ func _extract_json(text: String) -> String:
 	if start < 0 or end <= start:
 		return ""
 	return clean.substr(start, end - start + 1)
+
+func _first_error(check: Dictionary) -> String:
+	var errors: Variant = check.get("errors", [])
+	if errors is Array and not (errors as Array).is_empty():
+		return str((errors as Array)[0])
+	return "decisão inválida"
 
 func _retry_or_fallback(op_id: String, reason: String) -> void:
 	var op: Dictionary = _ops.get(op_id, {})

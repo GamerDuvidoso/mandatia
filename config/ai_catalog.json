@@ -78,6 +78,8 @@
       "max_attempts": 2,
       "allowed": { "actions": ["estabilizacao", "empregos", "investimento", "austeridade", "negociacao"] },
       "limits": { "intensity": [0.0, 1.0] },
+      "schema": "{\"action\":\"empregos\",\"intensity\":0.6,\"reason\":\"motivo curto\"}",
+      "rules": "action da lista permitida; intensity entre 0 e 1; reason ate 120 caracteres.",
       "fallback": "autonomous_government.gd#choose_priority",
       "examples": ["gov_priority_1", "gov_priority_2"]
     },
@@ -92,6 +94,8 @@
       "max_attempts": 2,
       "allowed": { "actions": ["sancionar", "vetar", "decretar", "nomear", "demitir", "convocar_coalizao", "discursar", "negociar_oposicao"], "stances": ["firme", "moderado", "conciliador"] },
       "limits": {},
+      "schema": "{\"action\":\"vetar\",\"target_id\":\"b_12\",\"stance\":\"firme\",\"reason\":\"motivo curto\"}",
+      "rules": "action da lista; target_id so o projeto que passou no mes (ou vazio); stance firme, moderado ou conciliador.",
       "fallback": "executive_npc.gd#minimum_rule",
       "examples": ["executive_action_1"]
     },
@@ -148,6 +152,8 @@
       "max_attempts": 2,
       "allowed": { "rulings": ["procedente", "improcedente", "suspender", "arquivar", "avancar_investigacao"] },
       "limits": { "vote_split_total": 15.0 },
+      "schema": "{\"case_id\":\"c_88\",\"ruling\":\"suspender\",\"vote_split\":[6,3],\"reason\":\"fundamentacao curta\"}",
+      "rules": "case_id de ids_permitidos; ruling da lista; vote_split soma 15.",
       "fallback": "judiciary_system.gd#minimum_rule",
       "examples": ["court_ruling_1"]
     },
@@ -162,6 +168,8 @@
       "max_attempts": 2,
       "allowed": { "capital_flow": ["entrada", "saida", "neutro"] },
       "limits": { "sentiment": [-1.0, 1.0], "risk_premium_bp": [0.0, 400.0], "fx_pressure_pct": [-10.0, 10.0] },
+      "schema": "{\"sentiment\":-0.4,\"risk_premium_bp\":35,\"fx_pressure_pct\":2.0,\"capital_flow\":\"saida\",\"business\":{\"invest\":\"reduzir\",\"layoffs\":\"alguma\"},\"reason\":\"motivo curto\"}",
+      "rules": "sentiment entre -1 e 1; risk_premium_bp entre 0 e 400; fx_pressure_pct entre -10 e 10; capital_flow entrada, saida ou neutro.",
       "fallback": "market_system.gd#neutral_mood",
       "examples": ["market_mood_1"]
     },
@@ -176,6 +184,8 @@
       "max_attempts": 2,
       "allowed": { "stances": ["hawkish", "neutro", "dovish"] },
       "limits": { "rate_move_bp": [-200.0, 200.0] },
+      "schema": "{\"rate_move_bp\":25,\"stance\":\"hawkish\",\"statement\":\"ate 140 car.\",\"reason\":\"motivo curto\"}",
+      "rules": "rate_move_bp entre -200 e 200; stance hawkish, neutro ou dovish.",
       "fallback": "central_bank.gd#hold_rate",
       "examples": ["central_bank_1"]
     },
@@ -207,6 +217,8 @@
       "max_attempts": 2,
       "allowed": { "frames": ["crise_economica", "escandalo", "entrega_governo", "seguranca", "eleicao", "rotina"] },
       "limits": { "bias": [-1.0, 1.0] },
+      "schema": "{\"frame\":\"crise_economica\",\"bias\":-0.3,\"focus_id\":\"s_4\",\"reason\":\"motivo curto\"}",
+      "rules": "frame da lista permitida; bias entre -1 e 1.",
       "fallback": "media_system.gd#neutral_frame",
       "examples": ["media_coverage_1"]
     },
