@@ -1,0 +1,28 @@
+{
+  "version": "3.0.0",
+  "mode": "off",
+  "endpoint": "http://127.0.0.1:11434",
+  "active_model": "mandatia-qwen35-local:latest",
+  "language": "pt-BR",
+  "budget": {
+    "player_blocking_ms": 25000,
+    "background_ms_per_month": 60000,
+    "max_calls_per_month": 40
+  },
+  "parallel": {
+    "max_parallel": 2
+  },
+  "replay": {
+    "enabled": true,
+    "store": "state.ai_decisions"
+  },
+  "log": {
+    "path": "user://ai_log",
+    "keep_days": 14
+  },
+  "training_export": {
+    "enabled": true,
+    "path": "user://ai_dataset",
+    "only_validated": true
+  }
+}

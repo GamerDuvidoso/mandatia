@@ -30,6 +30,11 @@ const AutonomousGovernment := preload("res://scripts/sim/autonomous_government.g
 const AutonomousParty := preload("res://scripts/sim/autonomous_party_system.gd")
 const AutonomousLegislature := preload("res://scripts/sim/autonomous_legislature.gd")
 const ForeignElection := preload("res://scripts/sim/foreign_election_system.gd")
+## Fase 3: camada de decisão. Com o modo padrão "off" ela devolve {} e o mês
+## sai exatamente como antes; o broker só age quando o modo é ligado.
+const AiRuntime := preload("res://scripts/ai/ai_runtime.gd")
+
+static var _default_runtime: Object = null
 
 static func _hash01(text: String) -> float:
 	var h := 2166136261
@@ -261,7 +266,16 @@ static func _foreign_policy(world: Dictionary, st: Dictionary, wc: Dictionary, p
 		"status": "confirmado", "news": _hash01(str(wc.get("id", "")) + "|fpn|" + tick) < 0.6,
 	}, 12)
 
-static func monthly(st: Dictionary, countries: Array, economy: Dictionary) -> Dictionary:
+## Runtime usado quando o chamador não passa um (jogo e testes antigos).
+## Criado uma vez por processo e lido do `config/ai_config.json`.
+static func _resolve_runtime(runtime: Object) -> Object:
+	if runtime != null:
+		return runtime
+	if _default_runtime == null:
+		_default_runtime = AiRuntime.new()
+	return _default_runtime
+
+static func monthly(st: Dictionary, countries: Array, economy: Dictionary, runtime: Object = null) -> Dictionary:
 	ensure(st, countries, economy)
 	var world: Dictionary = st["world"]
 	var year := int(st.get("date_year", 2027))
@@ -272,6 +286,7 @@ static func monthly(st: Dictionary, countries: Array, economy: Dictionary) -> Di
 	var intl: Dictionary = st.get("international_state", {})
 	var profiles: Dictionary = intl.get("profiles", {})
 	var events_before := (world.get("history", []) as Array).size()
+	var ai := _resolve_runtime(runtime)
 	for id in (world.get("countries", {}) as Dictionary).keys():
 		var wc: Dictionary = world.countries[id]
 		var profile: Variant = profiles.get(str(id), {})
@@ -283,7 +298,12 @@ static func monthly(st: Dictionary, countries: Array, economy: Dictionary) -> Di
 		var shock := (_hash01(str(id) + "|" + tick) * 2.0 - 1.0) * 0.6
 		# Governo decide primeiro (com histerese); a economia aplica o impulso
 		# da prioridade no mesmo mês; partidos e legislativo reagem ao resultado.
-		var government := AutonomousGovernment.monthly(world, wc, profile, base, year, month)
+		# A prioridade passa pela camada de decisão: em modo "off" ela devolve {}
+		# e a regra do motor decide, como antes do fio.
+		var ai_priority: Dictionary = {}
+		if ai != null:
+			ai_priority = ai.decide_gov_priority(st, wc, profile, base, year, month)
+		var government := AutonomousGovernment.monthly(world, wc, profile, base, year, month, ai_priority)
 		var priority := str(government.get("priority", wc.get("policy_priority", "investimento")))
 		CountryEconomy.monthly(profile, base, priority, shock)
 		AutonomousParty.monthly(world, wc, profile, base, year, month)
