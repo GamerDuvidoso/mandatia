@@ -1,9 +1,12 @@
 {
   "version": "3.0.0",
-  "mode": "off",
+  "mode": "preferred",
   "endpoint": "http://127.0.0.1:11434",
   "active_model": "mandatia-qwen35-local:latest",
   "language": "pt-BR",
+  "player_opposition": {
+    "npc_government": true
+  },
   "budget": {
     "player_blocking_ms": 25000,
     "background_ms_per_month": 60000,

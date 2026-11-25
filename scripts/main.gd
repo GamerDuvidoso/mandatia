@@ -21,6 +21,7 @@ const Debt := preload("res://scripts/sim/debt_system.gd")
 const PublicServices := preload("res://scripts/sim/public_services_system.gd")
 const International := preload("res://scripts/sim/international_system.gd")
 const WorldSim := preload("res://scripts/sim/world_sim.gd")
+const AiRuntime := preload("res://scripts/ai/ai_runtime.gd")
 const Military := preload("res://scripts/sim/military_system.gd")
 const Conflict := preload("res://scripts/sim/conflict_system.gd")
 const GlobalShock := preload("res://scripts/sim/global_shock_system.gd")
@@ -181,6 +182,7 @@ var promise_confirm: Button
 var campaign_region_select: OptionButton
 var campaign_group_select: OptionButton
 var ai: Node
+var world_ai: RefCounted
 var ai_wait_panel: PanelContainer
 var ai_wait_ops: Array = []
 var _month_in_progress := false
@@ -224,6 +226,10 @@ func _setup_ai() -> void:
 	ai.name = "AIClient"
 	add_child(ai)
 	ai.attach(self)
+	# Fase 4/P4: o runtime do mundo usa o mesmo cliente Ollama, com as cotas do
+	# catálogo. Modo ``preferred``: quando o modelo não responde, a contingência
+	# determinística do motor assume e o mês não espera a rede.
+	world_ai = AiRuntime.new(AiRuntime.default_config(), ai)
 
 func _load_country_catalog() -> void:
 	if not FileAccess.file_exists(COUNTRY_DATA_PATH): return
@@ -3930,9 +3936,13 @@ func _advance_month() -> void:
 	if int(state.months_to_election) <= 0:
 		_show_toast("Eleição obrigatória: realize o pleito em Eleições", "warning")
 		return
-	if ai != null and ai.pending_count() > 0:
-		_show_toast("Aguarde a decisão da IA em andamento", "warning")
-		return
+	if ai != null:
+		var pending := int(ai.pending_count())
+		if ai.has_method("pending_blocking_count"):
+			pending = int(ai.pending_blocking_count())
+		if pending > 0:
+			_show_toast("Aguarde a decisão da IA em andamento", "warning")
+			return
 	_month_in_progress = true
 	_month_snapshot = _metric_snapshot()
 	state.date_month += 1
@@ -3958,7 +3968,10 @@ func _advance_month() -> void:
 	# aplica apenas os efeitos que decorrem dessas variáveis.
 	Government.monthly(state)
 	International.monthly(state, countries, economy_catalog)
-	WorldSim.monthly(state, countries, economy_catalog)
+	WorldSim.monthly(state, countries, economy_catalog, world_ai)
+	# P1: na oposição, o governo do país do jogador é NPC decidido pela IA;
+	# na situação, o jogador governa e nada muda aqui.
+	WorldSim.player_opposition_month(state, countries, economy_catalog, world_ai)
 	# E2: defesa e geopolítica avançada fecham o mês depois do mundo autônomo.
 	# O país do jogador usa um perfil-ponte para que os custos militares alterem
 	# dívida, crescimento e inflação sem criar uma segunda fonte macroeconômica.

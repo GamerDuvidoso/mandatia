@@ -285,6 +285,106 @@ static func _resolve_runtime(runtime: Object) -> Object:
 		_default_runtime = AiRuntime.new()
 	return _default_runtime
 
+## P1 — governo NPC do país do jogador quando ele está na oposição.
+## O país continua fora de `world.countries`: a contabilidade macro segue
+## única (o estado do jogador). O que muda é a decisão: a IA decide a
+## prioridade (A1) e a ação do chefe do executivo (A2) e o motor aplica os
+## clamps. Persistência em `state.opposition_government` (aditivo, migração
+## segura); o resumo do mês fica no próprio save.
+const OPPOSITION_KEY := "opposition_government"
+
+static func _row_by_id(rows: Array, id: String) -> Dictionary:
+	for raw in rows:
+		if raw is Dictionary and str((raw as Dictionary).get("id", "")) == id:
+			return raw
+	return {}
+
+static func player_opposition_month(st: Dictionary, countries: Array, economy: Dictionary, runtime: Object = null) -> Dictionary:
+	if bool(st.get("government", true)):
+		return {}
+	var raw_toggle: Variant = AiRuntime.default_config().get("player_opposition", {})
+	var enabled := true
+	if raw_toggle is Dictionary:
+		enabled = bool((raw_toggle as Dictionary).get("npc_government", true))
+	elif raw_toggle is bool:
+		enabled = bool(raw_toggle)
+	if not enabled:
+		return {}
+	var country := str(st.get("country_id", ""))
+	if country == "":
+		return {}
+	var year := int(st.get("date_year", 2027))
+	var month := int(st.get("date_month", 1))
+	var tick := "%d-%02d" % [year, month]
+	var raw_saved: Variant = st.get(OPPOSITION_KEY, {})
+	var saved: Dictionary = raw_saved if raw_saved is Dictionary else {}
+	if str(saved.get("last_tick", "")) == tick:
+		return {}
+	var row := _row_by_id(countries, country)
+	if row.is_empty():
+		return {}
+	var raw_economy: Variant = economy.get(country, {})
+	var eco_row: Dictionary = raw_economy if raw_economy is Dictionary else {}
+	var base := CountryEconomy.base_from(eco_row)
+	var profile := {
+		"growth": float(st.get("economy", 2.0)),
+		"inflation": float(st.get("inflation", 4.5)),
+		"unemployment": float(st.get("unemployment", 7.0)),
+		"debt": float(st.get("debt", 60.0)),
+		"approval": float(saved.get("approval", st.get("approval", 50.0))),
+		"stability": float(saved.get("stability", 60.0)),
+		"policy_priority": str(saved.get("policy_priority", "investimento")),
+	}
+	var wc := {
+		"id": country,
+		"name": str(st.get("country_name", row.get("name", country))),
+		"approval": float(saved.get("approval", st.get("approval", 50.0))),
+		"stability": float(saved.get("stability", 60.0)),
+		"coalition_cohesion": float(saved.get("coalition_cohesion", 60.0)),
+		"policy_priority": str(saved.get("policy_priority", "investimento")),
+		"last_priority": str(saved.get("last_priority", "")),
+		"priority_streak": int(saved.get("priority_streak", 0)),
+		"government_party": str(st.get("abbr", "")),
+		"government_axis": 0.0,
+		"last_vote": {},
+		"economy_base": base,
+		"months_to_election": int(st.get("months_to_election", 0)),
+	}
+	var ai := _resolve_runtime(runtime)
+	var ai_priority: Dictionary = {}
+	var executive_decision: Dictionary = {}
+	if ai != null and ai.has_method("decide_gov_priority"):
+		ai_priority = ai.decide_gov_priority(st, wc, profile, base, year, month)
+	if ai != null and ai.has_method("decide_actor"):
+		executive_decision = ai.decide_actor("executive_action", "exec:" + country, st, wc, profile, base, year, month)
+	var world: Variant = st.get("world", {})
+	if not (world is Dictionary) or (world as Dictionary).is_empty():
+		world = {"history": [], "news": [], "stats": {}, "countries": {}}
+		st["world"] = world
+	var government := AutonomousGovernment.monthly(world, wc, profile, base, year, month, ai_priority)
+	var executive := ExecutiveNPC.monthly(st, wc, profile, base, year, month, executive_decision)
+	# Só o que o jogador realmente compartilha com o governo NPC volta ao
+	# estado: aprovação do governo e dívida (custo do decreto). PIB, inflação e
+	# desemprego continuam com o fluxo mensal do jogo, sem segunda fonte.
+	st["approval"] = clampf(float(wc.get("approval", st.get("approval", 50.0))), 3.0, 92.0)
+	st["debt"] = clampf(float(profile.get("debt", st.get("debt", 60.0))), 5.0, 180.0)
+	var last_action: Variant = executive.get("last_action", {})
+	saved = {
+		"last_tick": tick,
+		"approval": float(wc.get("approval", st.get("approval", 50.0))),
+		"stability": float(wc.get("stability", 60.0)),
+		"coalition_cohesion": float(wc.get("coalition_cohesion", 60.0)),
+		"policy_priority": str(government.get("priority", wc.get("policy_priority", "investimento"))),
+		"last_priority": str(wc.get("last_priority", "")),
+		"priority_streak": int(wc.get("priority_streak", 0)),
+		"vetoed_bills": wc.get("vetoed_bills", []),
+		"source": "ia" if not ai_priority.is_empty() or not executive_decision.is_empty() else "contingencia",
+		"executive": str((last_action as Dictionary).get("action", "")) if last_action is Dictionary else "",
+	}
+	st[OPPOSITION_KEY] = saved
+	_push_module_event(world, wc, country, executive, year, month)
+	return saved
+
 ## Publica no `causal_log` do mundo o fato que o módulo do ator marcou como
 ## notável. Módulos não conhecem o histórico; quem escreve é este ponto.
 static func _push_module_event(world: Dictionary, wc: Dictionary, country: String, row: Dictionary, year: int, month: int) -> void:

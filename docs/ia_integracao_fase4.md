@@ -125,7 +125,8 @@ mês com cliente instantâneo foi de 62,7 ms (teto 100 ms).
 
 ## Pendências para o dono
 
-P1 (governo do país do jogador), P2 (espera por mês), P3 (Ollama/hardware), P4
-(modo padrão) e P5 (forças armadas) continuam abertas. O modo padrão segue `off`:
-sem Ollama, o jogo roda com a contingência do motor, que é o comportamento
-determinístico descrito acima.
+P1–P5 foram respondidas e integradas em `docs/ia_decisoes_p1_p5.md`: o governo
+do país do jogador na oposição virou NPC decidido pela IA (mantendo o livro-caixa
+único), o mês não espera a rede, o modo padrão passou a `preferred` e as forças
+armadas ficaram como contrato opcional da onda 5. O runtime do mundo agora é
+ligado ao cliente Ollama no `main.gd`.
