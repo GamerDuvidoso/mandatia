@@ -7,7 +7,15 @@
   "budget": {
     "player_blocking_ms": 25000,
     "background_ms_per_month": 60000,
-    "max_calls_per_month": 40
+    "max_calls_per_month": 40,
+    "per_contract": {
+      "gov_priority": 14,
+      "market_mood": 6,
+      "central_bank": 6,
+      "executive_action": 6,
+      "media_coverage": 4,
+      "court_ruling": 4
+    }
   },
   "parallel": {
     "max_parallel": 2

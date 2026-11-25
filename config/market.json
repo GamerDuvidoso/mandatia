@@ -1,0 +1,28 @@
+{
+  "version": 1,
+  "notes": "Ator MERCADO (A6). A IA escolhe humor, prêmio de risco, pressão cambial, fluxo de capital e decisão das empresas; o motor converte em macro com clamps. Os pesos são parâmetros de jogo, não estatística oficial.",
+  "target_inflation": 3.0,
+  "premium": {
+    "base_bp": 30.0,
+    "debt_slope": 1.0,
+    "pessimism_bp": 90.0,
+    "min_bp": 0.0,
+    "max_bp": 400.0
+  },
+  "fx": {
+    "inflation_slope": 0.5,
+    "pessimism_pct": 1.5,
+    "min_pct": -10.0,
+    "max_pct": 10.0
+  },
+  "pass_through": {
+    "growth": 10000.0,
+    "inflation": 0.02,
+    "debt": 2200.0
+  },
+  "thresholds": {
+    "exit_premium_bp": 120.0,
+    "entry_premium_bp": 60.0,
+    "notable_premium_bp": 120.0
+  }
+}

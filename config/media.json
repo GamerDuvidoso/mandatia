@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "notes": "Ator MÍDIA (A9). A IA escolhe enquadramento e viés; o motor converte em pressão sobre aprovação e estabilidade e publica o multiplicador de exposição que escândalos usarão na onda 4.",
+  "max_history": 6,
+  "pass_through": {
+    "approval": 0.8,
+    "stability": 0.4
+  },
+  "exposure_base": 1.0
+}

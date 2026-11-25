@@ -4,9 +4,11 @@ extends RefCounted
 ## Um único ponto de entrada, chamado uma vez por mês no ciclo existente:
 ## `WorldSim.monthly(state, countries, economy)`.
 ##
-## Ordem por país: economia (macro) → governo (prioridade, aprovação) →
-## partidos (apoio, liderança) → legislativo (pauta e votação) → política externa
-## (acordos com pares) → calendário eleitoral (eleição e formação de governo).
+## Ordem do mês por país (seção 7 do prompt de integração): mercado → banco
+## central → mídia (enquadramento) → executivo → governo → economia → partidos
+## → legislativo → mídia (consequência) → judiciário → política externa →
+## calendário eleitoral. Cada ator novo usa contingência determinística quando a
+## camada de IA está desligada.
 ##
 ## Fonte de verdade:
 ## - macro (PIB, crescimento, inflação, desemprego, dívida) fica em
@@ -30,6 +32,14 @@ const AutonomousGovernment := preload("res://scripts/sim/autonomous_government.g
 const AutonomousParty := preload("res://scripts/sim/autonomous_party_system.gd")
 const AutonomousLegislature := preload("res://scripts/sim/autonomous_legislature.gd")
 const ForeignElection := preload("res://scripts/sim/foreign_election_system.gd")
+## Fase 4: atores das ondas 2 e 3 (mercado, banco central, mídia, executivo e
+## judiciário). Todos rodam sempre com a contingência do motor; a IA só troca a
+## decisão, pelo override validado.
+const MarketSystem := preload("res://scripts/sim/market_system.gd")
+const CentralBankSystem := preload("res://scripts/sim/central_bank.gd")
+const MediaSystem := preload("res://scripts/sim/media_system.gd")
+const ExecutiveNPC := preload("res://scripts/sim/executive_npc.gd")
+const JudiciarySystem := preload("res://scripts/sim/judiciary_system.gd")
 ## Fase 3: camada de decisão. Com o modo padrão "off" ela devolve {} e o mês
 ## sai exatamente como antes; o broker só age quando o modo é ligado.
 const AiRuntime := preload("res://scripts/ai/ai_runtime.gd")
@@ -275,6 +285,21 @@ static func _resolve_runtime(runtime: Object) -> Object:
 		_default_runtime = AiRuntime.new()
 	return _default_runtime
 
+## Publica no `causal_log` do mundo o fato que o módulo do ator marcou como
+## notável. Módulos não conhecem o histórico; quem escreve é este ponto.
+static func _push_module_event(world: Dictionary, wc: Dictionary, country: String, row: Dictionary, year: int, month: int) -> void:
+	var raw: Variant = row.get("event", {})
+	if not (raw is Dictionary) or (raw as Dictionary).is_empty():
+		return
+	var event: Dictionary = (raw as Dictionary).duplicate(true)
+	event["year"] = year
+	event["month"] = month
+	event["country"] = country
+	event["country_name"] = str(wc.get("name", country))
+	if not (event.get("actors", []) is Array) or (event.get("actors", []) as Array).is_empty():
+		event["actors"] = [str(wc.get("government_party", ""))]
+	WorldHistory.push(world, event, 6)
+
 static func monthly(st: Dictionary, countries: Array, economy: Dictionary, runtime: Object = null) -> Dictionary:
 	ensure(st, countries, economy)
 	var world: Dictionary = st["world"]
@@ -289,33 +314,60 @@ static func monthly(st: Dictionary, countries: Array, economy: Dictionary, runti
 	var ai := _resolve_runtime(runtime)
 	for id in (world.get("countries", {}) as Dictionary).keys():
 		var wc: Dictionary = world.countries[id]
-		var profile: Variant = profiles.get(str(id), {})
+		var country := str(id)
+		var profile: Variant = profiles.get(country, {})
 		if not (profile is Dictionary) or (profile as Dictionary).is_empty():
 			continue
+		var typed_profile: Dictionary = profile
 		var base: Dictionary = wc.get("economy_base", {})
 		# Choque externo determinístico de ±0,6 p.p. anualizado: cria trajetórias
 		# distintas sem RNG guardado e sem dominar a âncora de cada país.
-		var shock := (_hash01(str(id) + "|" + tick) * 2.0 - 1.0) * 0.6
-		# Governo decide primeiro (com histerese); a economia aplica o impulso
-		# da prioridade no mesmo mês; partidos e legislativo reagem ao resultado.
+		var shock := (_hash01(country + "|" + tick) * 2.0 - 1.0) * 0.6
+		# 2. mercado e banco central (A6, A7): o custo de capital e a taxa do mês
+		# entram no macro antes de qualquer decisão política.
+		var market_decision: Dictionary = {}
+		var bank_decision: Dictionary = {}
+		var media_decision: Dictionary = {}
+		var executive_decision: Dictionary = {}
+		var court_decision: Dictionary = {}
+		if ai != null and ai.has_method("decide_actor"):
+			market_decision = ai.decide_actor("market_mood", "market:" + country, st, wc, typed_profile, base, year, month)
+			bank_decision = ai.decide_actor("central_bank", "central_bank:" + country, st, wc, typed_profile, base, year, month)
+			media_decision = ai.decide_actor("media_coverage", "media:" + country, st, wc, typed_profile, base, year, month)
+			executive_decision = ai.decide_actor("executive_action", "exec:" + country, st, wc, typed_profile, base, year, month)
+		_push_module_event(world, wc, country, MarketSystem.monthly(st, wc, typed_profile, base, year, month, market_decision), year, month)
+		_push_module_event(world, wc, country, CentralBankSystem.monthly(st, wc, typed_profile, base, year, month, bank_decision), year, month)
+		# 3. povo e mídia (A8, A9): a mídia fixa o enquadramento do mês aqui; a
+		# consequência sobre aprovação fecha depois do bloco político.
+		_push_module_event(world, wc, country, MediaSystem.monthly(st, wc, typed_profile, base, year, month, media_decision), year, month)
+		# 4. executivo (A2) e governo (A1).
+		_push_module_event(world, wc, country, ExecutiveNPC.monthly(st, wc, typed_profile, base, year, month, executive_decision), year, month)
 		# A prioridade passa pela camada de decisão: em modo "off" ela devolve {}
 		# e a regra do motor decide, como antes do fio.
 		var ai_priority: Dictionary = {}
 		if ai != null:
-			ai_priority = ai.decide_gov_priority(st, wc, profile, base, year, month)
-		var government := AutonomousGovernment.monthly(world, wc, profile, base, year, month, ai_priority)
+			ai_priority = ai.decide_gov_priority(st, wc, typed_profile, base, year, month)
+		var government := AutonomousGovernment.monthly(world, wc, typed_profile, base, year, month, ai_priority)
 		var priority := str(government.get("priority", wc.get("policy_priority", "investimento")))
-		CountryEconomy.monthly(profile, base, priority, shock)
-		AutonomousParty.monthly(world, wc, profile, base, year, month)
-		AutonomousLegislature.monthly(world, wc, profile, base, year, month)
-		_foreign_policy(world, st, wc, profile, year, month)
+		CountryEconomy.monthly(typed_profile, base, priority, shock)
+		# 5. partidos (A3) e câmara (A4).
+		AutonomousParty.monthly(world, wc, typed_profile, base, year, month)
+		AutonomousLegislature.monthly(world, wc, typed_profile, base, year, month)
+		MediaSystem.close_month(st, wc)
+		# 6. judiciário (A5): julga o caso aberto do mês, só com efeito
+		# procedimental — nunca votos ou cadeiras.
+		if ai != null and ai.has_method("decide_actor"):
+			court_decision = ai.decide_actor("court_ruling", "court:" + country, st, wc, typed_profile, base, year, month)
+		_push_module_event(world, wc, country, JudiciarySystem.monthly(st, wc, typed_profile, base, year, month, court_decision), year, month)
+		# 7. diplomacia e calendário eleitoral.
+		_foreign_policy(world, st, wc, typed_profile, year, month)
 		wc["months_to_election"] = int(wc.get("months_to_election", 1)) - 1
 		if int(wc.months_to_election) <= 0:
-			ForeignElection.run(world, st, wc, profile, year, month)
+			ForeignElection.run(world, st, wc, typed_profile, year, month)
 		wc["turn"] = int(wc.get("turn", 0)) + 1
-		profile["approval"] = wc.get("approval", 50.0)
-		profile["stability"] = wc.get("stability", 60.0)
-		profile["policy_priority"] = str(wc.get("policy_priority", ""))
+		typed_profile["approval"] = wc.get("approval", 50.0)
+		typed_profile["stability"] = wc.get("stability", 60.0)
+		typed_profile["policy_priority"] = str(wc.get("policy_priority", ""))
 		world.countries[id] = wc
 	world["last_tick"] = tick
 	st["world"] = world

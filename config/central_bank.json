@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "notes": "Ator BANCO CENTRAL (A7). A IA escolhe o movimento da taxa e a postura; o motor aplica a taxa e calcula o efeito sobre crédito, crescimento e inflação. A independência é atributo da persona do país, não deste arquivo.",
+  "target_inflation": 3.0,
+  "neutral_rate": 6.5,
+  "deadband_bp": 25.0,
+  "step_bp": 5.0,
+  "min_rate": 1.0,
+  "max_rate": 40.0,
+  "notable_move_bp": 50.0,
+  "weights": {
+    "inflation": 60.0,
+    "activity": -40.0
+  },
+  "pass_through": {
+    "growth": 0.015,
+    "inflation": 0.05
+  }
+}

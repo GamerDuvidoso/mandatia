@@ -6,7 +6,7 @@ Gerado por `tools/ai_proof.gd` (Fase 3). Reproduza com:
 Godot_v4.7.2-stable_win64_console.exe --headless --path . --script tools/ai_proof.gd
 ```
 
-- Data: 2026-11-24T20:43:13
+- Data: 2026-11-24T21:28:32
 - Godot: 4.7.2-stable (official)
 - Sistema: Windows
 - Contrato: `gov_priority` no `WorldSim.monthly`, via broker
@@ -32,7 +32,7 @@ dependem do modelo e do hardware do dono saem como `NÃO MEDIDO` com motivo.
 
 ### G3 — PASS
 
-chamadas no último mês: 33 (teto 40) · meses concluídos: 12/12 (off) e 12/12 (IA) · custo do mês: 8.8 ms (off) vs 16.0 ms (IA), extra 7.3 ms/mês (teto 100)
+chamadas no último mês: 40 (teto 40) · meses concluídos: 12/12 (off) e 12/12 (IA) · custo do mês: 23.7 ms (off) vs 86.3 ms (IA), extra 62.7 ms/mês (teto 100)
 
 _chamadas bloqueantes: 0 — a prioridade do mês é decidida em segundo plano e aplicada no mês seguinte_
 
@@ -40,17 +40,17 @@ _chamadas bloqueantes: 0 — a prioridade do mês é decidida em segundo plano e
 
 timeout: 12/12 meses, estado idêntico; invalid: 12/12 meses, estado idêntico; empty: 12/12 meses, estado idêntico; offline: 12/12 meses, estado idêntico
 
-_hash de referência (modo off): 1121406840_
+_hash de referência (modo off): 93507850_
 
 ### G5 — PASS
 
-decisões registradas: 198 · com todos os campos: 198 · aplicadas pelo applier: 198 · clamps dentro da faixa: 198 · prioridades válidas no mundo: sim
+decisões registradas: 41 · com todos os campos: 41 · aplicadas pelo applier: 41 · clamps dentro da faixa: 41 · prioridades válidas no mundo: sim
 
 _nenhum sistema escreve prioridade fora de autonomous_government.monthly: a decisão só entra pelo plano do applier_
 
 ### G6 — PASS
 
-decisões gravadas: 198 · hash original: 2937172795 · hash reproduzido: 2937172795
+decisões gravadas: 42 · hash original: 173553865 · hash reproduzido: 173553865
 
 ### G1 — NÃO MEDIDO
 

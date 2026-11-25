@@ -1,10 +1,10 @@
 extends SceneTree
 ## Fase 3 — prova do fio `gov_priority` no `WorldSim.monthly`.
 ##
-## 1. Modo `off` (padrão) contra o comportamento ANTERIOR ao fio: um oráculo
-##    congelado neste arquivo replica o laço do `monthly` do commit `d77f356`,
-##    sem camada de IA. Os dois estados são comparados mês a mês e o teste falha
-##    na primeira divergência, mostrando o caminho da chave.
+## 1. Modo `off` (padrão) contra o laço do motor sem IA: um oráculo congelado
+##    neste arquivo replica o `monthly` da Fase 4 (cinco atores novos com
+##    contingência) e nunca passa decisão de IA. Os dois estados são comparados
+##    mês a mês e o teste falha na primeira divergência, mostrando a chave.
 ## 2. Modo `off` não chama o cliente nem cria bookkeeping de IA no estado.
 ## 3. Modo `preferred` pede a decisão pelo broker, guarda para o mês seguinte,
 ##    valida e aplica pelo applier (a prioridade muda de verdade).
@@ -21,7 +21,13 @@ const AutonomousGovernment := preload("res://scripts/sim/autonomous_government.g
 const CountryEconomy := preload("res://scripts/sim/country_economy_simulation.gd")
 const AutonomousParty := preload("res://scripts/sim/autonomous_party_system.gd")
 const AutonomousLegislature := preload("res://scripts/sim/autonomous_legislature.gd")
+const WorldHistory := preload("res://scripts/sim/world_history.gd")
 const ForeignElection := preload("res://scripts/sim/foreign_election_system.gd")
+const MarketSystem := preload("res://scripts/sim/market_system.gd")
+const CentralBankSystem := preload("res://scripts/sim/central_bank.gd")
+const MediaSystem := preload("res://scripts/sim/media_system.gd")
+const ExecutiveNPC := preload("res://scripts/sim/executive_npc.gd")
+const JudiciarySystem := preload("res://scripts/sim/judiciary_system.gd")
 
 const MONTHS := 12
 
@@ -58,9 +64,10 @@ func _finish() -> void:
 
 # ------------------------------------------------------- oráculo congelado
 
-## Cópia do laço de `WorldSim.monthly` anterior ao fio (commit d77f356).
-## Não deve ser atualizada junto com o produção: ela é a referência.
-func _legacy_month(st: Dictionary, countries: Array, economy: Dictionary) -> void:
+## Cópia congelada do laço de `WorldSim.monthly` (Fase 4) sem camada de IA:
+## os cinco atores novos rodam com a contingência do motor e nenhum override.
+## Não deve ser alterada junto com a produção: ela é a referência do modo off.
+func _engine_month(st: Dictionary, countries: Array, economy: Dictionary) -> void:
 	WorldSim.ensure(st, countries, economy)
 	var world: Dictionary = st["world"]
 	var year := int(st.get("date_year", 2027))
@@ -72,28 +79,51 @@ func _legacy_month(st: Dictionary, countries: Array, economy: Dictionary) -> voi
 	var profiles: Dictionary = intl.get("profiles", {})
 	for id in (world.get("countries", {}) as Dictionary).keys():
 		var wc: Dictionary = world.countries[id]
-		var profile: Variant = profiles.get(str(id), {})
+		var country := str(id)
+		var profile: Variant = profiles.get(country, {})
 		if not (profile is Dictionary) or (profile as Dictionary).is_empty():
 			continue
+		var typed_profile: Dictionary = profile
 		var base: Dictionary = wc.get("economy_base", {})
-		var shock := (WorldSim._hash01(str(id) + "|" + tick) * 2.0 - 1.0) * 0.6
-		var government := AutonomousGovernment.monthly(world, wc, profile, base, year, month)
+		var shock := (WorldSim._hash01(country + "|" + tick) * 2.0 - 1.0) * 0.6
+		_oracle_event(world, wc, country, MarketSystem.monthly(st, wc, typed_profile, base, year, month), year, month)
+		_oracle_event(world, wc, country, CentralBankSystem.monthly(st, wc, typed_profile, base, year, month), year, month)
+		_oracle_event(world, wc, country, MediaSystem.monthly(st, wc, typed_profile, base, year, month), year, month)
+		_oracle_event(world, wc, country, ExecutiveNPC.monthly(st, wc, typed_profile, base, year, month), year, month)
+		var government := AutonomousGovernment.monthly(world, wc, typed_profile, base, year, month)
 		var priority := str(government.get("priority", wc.get("policy_priority", "investimento")))
-		CountryEconomy.monthly(profile, base, priority, shock)
-		AutonomousParty.monthly(world, wc, profile, base, year, month)
-		AutonomousLegislature.monthly(world, wc, profile, base, year, month)
-		WorldSim._foreign_policy(world, st, wc, profile, year, month)
+		CountryEconomy.monthly(typed_profile, base, priority, shock)
+		AutonomousParty.monthly(world, wc, typed_profile, base, year, month)
+		AutonomousLegislature.monthly(world, wc, typed_profile, base, year, month)
+		MediaSystem.close_month(st, wc)
+		_oracle_event(world, wc, country, JudiciarySystem.monthly(st, wc, typed_profile, base, year, month), year, month)
+		WorldSim._foreign_policy(world, st, wc, typed_profile, year, month)
 		wc["months_to_election"] = int(wc.get("months_to_election", 1)) - 1
 		if int(wc.months_to_election) <= 0:
-			ForeignElection.run(world, st, wc, profile, year, month)
+			ForeignElection.run(world, st, wc, typed_profile, year, month)
 		wc["turn"] = int(wc.get("turn", 0)) + 1
-		profile["approval"] = wc.get("approval", 50.0)
-		profile["stability"] = wc.get("stability", 60.0)
-		profile["policy_priority"] = str(wc.get("policy_priority", ""))
+		typed_profile["approval"] = wc.get("approval", 50.0)
+		typed_profile["stability"] = wc.get("stability", 60.0)
+		typed_profile["policy_priority"] = str(wc.get("policy_priority", ""))
 		world.countries[id] = wc
 	world["last_tick"] = tick
 	st["world"] = world
 	st["world_summary"] = WorldSim.summary(st)
+
+## Publicação do fato: mesma regra mecânica do ponto de produção, copiada aqui
+## para o oráculo não depender do script que está sendo verificado.
+func _oracle_event(world: Dictionary, wc: Dictionary, country: String, row: Dictionary, year: int, month: int) -> void:
+	var raw: Variant = row.get("event", {})
+	if not (raw is Dictionary) or (raw as Dictionary).is_empty():
+		return
+	var event: Dictionary = (raw as Dictionary).duplicate(true)
+	event["year"] = year
+	event["month"] = month
+	event["country"] = country
+	event["country_name"] = str(wc.get("name", country))
+	if not (event.get("actors", []) is Array) or (event.get("actors", []) as Array).is_empty():
+		event["actors"] = [str(wc.get("government_party", ""))]
+	WorldHistory.push(world, event, 6)
 
 # ------------------------------------------------------------- comparação
 
@@ -144,12 +174,12 @@ func _test_off_matches_legacy() -> void:
 		var month := int(i % 12) + 1
 		Fixture.set_date(baseline, year, month)
 		Fixture.set_date(wired, year, month)
-		_legacy_month(baseline, countries, economy)
+		_engine_month(baseline, countries, economy)
 		WorldSim.monthly(wired, countries, economy)
 		diverged = _first_diff(baseline, wired, "state")
 		if diverged != "":
 			break
-	_check(diverged == "", "modo off deve reproduzir o comportamento anterior (%s)" % diverged)
+	_check(diverged == "", "modo off deve reproduzir o laço do motor sem IA (%s)" % diverged)
 	_check(int((wired.get("world", {}) as Dictionary).get("countries", {}).size()) > 0, "mundo deve ter países NPC")
 	_check(str((wired.get("world", {}) as Dictionary).get("last_tick", "")) == "2027-12", "doze meses devem avançar o tick")
 
@@ -185,12 +215,15 @@ func _test_ai_path_applies() -> void:
 		"parallel": {"max_parallel": 2},
 		"training_export": {"enabled": false, "only_validated": true},
 	}, fake)
-	var countries_count := int((st_ai.get("world", {}) as Dictionary).get("countries", {}).size())
 	Fixture.set_date(st_ai, 2027, 1)
 	WorldSim.monthly(st_ai, countries, economy, runtime)
 	_check(not fake.calls.is_empty(), "modo preferred deve pedir a prioridade ao broker")
 	_check(fake.calls.size() <= 40, "pedidos do mês devem caber no orçamento (%d)" % fake.calls.size())
-	_check(fake.calls.size() <= countries_count + 1, "no máximo um pedido por país NPC")
+	var asked_gov := false
+	for call in fake.calls:
+		if str((call as Dictionary).get("contract", "")) == "gov_priority":
+			asked_gov = true
+	_check(asked_gov, "o mês deve pedir gov_priority ao broker")
 	var plan: Dictionary = st_ai.get("ai_priority_plan", {})
 	_check(not plan.is_empty(), "resposta da IA deve virar plano para o mês seguinte")
 
